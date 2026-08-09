@@ -11,10 +11,35 @@ interface LoaderProps {
   onComplete: () => void;
 }
 
+const STICKER_DATA = [
+  { id: 1, offsetX: -120, offsetY: 30, rotation: -15, width: 140, height: 75, zIndex: 10 },
+  { id: 2, offsetX: -80, offsetY: -60, rotation: -5, width: 120, height: 120, zIndex: 15 },
+  { id: 3, offsetX: -10, offsetY: 40, rotation: 10, width: 100, height: 100, zIndex: 20 },
+  { id: 4, offsetX: 40, offsetY: -40, rotation: -25, width: 95, height: 95, zIndex: 25 },
+  { id: 5, offsetX: 110, offsetY: 20, rotation: 5, width: 110, height: 110, zIndex: 30 },
+  { id: 6, offsetX: 60, offsetY: 90, rotation: 20, width: 130, height: 55, zIndex: 35 },
+  { id: 7, offsetX: -60, offsetY: 95, rotation: -10, width: 100, height: 100, zIndex: 40 },
+  { id: 8, offsetX: 10, offsetY: -110, rotation: 15, width: 90, height: 60, zIndex: 45 },
+];
+
 export default function Loader({ onComplete }: LoaderProps) {
   const [progress, setProgress] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const stickerRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const spawnedCount = useRef(0);
+  const lastMousePos = useRef({ x: 0, y: 0 });
+  const mousePos = useRef({ x: 0, y: 0 }); // Relative to center of screen/container
+  const positions = useRef<{ x: number; y: number }[]>(
+    Array(8).fill(null).map(() => ({ x: 0, y: 0 }))
+  );
+
+  const interactionOccurred = useRef(false);
+  const autoSpawnTimer = useRef<NodeJS.Timeout | null>(null);
+  const autoSpawnInterval = useRef<NodeJS.Timeout | null>(null);
+  const isExiting = useRef(false);
+  const triggerExitRef = useRef<(() => void) | null>(null);
 
   // 1. Simulating loading percentage
   useEffect(() => {
@@ -33,6 +58,12 @@ export default function Loader({ onComplete }: LoaderProps) {
 
       if (nextProgress === 100) {
         if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+        // Wait briefly at 100% before triggering exit scatter
+        setTimeout(() => {
+          if (triggerExitRef.current) {
+            triggerExitRef.current();
+          }
+        }, 400);
       }
     }, intervalTime);
 
@@ -41,59 +72,112 @@ export default function Loader({ onComplete }: LoaderProps) {
     };
   }, []);
 
-  // 2. GSAP Animations for Stickers
+  // 2. Setup Auto-spawn Fallback
+  useEffect(() => {
+    // Start inactivity timer for auto-spawn
+    autoSpawnTimer.current = setTimeout(() => {
+      startAutoSpawn();
+    }, 1000);
+
+    return () => {
+      if (autoSpawnTimer.current) clearTimeout(autoSpawnTimer.current);
+      if (autoSpawnInterval.current) clearInterval(autoSpawnInterval.current);
+    };
+  }, []);
+
+  const spawnSticker = (index: number, x: number, y: number) => {
+    const el = stickerRefs.current[index];
+    if (!el) return;
+
+    spawnedCount.current = index + 1;
+    positions.current[index] = { x, y };
+
+    // Initial position is at the cursor / spawn source
+    gsap.set(el, {
+      x: x,
+      y: y,
+      scale: 0,
+      opacity: 0,
+      rotation: gsap.utils.random(-60, 60),
+    });
+
+    const data = STICKER_DATA[index];
+
+    gsap.to(el, {
+      scale: 1,
+      opacity: 1,
+      rotation: data.rotation,
+      duration: 0.6,
+      ease: "back.out(1.6)",
+    });
+  };
+
+  const startAutoSpawn = () => {
+    if (interactionOccurred.current) return;
+
+    autoSpawnInterval.current = setInterval(() => {
+      if (spawnedCount.current < 8) {
+        // Spawn at center (0, 0)
+        spawnSticker(spawnedCount.current, 0, 0);
+      } else {
+        if (autoSpawnInterval.current) clearInterval(autoSpawnInterval.current);
+      }
+    }, 180);
+  };
+
+  const handleInteraction = (clientX: number, clientY: number) => {
+    if (isExiting.current) return;
+
+    if (!interactionOccurred.current) {
+      interactionOccurred.current = true;
+      if (autoSpawnTimer.current) clearTimeout(autoSpawnTimer.current);
+      if (autoSpawnInterval.current) clearInterval(autoSpawnInterval.current);
+    }
+
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const x = clientX - centerX;
+    const y = clientY - centerY;
+
+    mousePos.current = { x, y };
+
+    if (spawnedCount.current < 8) {
+      const dist = Math.hypot(clientX - lastMousePos.current.x, clientY - lastMousePos.current.y);
+      if (spawnedCount.current === 0 || dist >= 55) {
+        spawnSticker(spawnedCount.current, x, y);
+        lastMousePos.current = { x: clientX, y: clientY };
+      }
+    }
+  };
+
+  // 3. GSAP Animations & Ticker
   useGSAP(
-    () => {
-      // Entrance: drop and bounce stickers one by one
-      const tl = gsap.timeline({
-        onComplete: () => {
-          // Wait briefly at 100% before triggering exit scatter
-          gsap.delayedCall(0.4, () => {
-            triggerExit();
-          });
-        },
-      });
+    (context, contextSafe) => {
+      if (!contextSafe) return;
 
-      // Targets: .sticker-wrapper
-      // We animate them dropping in with scale, rotation, and elastic bounce
-      tl.fromTo(
-        ".sticker-wrapper",
-        {
-          y: -150,
-          scale: 0,
-          rotation: () => gsap.utils.random(-90, 90),
-          opacity: 0,
-        },
-        {
-          y: 0,
-          scale: 1,
-          rotation: (index) => {
-            // Give them structured offsets to stack beautifully like the reference image
-            const angles = [-15, -5, 10, -25, 5, 20, -10, 15];
-            return angles[index % angles.length];
-          },
-          opacity: 1,
-          duration: 0.8,
-          ease: "elastic.out(1, 0.6)",
-          stagger: 0.18, // staggered landing
+      const triggerExit = contextSafe(() => {
+        if (isExiting.current) return;
+        isExiting.current = true;
+
+        // Force spawn remaining stickers so they all participate in the exit scatter
+        for (let i = spawnedCount.current; i < 8; i++) {
+          const el = stickerRefs.current[i];
+          if (el) {
+            const data = STICKER_DATA[i];
+            gsap.set(el, {
+              x: mousePos.current.x + data.offsetX,
+              y: mousePos.current.y + data.offsetY,
+              scale: 1,
+              opacity: 1,
+              rotation: data.rotation,
+            });
+          }
         }
-      );
+        spawnedCount.current = 8;
 
-      // Subtle float animations once landed
-      gsap.to(".sticker-wrapper", {
-        y: "yoyo",
-        yoyo: true,
-        repeat: -1,
-        duration: "random(2.5, 4)",
-        ease: "sine.inOut",
-        stagger: {
-          amount: 0.5,
-          from: "random",
-        },
-      });
-
-      // Exit Scatter Animation
-      const triggerExit = () => {
         const exitTl = gsap.timeline({
           onComplete: () => {
             onComplete();
@@ -135,6 +219,67 @@ export default function Loader({ onComplete }: LoaderProps) {
           },
           "-=0.7"
         );
+      });
+
+      triggerExitRef.current = triggerExit;
+
+      // Smooth mouse-follow ticker
+      const tickHandler = () => {
+        if (isExiting.current) return;
+
+        for (let i = 0; i < spawnedCount.current; i++) {
+          const el = stickerRefs.current[i];
+          if (!el) continue;
+
+          const curr = positions.current[i];
+
+          if (!interactionOccurred.current) {
+            // Fallback Mode: Float to static layout offsets around the center (0, 0)
+            const data = STICKER_DATA[i];
+            const targetX = mousePos.current.x + data.offsetX;
+            const targetY = mousePos.current.y + data.offsetY;
+            const speed = 0.1; // Gentle float speed
+
+            curr.x += (targetX - curr.x) * speed;
+            curr.y += (targetY - curr.y) * speed;
+          } else {
+            // Interactive Mode: Trail behind the cursor in a free line (distance-constrained chain)
+            if (i === 0) {
+              const targetX = mousePos.current.x;
+              const targetY = mousePos.current.y;
+              const speed = 0.25; // Quick cursor follow
+
+              curr.x += (targetX - curr.x) * speed;
+              curr.y += (targetY - curr.y) * speed;
+            } else {
+              const prev = positions.current[i - 1];
+              const dx = prev.x - curr.x;
+              const dy = prev.y - curr.y;
+              const dist = Math.hypot(dx, dy);
+
+              if (dist > 0.01) {
+                const spacing = 35; // Pixels of separation in the free-line trail
+                const targetX = prev.x - (dx / dist) * spacing;
+                const targetY = prev.y - (dy / dist) * spacing;
+                const speed = 0.25; // Propagation speed
+
+                curr.x += (targetX - curr.x) * speed;
+                curr.y += (targetY - curr.y) * speed;
+              }
+            }
+          }
+
+          gsap.set(el, {
+            x: curr.x,
+            y: curr.y,
+          });
+        }
+      };
+
+      gsap.ticker.add(tickHandler);
+
+      return () => {
+        gsap.ticker.remove(tickHandler);
       };
     },
     { scope: containerRef }
@@ -143,6 +288,25 @@ export default function Loader({ onComplete }: LoaderProps) {
   return (
     <div
       ref={containerRef}
+      onMouseMove={(e) => handleInteraction(e.clientX, e.clientY)}
+      onTouchMove={(e) => {
+        if (e.touches.length > 0) {
+          handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }}
+      onTouchStart={(e) => {
+        if (e.touches.length > 0) {
+          handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }}
+      onMouseLeave={() => {
+        mousePos.current = { x: 0, y: 0 };
+        interactionOccurred.current = false;
+      }}
+      onTouchEnd={() => {
+        mousePos.current = { x: 0, y: 0 };
+        interactionOccurred.current = false;
+      }}
       className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-gradient-to-tr from-[#deddd9] via-[#f3f0ed] to-[#e4e2de] select-none"
       style={{ perspective: "1000px" }}
     >
@@ -151,10 +315,21 @@ export default function Loader({ onComplete }: LoaderProps) {
         
         {/* Sticker 1: Teal "YASH RAJ" Slanted Badge (Bottom Layer) */}
         <div
-          className="sticker-wrapper absolute w-[140px] h-[75px] z-10"
-          style={{ transform: "translate(-120px, 30px)" }}
+          ref={(el) => { stickerRefs.current[0] = el; }}
+          className="sticker-wrapper absolute pointer-events-none"
+          style={{
+            width: "140px",
+            height: "75px",
+            zIndex: 10,
+            left: "50%",
+            top: "50%",
+            marginLeft: "-70px",
+            marginTop: "-37.5px",
+            opacity: 0,
+            transform: "scale(0)",
+          }}
         >
-          <div className="w-full h-full bg-[#e29e5a] border-2 border-black rounded-lg shadow-sm flex flex-col justify-center items-center -rotate-6 transform hover:scale-105 transition-transform duration-300">
+          <div className="w-full h-full bg-[#e29e5a] border-2 border-black rounded-lg shadow-sm flex flex-col justify-center items-center -rotate-6 transform">
             <span className="font-mono text-[9px] font-bold text-black opacity-80 uppercase tracking-widest">
               PORTFOLIO
             </span>
@@ -166,10 +341,21 @@ export default function Loader({ onComplete }: LoaderProps) {
 
         {/* Sticker 2: Purple 5-Petal Flower "PIXEL" */}
         <div
-          className="sticker-wrapper absolute w-[120px] h-[120px] z-15"
-          style={{ transform: "translate(-80px, -60px)" }}
+          ref={(el) => { stickerRefs.current[1] = el; }}
+          className="sticker-wrapper absolute pointer-events-none"
+          style={{
+            width: "120px",
+            height: "120px",
+            zIndex: 15,
+            left: "50%",
+            top: "50%",
+            marginLeft: "-60px",
+            marginTop: "-60px",
+            opacity: 0,
+            transform: "scale(0)",
+          }}
         >
-          <div className="w-full h-full flex items-center justify-center relative hover:scale-105 transition-transform duration-300">
+          <div className="w-full h-full flex items-center justify-center relative">
             {/* SVG Flower Outline */}
             <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
               <path
@@ -192,10 +378,21 @@ export default function Loader({ onComplete }: LoaderProps) {
 
         {/* Sticker 3: Neon Green Smiley */}
         <div
-          className="sticker-wrapper absolute w-[100px] h-[100px] z-20"
-          style={{ transform: "translate(-10px, 40px)" }}
+          ref={(el) => { stickerRefs.current[2] = el; }}
+          className="sticker-wrapper absolute pointer-events-none"
+          style={{
+            width: "100px",
+            height: "100px",
+            zIndex: 20,
+            left: "50%",
+            top: "50%",
+            marginLeft: "-50px",
+            marginTop: "-50px",
+            opacity: 0,
+            transform: "scale(0)",
+          }}
         >
-          <div className="w-full h-full bg-[#22c55e] border-2.5 border-black rounded-full shadow-sm flex items-center justify-center hover:scale-105 transition-transform duration-300 relative">
+          <div className="w-full h-full bg-[#22c55e] border-2.5 border-black rounded-full shadow-sm flex items-center justify-center relative">
             <svg viewBox="0 0 80 80" className="w-[70%] h-[70%]">
               {/* Cross eyes */}
               <path d="M 22,25 L 32,35 M 32,25 L 22,35" stroke="black" strokeWidth="3" strokeLinecap="round" />
@@ -215,10 +412,21 @@ export default function Loader({ onComplete }: LoaderProps) {
 
         {/* Sticker 4: Blue Building Block / Lego "DEV" */}
         <div
-          className="sticker-wrapper absolute w-[95px] h-[95px] z-25"
-          style={{ transform: "translate(40px, -40px)" }}
+          ref={(el) => { stickerRefs.current[3] = el; }}
+          className="sticker-wrapper absolute pointer-events-none"
+          style={{
+            width: "95px",
+            height: "95px",
+            zIndex: 25,
+            left: "50%",
+            top: "50%",
+            marginLeft: "-47.5px",
+            marginTop: "-47.5px",
+            opacity: 0,
+            transform: "scale(0)",
+          }}
         >
-          <div className="w-full h-full bg-[#3c332a] text-[#fcf3f2] border-2 border-black rounded shadow-sm flex flex-col justify-between p-2.5 hover:scale-105 transition-transform duration-300">
+          <div className="w-full h-full bg-[#3c332a] text-[#fcf3f2] border-2 border-black rounded shadow-sm flex flex-col justify-between p-2.5">
             <div className="flex justify-between items-center">
               <span className="font-mono text-[8px] font-bold text-neutral-400">DEV.SYS</span>
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
@@ -234,10 +442,21 @@ export default function Loader({ onComplete }: LoaderProps) {
 
         {/* Sticker 5: Pink Acid Face (Sparkly eyes, wavy mouth) */}
         <div
-          className="sticker-wrapper absolute w-[110px] h-[110px] z-30"
-          style={{ transform: "translate(110px, 20px)" }}
+          ref={(el) => { stickerRefs.current[4] = el; }}
+          className="sticker-wrapper absolute pointer-events-none"
+          style={{
+            width: "110px",
+            height: "110px",
+            zIndex: 30,
+            left: "50%",
+            top: "50%",
+            marginLeft: "-55px",
+            marginTop: "-55px",
+            opacity: 0,
+            transform: "scale(0)",
+          }}
         >
-          <div className="w-full h-full bg-[#ef9d94] border-2.5 border-black rounded-full shadow-sm flex items-center justify-center hover:scale-105 transition-transform duration-300 relative">
+          <div className="w-full h-full bg-[#ef9d94] border-2.5 border-black rounded-full shadow-sm flex items-center justify-center relative">
             <svg viewBox="0 0 100 100" className="w-[80%] h-[80%]">
               {/* Star Eyes */}
               <path d="M 25,35 L 35,35 M 30,30 L 30,40" stroke="black" strokeWidth="3" strokeLinecap="round" />
@@ -262,10 +481,21 @@ export default function Loader({ onComplete }: LoaderProps) {
 
         {/* Sticker 6: Red Curved Label "WALK ALONG" */}
         <div
-          className="sticker-wrapper absolute w-[130px] h-[55px] z-35"
-          style={{ transform: "translate(60px, 90px)" }}
+          ref={(el) => { stickerRefs.current[5] = el; }}
+          className="sticker-wrapper absolute pointer-events-none"
+          style={{
+            width: "130px",
+            height: "55px",
+            zIndex: 35,
+            left: "50%",
+            top: "50%",
+            marginLeft: "-65px",
+            marginTop: "-27.5px",
+            opacity: 0,
+            transform: "scale(0)",
+          }}
         >
-          <div className="w-full h-full bg-[#de3421] border-2 border-black rounded-full shadow-sm flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300 relative">
+          <div className="w-full h-full bg-[#de3421] border-2 border-black rounded-full shadow-sm flex items-center justify-center p-2 relative">
             <span className="font-mono text-[9px] font-black text-white tracking-widest uppercase">
               ★ WALK ALONG ★
             </span>
@@ -277,10 +507,21 @@ export default function Loader({ onComplete }: LoaderProps) {
 
         {/* Sticker 7: Orange Sunburst / Badge "CREATIVE" */}
         <div
-          className="sticker-wrapper absolute w-[100px] h-[100px] z-40"
-          style={{ transform: "translate(-60px, 95px)" }}
+          ref={(el) => { stickerRefs.current[6] = el; }}
+          className="sticker-wrapper absolute pointer-events-none"
+          style={{
+            width: "100px",
+            height: "100px",
+            zIndex: 40,
+            left: "50%",
+            top: "50%",
+            marginLeft: "-50px",
+            marginTop: "-50px",
+            opacity: 0,
+            transform: "scale(0)",
+          }}
         >
-          <div className="w-full h-full flex items-center justify-center relative hover:scale-105 transition-transform duration-300">
+          <div className="w-full h-full flex items-center justify-center relative">
             <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
               {/* Sunburst points */}
               <path
@@ -311,10 +552,21 @@ export default function Loader({ onComplete }: LoaderProps) {
 
         {/* Sticker 8: Beige Oval "YUM / DELICIOUS" */}
         <div
-          className="sticker-wrapper absolute w-[90px] h-[60px] z-45"
-          style={{ transform: "translate(10px, -110px)" }}
+          ref={(el) => { stickerRefs.current[7] = el; }}
+          className="sticker-wrapper absolute pointer-events-none"
+          style={{
+            width: "90px",
+            height: "60px",
+            zIndex: 45,
+            left: "50%",
+            top: "50%",
+            marginLeft: "-45px",
+            marginTop: "-30px",
+            opacity: 0,
+            transform: "scale(0)",
+          }}
         >
-          <div className="w-full h-full bg-[#f5e1cd] border-2 border-black rounded-[50%] shadow-sm flex flex-col justify-center items-center hover:scale-105 transition-transform duration-300">
+          <div className="w-full h-full bg-[#f5e1cd] border-2 border-black rounded-[50%] shadow-sm flex flex-col justify-center items-center">
             <span className="font-display text-sm font-black text-black leading-none">
               YUM
             </span>

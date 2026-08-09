@@ -90,27 +90,27 @@ export default function Hero({ active }: HeroProps) {
         {/* Subtle noise/paper overlay texture */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px] z-20"></div>
 
-        {/* 1. Header Navigation Bar */}
-        <header className="hero-ui-element z-30 w-full px-6 py-4 flex justify-between items-center text-[10px] md:text-xs font-mono text-black uppercase tracking-wider">
-          <div className="flex items-center gap-1">
+        {/* 1. Header Navigation Bar - Structured as 3-column grid for perfect viewport centering */}
+        <header className="hero-ui-element z-30 w-full px-6 py-4 grid grid-cols-3 items-center text-[10px] md:text-xs font-mono text-black uppercase tracking-wider">
+          <div className="flex items-center gap-1 justify-start">
             <span className="font-bold">© Yash Raj</span>
-            <span className="opacity-60 hidden sm:inline">— AI & Software</span>
+            <span className="opacity-60 hidden sm:inline">— Design, AI & Software</span>
           </div>
-          <nav className="flex gap-6 md:gap-12">
+          <nav className="flex justify-center gap-6 md:gap-12">
             <a
               href="#about"
-              className="hover:line-through transition-all duration-300 pointer-events-auto"
+              className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
             >
               About
             </a>
             <a
               href="#projects"
-              className="hover:line-through transition-all duration-300 pointer-events-auto"
+              className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
             >
               Projects
             </a>
           </nav>
-          <div>
+          <div className="flex justify-end">
             <a
               href="#contact"
               className="hover:line-through font-bold pointer-events-auto"
@@ -125,7 +125,7 @@ export default function Hero({ active }: HeroProps) {
           <div className="flex items-center justify-center w-full max-w-[95vw] px-4 gap-x-2 select-none">
             {/* Left Name part (Yash) - Layered behind (Z-0) */}
             <div className="char-left relative z-0 inline-block">
-              <span className="inline-block font-display font-black text-[10vw] md:text-[12vw] tracking-tighter text-black uppercase leading-none select-none transition-transform duration-500 ease-out hover:-translate-x-8 sm:hover:-translate-x-12 md:hover:-translate-x-16 lg:hover:-translate-x-20 cursor-pointer">
+              <span className="inline-block font-display font-black text-[11.5vw] md:text-[13.8vw] tracking-tighter text-black uppercase leading-none select-none transition-transform duration-500 ease-out hover:-translate-x-8 sm:hover:-translate-x-12 md:hover:-translate-x-16 lg:hover:-translate-x-20 cursor-pointer">
                 Yash
               </span>
             </div>
@@ -140,7 +140,7 @@ export default function Hero({ active }: HeroProps) {
 
             {/* Right Name part (Raj) - Layered behind (Z-0) */}
             <div className="char-right relative z-0 inline-block">
-              <span className="inline-block font-display font-black text-[10vw] md:text-[12vw] tracking-tighter text-black uppercase leading-none select-none transition-transform duration-500 ease-out hover:translate-x-8 sm:hover:translate-x-12 md:hover:translate-x-16 lg:hover:translate-x-20 cursor-pointer">
+              <span className="inline-block font-display font-black text-[11.5vw] md:text-[13.8vw] tracking-tighter text-black uppercase leading-none select-none transition-transform duration-500 ease-out hover:translate-x-8 sm:hover:translate-x-12 md:hover:translate-x-16 lg:hover:translate-x-20 cursor-pointer">
                 Raj
               </span>
             </div>
@@ -228,6 +228,9 @@ export default function Hero({ active }: HeroProps) {
 
           {/* Titles on bottom-right */}
           <div className="hero-ui-element text-right flex flex-col">
+            <span className="font-display text-lg sm:text-xl md:text-2xl font-bold text-black opacity-40 uppercase leading-none">
+              UI / UX,
+            </span>
             <span className="font-display text-lg sm:text-xl md:text-2xl font-bold text-black uppercase leading-tight">
               AI Engineer
             </span>

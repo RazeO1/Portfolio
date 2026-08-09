@@ -5,11 +5,27 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
+// Suppress THREE.Clock deprecation warning from Three.js r183+ inside React Three Fiber
+if (typeof window !== "undefined") {
+  const originalWarn = console.warn;
+  console.warn = (...args: any[]) => {
+    if (
+      args[0] &&
+      typeof args[0] === "string" &&
+      args[0].includes("THREE.Clock: This module has been deprecated")
+    ) {
+      return;
+    }
+    originalWarn.apply(console, args);
+  };
+}
+
 // Custom shader plane component
 function ImagePlane() {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const timeRef = useRef(0);
 
   // Load the hero image texture
   const texture = useTexture("/hero.jpg");
@@ -90,6 +106,9 @@ function ImagePlane() {
   useFrame((state, delta) => {
     if (!meshRef.current || !materialRef.current) return;
 
+    // Accumulate delta time manually
+    timeRef.current += delta;
+
     // 1. Hover state lerping
     const targetHover = isHovered ? 1.0 : 0.0;
     materialRef.current.uniforms.uHover.value = THREE.MathUtils.lerp(
@@ -99,7 +118,7 @@ function ImagePlane() {
     );
 
     // 2. Time uniform increment
-    materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
+    materialRef.current.uniforms.uTime.value = timeRef.current;
 
     // 3. Mouse pointer tracking and lerping (mapped from [-1, 1] to [0, 1] for shaders)
     const rawPointerX = (state.pointer.x + 1) / 2;
@@ -124,7 +143,7 @@ function ImagePlane() {
     meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, tiltAngleX, 0.08);
 
     // 5. Idle breathing float animation
-    meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.8) * 0.08;
+    meshRef.current.position.y = Math.sin(timeRef.current * 0.8) * 0.08;
   });
 
   return (

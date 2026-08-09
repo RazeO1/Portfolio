@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Sacramento&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -58,6 +58,7 @@
   /* Typography */
   --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   --font-display: "Averia Serif Libre", serif;
+  --font-cursive: "Sacramento", cursive;
   --font-mono: var(--font-geist-mono), monospace;
 
   /* Custom spacings */
@@ -77,9 +78,16 @@ body {
   background-color: #fcf7f3;
   color: #000000;
   font-family: var(--font-geist-sans), sans-serif;
-  overflow: hidden; /* Lock scroll during loader and hero displays */
-  height: 100%;
+  overflow-y: auto;
+  overflow-x: clip;
+  height: auto;
+  min-height: 100%;
   width: 100%;
+}
+
+body.loading {
+  overflow: hidden;
+  height: 100%;
 }
 
 /* Custom scrollbars */
