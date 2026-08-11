@@ -1,5 +1,75 @@
 # Session Log
 
+## [2026-08-11 23:58] Web GLB Model Compression
+- **Accomplishments**:
+  - Successfully optimized and compressed the exported chrome head `.glb` model using `npx gltfpack -cc` (meshoptimizer with Draco compression).
+  - Shrank the asset size from **6.13 MB** down to **807 KB** (an 87% reduction), bringing it well within the target range for rapid web loading.
+  - Overwrote the asset at [`public/chrome_avatar_blinking.glb`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/public/chrome_avatar_blinking.glb) with the optimized 807 KB version.
+  - Cleaned up all temporary intermediate `.glb` build files to keep the directory structure tidy.
+- **Key Files Modified**:
+  - [`public/chrome_avatar_blinking.glb`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/public/chrome_avatar_blinking.glb): Replaced with the optimized 807 KB version.
+- **Pending Tasks & Next Steps**:
+  - Remake the "About" section using the newly optimized chrome avatar.
+
+## [2026-08-11 23:46] Blender GLB Export for Web
+- **Accomplishments**:
+  - Exported the animated polished chrome head mesh `white_mesh (1)` as a `.glb` file at [`public/chrome_avatar_blinking.glb`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/public/chrome_avatar_blinking.glb) for Next.js web application integration.
+  - Included the `Blink` shape key morph targets and the 60 FPS keyframe animation in the export.
+  - Verified the exported file size (6.13 MB).
+- **Key Files Modified**:
+  - [`public/chrome_avatar_blinking.glb`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/public/chrome_avatar_blinking.glb): Exported the web-ready 3D model asset.
+- **Pending Tasks & Next Steps**:
+  - Continue styling Next.js site portfolio components.
+
+## [2026-08-11 23:33] Blender Polished Chrome Render & Studio Lighting Setup
+- **Accomplishments**:
+  - Configured a polished chrome material (Metallic `1.0`, Roughness `0.05`, Color `0.9` silver) and assigned it to the head mesh `white_mesh (1)`.
+  - Enabled smooth shading on all mesh polygons for clean, mirror-like reflections.
+  - Set the timeline playback speed to **60 FPS** (`render.fps = 60`).
+  - Added a professional 3-point studio lighting setup: Key Light (500W), Fill Light (150W), and Rim Light (800W) using large area lights positioned dynamically to frame the sculpture.
+  - Attached Track To constraints on all lights so they automatically face the head mesh.
+  - Implemented a World shader node setup using `Light Path` to render a clean white background for the camera, while keeping reflections dark for metallic contrast.
+  - Switched the render engine to Cycles with denoising enabled (`use_denoising = True`) and sample count set to 32.
+  - Saved [`Chrome.blend`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/Chrome.blend) and verified the render.
+- **Key Files Modified**:
+  - [`Chrome.blend`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/Chrome.blend) (modified in active Blender session).
+- **Pending Tasks & Next Steps**:
+  - Continue styling Next.js site portfolio components.
+
+## [2026-08-11 23:22] Blender Individual-Origins Scale Eye Blink Animation
+- **Accomplishments**:
+  - Created a fresh `Basis` shape key and a `Blink` shape key on the head mesh `white_mesh (1)`.
+  - Programmatically simulated proportional editing (smooth falloff, radius `0.12`) on the vertices of `Eye_l` and `Eye_r` vertex groups to squash them vertically by 95% and move them slightly inward along the normal (+Y-axis).
+  - Set the timeline end frame to 120.
+  - Inserted three distinct blinks on the timeline:
+    - Blink 1: Frames 1 (`0.0`), 12 (`1.0`), 24 (`0.0`)
+    - Blink 2: Frames 60 (`0.0`), 72 (`1.0`), 84 (`0.0`)
+    - Blink 3: Frames 90 (`0.0`), 102 (`1.0`), 114 (`0.0`), 120 (`0.0`)
+  - Configured all keyframe interpolation modes on the shape key F-Curve to `BEZIER` for smooth transitions.
+  - Triggered viewport animation playback to play and loop the timeline.
+  - Saved the modified [`Chrome.blend`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/Chrome.blend) file.
+- **Key Files Modified**:
+  - [`Chrome.blend`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/Chrome.blend) (modified in active Blender session).
+- **Pending Tasks & Next Steps**:
+  - Continue styling Next.js site portfolio components.
+
+## [2026-08-11 22:50] Blender Blink Animation Removal
+
+## [2026-08-11 22:49] Blender Blink Shape Key & Animation
+- **Accomplishments**:
+  - Created a `Basis` shape key on the head mesh `white_mesh (1)`.
+  - Created a `Blink` shape key that squashes the eye socket vertices (`Eye_l` and `Eye_r`) downward along the Z-axis towards their minimum Z coordinates by a scale factor of 0.05, transforming the tall ovals into thin horizontal slits.
+  - Keyframed the `Blink` shape key value from `0.0` at frame 1, to `1.0` at frame 10, to `0.0` at frame 20, and `0.0` at frame 90.
+  - Applied a Cycles animation modifier (mode `REPEAT`) to the shape key's F-Curve to loop the blink sequence every 90 frames infinitely.
+  - Verified the animation states visually and programmatically at frames 1 and 10.
+  - Saved the modified [`Chrome.blend`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/Chrome.blend) file.
+- **Key Files Modified**:
+  - [`Chrome.blend`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/Chrome.blend) (modified in active Blender session).
+- **Pending Tasks & Next Steps**:
+  - Continue styling Next.js site portfolio components.
+
+## [2026-08-11 22:42] Blender Vertex Assignment for Eye_l and Eye_r
+
 ## [2026-08-10 00:48] Section 02 — "ABOUT" Outline-only Red Tint & Dense Crowd Walk
 - **Accomplishments**:
   - Refactored red tint engine in [`About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx) to use pixel manipulation (`getImageData`). Instead of shading the character entirely red, it replaces dark outline pixels (RGB < 120) with red `#de3421` while preserving internal white hand-drawn details.
