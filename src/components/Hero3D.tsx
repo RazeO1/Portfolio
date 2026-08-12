@@ -8,11 +8,15 @@ import * as THREE from "three";
 // Suppress THREE.Clock deprecation warning from Three.js r183+ inside React Three Fiber
 if (typeof window !== "undefined") {
   const originalWarn = console.warn;
-  console.warn = (...args: any[]) => {
+  console.warn = (...args: unknown[]) => {
+    const combinedMsg = args
+      .map((arg) => (typeof arg === "string" ? arg : ""))
+      .join(" ");
     if (
-      args[0] &&
-      typeof args[0] === "string" &&
-      args[0].includes("THREE.Clock: This module has been deprecated")
+      combinedMsg.includes("THREE.Clock: This module has been deprecated") ||
+      combinedMsg.includes("THREE.WebGLShadowMap") ||
+      combinedMsg.includes("THREE.WebGLProgram") ||
+      combinedMsg.includes("warning X4122")
     ) {
       return;
     }

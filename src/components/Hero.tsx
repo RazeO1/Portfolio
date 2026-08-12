@@ -15,7 +15,7 @@ interface HeroProps {
 export default function Hero({ active }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const textBgRef = useRef<HTMLDivElement>(null);
+
   const portraitContainerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(

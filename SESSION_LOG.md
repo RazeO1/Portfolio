@@ -1,5 +1,68 @@
 # Session Log
 
+## [2026-08-12 19:15] Centered Layout Wrapping & Water Ripple Tap Effect
+- **Accomplishments**:
+  - Integrated the full editorial text layout from `about content.txt` containing a full-bleed display headline, 4 chapters of two-column converging text funneling inward, and a full-width endline statement.
+  - Made the Intro Headline and Outro Endline statements more bold and impactful: changed their weights from `font-light` to `font-medium`, increased sizes (Headline to `54px`, Endline to `34px`), adjusted colors to high-contrast `#111111` and tightened tracking/leading.
+  - Redesigned the chapter divider rows to be completely line-free and borderless, featuring a massive serif Roman numeral in the center (`text-5xl md:text-6xl font-extralight`) and normal-cased sans-serif labels on the left and right, vertically centered.
+  - Implemented sticky canvas placement: wrapped the 3D Canvas in a `sticky top-0 h-screen` container that remains locked in the center of the viewport while the text content layer scrolls over and around it.
+  - Eliminated scrolling wobble by setting all pose coordinates and dimensions in `SECTION_POSES` to be completely uniform (position `[0, 0, 0]`, scale `[0.64, 0.64, 0.64]`), preventing any scroll-linked shifts in position or scale.
+  - Increased the vertical breathing bobbing drift amplitude inside `useFrame` by 30% (setting amplitude to `0.04` and frequency to `0.8`), which moves the head gently up/down to feel alive.
+  - Positioned the 3D head exactly at the center of the screen by setting the Y-axis offset coordinates to `0` inside the primitive `<group>` element.
+  - Decreased the visual dimensions of the 3D head by another 30% (multiplied by `0.7` again), setting active pose scale to `0.64` and initial group scale to `[0.64, 0.64, 0.64]`.
+  - Added a 3-column grid structure on desktop (`md:grid-cols-[1fr_260px_1fr]`) to reserve a `260px` center column gutter for the sticky head, avoiding any text overlap.
+  - Overrode the default sideways and upward rotation from the GLTF model by applying a Y-axis offset of `-0.85` radians (Yaw) and an X-axis offset of `0.4` radians (Pitch) directly to the `scene` root object, keeping the original node transforms intact (holding the head structure upright) while correcting the face to look perfectly straight at the screen.
+  - Resolved pointer event canvas blockage: created a global window-level `mousemove` listener mapping viewport coordinates to standard WebGL ranges and passed them as props to bypass overlays and wrapper blockage.
+  - Corrected vertical mouse tracking: negated the Pitch target rotation (`-(mouse.y * Math.PI) / 8`) so that the head tilts up when the mouse is up, and down when the mouse is down, tracking the cursor with `0.08` damping.
+  - Created a front-facing blue WebGL PointLight inside `About3D.tsx` that flashes a bright blue light reflections glow (intensity: `12`) on tap and decays back to `0` over `1.2s`.
+  - Configured the About container height bg as exactly `#FAF8F5` (warm cream) with no borders or cards, allowing the content to scroll naturally.
+  - Implemented dynamic performance mounting: created the state `isAboutInView` toggled by an outer ScrollTrigger on `#about`. Wrapped `About3D` inside `{isAboutInView && <About3D ... />}` so that the WebGL context and DOM nodes are completely generated on scroll-enter and destroyed on scroll-exit.
+  - Configured global styling rules: set a warm cream background (`#FAF8F5`) for subsequent page segments. Removed all card frames, text overlays, and borders for a clean editorial canvas.
+  - Upgraded model shader materials in `About3D.tsx` to `THREE.MeshPhysicalMaterial` (`metalness: 1.0`, `roughness: 0.1`, `clearcoat: 1.0`) to model glossy clearcoat liquid-glass reflections.
+  - Integrated global smooth inertia scrolling using the `Lenis` scrolling engine in client-side `page.tsx`.
+  - Verified compilation: build succeeded, static route pages generated cleanly, and ESLint checks are fully green.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Portfolio/src/components/About.tsx): [MODIFY] Restructured layout to support full-bleed headline, 3-column sticky canvas gutter grid columns for 4 chapters, horizontal divider rows (line-free with large serif numerals), scroll-trigger poses state updates, and global mouse events; increased weight and sizes of headline and endline.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Portfolio/src/components/About3D.tsx): [MODIFY] Adjusted visual scale dimensions (multiplied by `0.7`, setting group scale to `0.64`) and vertical position to `0` in group and poses; set poses to be uniform across all sections to eliminate scroll wobbling; increased idle vertical breathing bobbing drift amplitude by 30% to `0.04`; restored parent node default rotations, added Pitch adjustment of `0.4` rad and Yaw adjustment of `-0.85` rad on the `scene.rotation` root object, added PointLight, configured cursor-tracking using coordinates prop with pitch inversion, and added idle breathing animations.
+- **Pending Tasks & Next Steps**:
+  - Move on to section 3 ("PROJECTS") card layouts and content transitions.
+  - Move on to section 3 ("PROJECTS") card layouts and content transitions.
+
+## [2026-08-12 19:00] Gionatan Nese Inspired About Layout & Poses
+- **Accomplishments**:
+  - Restructured the "About" section with the new 4-section copywriting provided by the user.
+  - Implemented a Gionatan Nese inspired split-screen layout: left column contains natural scrolling text sections, and right column contains the sticky 3D Canvas (`lg:sticky lg:top-0 lg:h-screen`).
+  - Added responsive stacking behavior: on mobile, the 3D head pins at the top of the viewport (`sticky top-0 h-[350px]`) while text scrolls beneath.
+  - Defined 6 active poses `SECTION_POSES` (position, scale, base rotation) in `About3D.tsx` to showcase different details of the model (e.g. eye close-up on Obsession, tilt-up on Intelligence).
+  - Used GSAP ScrollTrigger to track active viewport sections and dynamically update `activeSection` state, driving smooth transitions between poses in the R3F `useFrame` loop.
+  - Retained mouse pointer look-at tracking as an additive overlay rotation on top of active poses.
+  - Completed verification: all files compile cleanly, static prerendering completes without errors, and ESLint is clean.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): [MODIFY] Rewrote layout grid columns, integrated ScrollTriggers for active sections and text fades, and updated copy content.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): [MODIFY] Added support for `activeSection` state prop, defined 3D section pose mappings, and updated `useFrame` lerping values.
+- **Pending Tasks & Next Steps**:
+  - Style Section 03 ("PROJECTS") card transitions and layouts.
+
+## [2026-08-12 18:45] About Section 3D Chrome Avatar Integration
+- **Accomplishments**:
+  - Remade the "About" section to utilize the newly optimized and compressed chrome avatar model (`chrome_avatar_blinking.glb`), replacing the legacy 2D HTML5 Crowd Simulator canvas.
+  - Created a dedicated 3D component [`About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx) utilizing `@react-three/fiber` and `@react-three/drei` to render the canvas, load the `.glb` model, and configure custom silver-chrome material properties.
+  - Set up a professional 3-point studio lighting configuration inside R3F, including a stylized brand red (`#de3421`) rim light.
+  - Enabled shape-key-based eye blinking animations using `useAnimations` to play back the baked `"white_mesh (1)Action.004"` timeline.
+  - Implemented interactive cursor-tracking so the chrome avatar head smoothly rotates and floats dynamically in response to mouse movements.
+  - Restructured the page layout of the About section into a responsive grid (About text on the left, 3D Canvas on the right) on desktop.
+  - Resolved 4 ESLint errors and 2 warnings across the codebase (`page.tsx`, `About3D.tsx`, `Hero3D.tsx`, `Hero.tsx`, and `Loader.tsx`), achieving clean build-time checking.
+  - Addressed browser console warning flood by setting explicit shadow map properties (`shadows={{ type: THREE.PCFShadowMap }}`) and adding console.warn interceptor filters for `THREE.WebGLShadowMap` deprecations and ANGLE/HLSL double precision conversion `warning X4122`.
+- **Key Files Modified**:
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): [NEW] Created 3D rendering context, configured lights/shadows, material params, animations, pointer loops, and added console warning filters.
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): [MODIFY] Removed the old Crowd Canvas simulator, imported `About3D`, and adapted the layout grid columns to fit the new design.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): [MODIFY] Escaped raw apostrophe entity (`Let's` to `Let&apos;s`) to satisfy lint requirements.
+  - [`src/components/Hero3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Hero3D.tsx): [MODIFY] Fixed `any[]` typing warning to `unknown[]` and added console warning filters to suppress `warning X4122`.
+  - [`src/components/Hero.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Hero.tsx): [MODIFY] Removed unused `textBgRef` declaration.
+  - [`src/components/Loader.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Loader.tsx): [MODIFY] Wrapped sticker spawning and auto-spawning methods in `useCallback`, rearranged them before use to prevent hoisting temporal dead zone errors, and registered dependencies.
+- **Pending Tasks & Next Steps**:
+  - Style Section 03 ("PROJECTS") card transitions and layouts.
+
 ## [2026-08-11 23:58] Web GLB Model Compression
 - **Accomplishments**:
   - Successfully optimized and compressed the exported chrome head `.glb` model using `npx gltfpack -cc` (meshoptimizer with Draco compression).

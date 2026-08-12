@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
@@ -72,20 +72,7 @@ export default function Loader({ onComplete }: LoaderProps) {
     };
   }, []);
 
-  // 2. Setup Auto-spawn Fallback
-  useEffect(() => {
-    // Start inactivity timer for auto-spawn
-    autoSpawnTimer.current = setTimeout(() => {
-      startAutoSpawn();
-    }, 1000);
-
-    return () => {
-      if (autoSpawnTimer.current) clearTimeout(autoSpawnTimer.current);
-      if (autoSpawnInterval.current) clearInterval(autoSpawnInterval.current);
-    };
-  }, []);
-
-  const spawnSticker = (index: number, x: number, y: number) => {
+  const spawnSticker = useCallback((index: number, x: number, y: number) => {
     const el = stickerRefs.current[index];
     if (!el) return;
 
@@ -110,9 +97,9 @@ export default function Loader({ onComplete }: LoaderProps) {
       duration: 0.6,
       ease: "back.out(1.6)",
     });
-  };
+  }, []);
 
-  const startAutoSpawn = () => {
+  const startAutoSpawn = useCallback(() => {
     if (interactionOccurred.current) return;
 
     autoSpawnInterval.current = setInterval(() => {
@@ -123,7 +110,20 @@ export default function Loader({ onComplete }: LoaderProps) {
         if (autoSpawnInterval.current) clearInterval(autoSpawnInterval.current);
       }
     }, 180);
-  };
+  }, [spawnSticker]);
+
+  // 2. Setup Auto-spawn Fallback
+  useEffect(() => {
+    // Start inactivity timer for auto-spawn
+    autoSpawnTimer.current = setTimeout(() => {
+      startAutoSpawn();
+    }, 1000);
+
+    return () => {
+      if (autoSpawnTimer.current) clearTimeout(autoSpawnTimer.current);
+      if (autoSpawnInterval.current) clearInterval(autoSpawnInterval.current);
+    };
+  }, [startAutoSpawn]);
 
   const handleInteraction = (clientX: number, clientY: number) => {
     if (isExiting.current) return;
