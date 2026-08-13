@@ -1,5 +1,22 @@
 # Session Log
 
+## [2026-08-14 00:38] Line-Based Pretext Text Wrapping & 10% Head Size Decrease & Scanning Cap Glow Reveal
+- **Accomplishments**:
+  - Implemented cohesive line-based circular wrapping inside `About.tsx`. Instead of splitting lines into individual shifting words (which causes reading disruption and word overlapping), `PretextParagraph` now renders and shifts each text line as a single solid unit, matching `4.png` perfectly.
+  - Calculated line offset displacements based on column alignment:
+    - **Left Column (Right-Aligned)**: Computes the line's right edge coordinate and shifts it left (`translateX`) to stay tangential to the circular head's contour.
+    - **Right Column (Left-Aligned)**: Computes the line's left edge coordinate and shifts it right (`translateX`) to clear the circular head.
+  - Resolved dynamic reference lifecycle race condition by resetting the element ref cache during the render phase (inside the `wordLayouts`/`lineLayouts` `useMemo`) rather than asynchronously inside post-render `useEffect` hooks.
+  - Gated all off-screen canvas context measurements with a `mounted` client-side hydration check, resolving Turbopack / Next.js SSR build crashes.
+  - Decreased the visual scale of the sticky 3D head model by exactly 10% (reducing constants in `SECTION_POSES` and default R3F `<group>` elements in `About3D.tsx` from `0.64` to `0.576`).
+  - Implemented 3D head mount persistence: added `hasBeenVisible` state toggled once the `About` section comes into view for the first time. The head remains mounted in the background when scrolling away, eliminating unmount reloading/flashing and keeping the head sitting at the endline ready for the user to scroll back up.
+  - Built first-generation vertical scan reveal animation: added a dynamic `THREE.Plane` vertical local clipping constant inside `About3D.tsx`. On first load, it sweeps up from chin to hair (`constant: -1.5` to `1.5`) over a 40% slower duration (`2.8` seconds) revealing the model from bottom-to-top.
+  - Created a glowing slice edge cap contour matching `Screenshot 2026-08-14 003637.png`: bound the blue point light position dynamically in `useFrame` to trace the clipping plane Y height exactly (`position.y = constant`) and positioned it extremely close on the Z axis (`position.z = 0.35`). Shortened the light's range (`distance = 2.0`) and raised the initial sweep flash intensity to `25.0` (with a decay duration of `3.36` seconds). This creates a highly concentrated, electric neon blue glow tracing only the top slice boundary, leaving the lower chrome face untouched.
+  - Added holographic flickering noise to the laser sweep: added high-frequency light intensity noise modulation inside the R3F `useFrame` loop. The flicker is computed via double trigonometry multipliers ($f = \sin(t \times 120) \times \cos(t \times 67) \times 4.0$) and crackles active scanning light intensity dynamically. The noise is gated so it turns off completely once the scan completes.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Implemented line-based pretext rendering, fixed ref lifecycle bugs, and added `hasBeenVisible` mount persistence.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Reduced default scaling coefficients for the 3D model poses by 10%, implemented vertical scan local clipping planes, enabled canvas `localClippingEnabled` renderer, and added 40% slower scan reveal animation with holographic flickering noise and boundary slice cap glow.
+
 ## [2026-08-12 19:15] Centered Layout Wrapping & Water Ripple Tap Effect
 - **Accomplishments**:
   - Integrated the full editorial text layout from `about content.txt` containing a full-bleed display headline, 4 chapters of two-column converging text funneling inward, and a full-width endline statement.

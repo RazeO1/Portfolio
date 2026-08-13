@@ -34,27 +34,27 @@ interface SectionPose {
 const SECTION_POSES: Record<number, SectionPose> = {
   0: { // Intro / Centered
     position: [0, 0, 0],
-    scale: [0.64, 0.64, 0.64],
+    scale: [0.576, 0.576, 0.576],
     rotation: [0, 0, 0]
   },
   1: { // Craft
     position: [0, 0, 0],
-    scale: [0.64, 0.64, 0.64],
+    scale: [0.576, 0.576, 0.576],
     rotation: [0, 0, 0]
   },
   2: { // Intelligence
     position: [0, 0, 0],
-    scale: [0.64, 0.64, 0.64],
+    scale: [0.576, 0.576, 0.576],
     rotation: [0, 0, 0]
   },
   3: { // Experience
     position: [0, 0, 0],
-    scale: [0.64, 0.64, 0.64],
+    scale: [0.576, 0.576, 0.576],
     rotation: [0, 0, 0]
   },
   4: { // Obsession & Conclusion
     position: [0, 0, 0],
-    scale: [0.64, 0.64, 0.64],
+    scale: [0.576, 0.576, 0.576],
     rotation: [0, 0, 0]
   }
 };
@@ -68,6 +68,9 @@ interface AvatarModelProps {
 function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const tapLightRef = useRef<THREE.PointLight>(null);
+
+  // Local vertical clipping plane to reveal model from chin (-1.5) to hair (1.5)
+  const clipPlane = useRef(new THREE.Plane(new THREE.Vector3(0, -1, 0), -1.5));
 
   // Load optimized glb model
   const { scene, animations } = useGLTF("/chrome_avatar_blinking.glb");
@@ -84,13 +87,59 @@ function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
-        mesh.material = new THREE.MeshPhysicalMaterial({
+        const mat = new THREE.MeshPhysicalMaterial({
           metalness: 1.0,
           roughness: 0.1,
           clearcoat: 1.0,
           clearcoatRoughness: 0.05,
           color: new THREE.Color("#f3f3f3"),
+          clippingPlanes: [clipPlane.current],
+          clipShadows: true,
         });
+
+        // Custom GLSL Injection to render a glowing blue slice outline on compile
+        mat.onBeforeCompile = (shader) => {
+          shader.uniforms.uClipHeight = { value: -1.5 };
+          shader.uniforms.uGlowColor = { value: new THREE.Color("#0066ff") };
+          shader.uniforms.uGlowWidth = { value: 0.06 }; // Glow line thickness
+
+          mesh.userData.shaderUniforms = shader.uniforms;
+
+          // Inject varying to transfer Y vertex position from vertex shader to fragment shader
+          shader.vertexShader = shader.vertexShader.replace(
+            "#include <common>",
+            `#include <common>
+             varying float vLocalY;`
+          );
+          shader.vertexShader = shader.vertexShader.replace(
+            "#include <begin_vertex>",
+            `#include <begin_vertex>
+             vLocalY = position.y;`
+          );
+
+          // Retrieve Y position and define uniforms in the fragment shader
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "#include <common>",
+            `#include <common>
+             varying float vLocalY;
+             uniform float uClipHeight;
+             uniform vec3 uGlowColor;
+             uniform float uGlowWidth;`
+          );
+
+          // Apply glow effect right before color output: fragments close to the slice edge get neon overlay
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "#include <dithering_fragment>",
+            `#include <dithering_fragment>
+             float dist = uClipHeight - vLocalY;
+             if (dist > 0.0 && dist < uGlowWidth) {
+               float glowFactor = smoothstep(uGlowWidth, 0.0, dist);
+               gl_FragColor.rgb = mix(gl_FragColor.rgb, uGlowColor * 4.0, glowFactor);
+             }`
+          );
+        };
+
+        mesh.material = mat;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
       }
@@ -100,6 +149,34 @@ function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
     // Pitch: 0.4 rad (tilts face down to look straight at the screen), Yaw: -0.85 rad (aligns face forward)
     scene.rotation.set(0.4, -0.85, 0);
   }, [actions, scene]);
+
+  // First generation scanning reveal animation (chin to hair with blue glow)
+  useEffect(() => {
+    if (!scene) return;
+
+    // Reset clipping plane constant to hide model completely at startup
+    clipPlane.current.constant = -1.5;
+
+    // Scan vertical clipping constant upwards from chin (-1.5) to hair (1.5) - 40% slower (2.8s)
+    gsap.to(clipPlane.current, {
+      constant: 1.5,
+      duration: 2.8,
+      ease: "power2.inOut",
+    });
+
+    if (tapLightRef.current) {
+      // Flash bright blue glow intensity and decay it as generation completes - 40% slower (3.36s)
+      gsap.fromTo(
+        tapLightRef.current,
+        { intensity: 25.0 },
+        {
+          intensity: 0.0,
+          duration: 3.36,
+          ease: "power1.inOut",
+        }
+      );
+    }
+  }, [scene]);
 
   // Handle tap animations (physics push back and emissive blue light glow)
   useEffect(() => {
@@ -203,17 +280,36 @@ function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
         pose.rotation[2],
         0.08
       );
+
+      // 4. Holographic laser blue scan flickering noise & position tracking (active only during the scanning reveal phase)
+      if (tapLightRef.current && clipPlane.current.constant < 1.48) {
+        tapLightRef.current.position.y = clipPlane.current.constant;
+        tapLightRef.current.position.z = 0.35;
+
+        const flicker = Math.sin(time * 120.0) * Math.cos(time * 67.0) * 4.0;
+        tapLightRef.current.intensity = Math.max(0, tapLightRef.current.intensity + flicker);
+      } else if (tapLightRef.current && !gsap.isTweening(tapLightRef.current.position)) {
+        // Reset light position back to default coordinates once scan finishes
+        tapLightRef.current.position.set(0, 0.3, 1.5);
+      }
+
+      // 5. Update shader uniforms for the clipping reveal glow
+      scene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh && child.userData.shaderUniforms) {
+          child.userData.shaderUniforms.uClipHeight.value = clipPlane.current.constant;
+        }
+      });
     }
   });
 
   return (
-    <group ref={groupRef} dispose={null} scale={[0.64, 0.64, 0.64]} position={[0, 0, 0]}>
+    <group ref={groupRef} dispose={null} scale={[0.576, 0.576, 0.576]} position={[0, 0, 0]}>
       {/* Front PointLight for blue emissive click glow effect */}
       <pointLight
         ref={tapLightRef}
         color="#0066ff"
         intensity={0}
-        distance={3.5}
+        distance={2.0}
         position={[0, 0.3, 1.5]}
       />
       <primitive object={scene} />
@@ -237,7 +333,7 @@ export default function About3D({ active, activeSection, tapTrigger, mouse }: Ab
         camera={{ position: [0, 0, 5.0], fov: 45 }}
         dpr={[1, 2]}
         shadows={{ type: THREE.PCFShadowMap }}
-        gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true }}
+        gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true, localClippingEnabled: true }}
       >
         <ambientLight intensity={0.2} />
 
