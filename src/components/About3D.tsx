@@ -61,16 +61,24 @@ const SECTION_POSES: Record<number, SectionPose> = {
 
 interface AvatarModelProps {
   activeSection: number;
-  tapTrigger: number;
+  tapData: { x: number; y: number; trigger: number };
   mouse: { x: number; y: number };
 }
 
-function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
+function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const tapLightRef = useRef<THREE.PointLight>(null);
 
-  // Local vertical clipping plane to reveal model from chin (-1.5) to hair (1.5)
-  const clipPlane = useRef(new THREE.Plane(new THREE.Vector3(0, -1, 0), -1.5));
+  // Wobble offsets for physical springy click reactions
+  const wobblePosition = useRef({ x: 0, y: 0, z: 0 });
+  const wobbleRotation = useRef({ x: 0, y: 0, z: 0 });
+
+  // Separate smooth look-at tracking/breathing values from high-frequency click wobbles
+  const mouseLookRotation = useRef({ x: 0, y: 0 });
+  const basePosition = useRef({ x: 0, y: 0, z: 0 });
+
+  // Store reference to the mesh with morph target influences to manually control eyes (Blink)
+  const headMeshRef = useRef<THREE.Mesh | null>(null);
 
   // Load optimized glb model
   const { scene, animations } = useGLTF("/chrome_avatar_blinking.glb");
@@ -93,51 +101,12 @@ function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
           clearcoat: 1.0,
           clearcoatRoughness: 0.05,
           color: new THREE.Color("#f3f3f3"),
-          clippingPlanes: [clipPlane.current],
-          clipShadows: true,
         });
 
-        // Custom GLSL Injection to render a glowing blue slice outline on compile
-        mat.onBeforeCompile = (shader) => {
-          shader.uniforms.uClipHeight = { value: -1.5 };
-          shader.uniforms.uGlowColor = { value: new THREE.Color("#0066ff") };
-          shader.uniforms.uGlowWidth = { value: 0.06 }; // Glow line thickness
-
-          mesh.userData.shaderUniforms = shader.uniforms;
-
-          // Inject varying to transfer Y vertex position from vertex shader to fragment shader
-          shader.vertexShader = shader.vertexShader.replace(
-            "#include <common>",
-            `#include <common>
-             varying float vLocalY;`
-          );
-          shader.vertexShader = shader.vertexShader.replace(
-            "#include <begin_vertex>",
-            `#include <begin_vertex>
-             vLocalY = position.y;`
-          );
-
-          // Retrieve Y position and define uniforms in the fragment shader
-          shader.fragmentShader = shader.fragmentShader.replace(
-            "#include <common>",
-            `#include <common>
-             varying float vLocalY;
-             uniform float uClipHeight;
-             uniform vec3 uGlowColor;
-             uniform float uGlowWidth;`
-          );
-
-          // Apply glow effect right before color output: fragments close to the slice edge get neon overlay
-          shader.fragmentShader = shader.fragmentShader.replace(
-            "#include <dithering_fragment>",
-            `#include <dithering_fragment>
-             float dist = uClipHeight - vLocalY;
-             if (dist > 0.0 && dist < uGlowWidth) {
-               float glowFactor = smoothstep(uGlowWidth, 0.0, dist);
-               gl_FragColor.rgb = mix(gl_FragColor.rgb, uGlowColor * 4.0, glowFactor);
-             }`
-          );
-        };
+        // Store reference to the head mesh containing shape keys
+        if (mesh.morphTargetInfluences) {
+          headMeshRef.current = mesh;
+        }
 
         mesh.material = mat;
         mesh.castShadow = true;
@@ -150,69 +119,136 @@ function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
     scene.rotation.set(0.4, -0.85, 0);
   }, [actions, scene]);
 
-  // First generation scanning reveal animation (chin to hair with blue glow)
+  // Handle tap animations (physics push back and eyes closing morph target)
   useEffect(() => {
-    if (!scene) return;
-
-    // Reset clipping plane constant to hide model completely at startup
-    clipPlane.current.constant = -1.5;
-
-    // Scan vertical clipping constant upwards from chin (-1.5) to hair (1.5) - 40% slower (2.8s)
-    gsap.to(clipPlane.current, {
-      constant: 1.5,
-      duration: 2.8,
-      ease: "power2.inOut",
-    });
-
-    if (tapLightRef.current) {
-      // Flash bright blue glow intensity and decay it as generation completes - 40% slower (3.36s)
-      gsap.fromTo(
-        tapLightRef.current,
-        { intensity: 25.0 },
-        {
-          intensity: 0.0,
-          duration: 3.36,
-          ease: "power1.inOut",
-        }
-      );
-    }
-  }, [scene]);
-
-  // Handle tap animations (physics push back and emissive blue light glow)
-  useEffect(() => {
-    if (tapTrigger === 0 || !groupRef.current) return;
+    if (tapData.trigger === 0 || !groupRef.current) return;
 
     const pose = SECTION_POSES[activeSection] || SECTION_POSES[0];
 
     // Kill active tweens to prevent stacking
-    gsap.killTweensOf(groupRef.current.position);
+    gsap.killTweensOf(wobblePosition.current);
+    gsap.killTweensOf(wobbleRotation.current);
     gsap.killTweensOf(groupRef.current.scale);
 
-    // Z-axis push-back and elastic return bounce
-    gsap.fromTo(
-      groupRef.current.position,
-      { z: pose.position[2] - 0.8 },
-      {
-        z: pose.position[2],
-        duration: 1.2,
-        ease: "elastic.out(1, 0.45)",
-      }
-    );
+    // Stop natural blinking animation loop completely to release morph target control
+    const blinkAction = actions["white_mesh (1)Action.004"];
+    if (blinkAction) {
+      blinkAction.stop();
+    }
 
-    // Head scale pulse (1.0 -> 1.1 -> 1.0) over 0.4s
+    if (headMeshRef.current && headMeshRef.current.morphTargetInfluences) {
+      gsap.killTweensOf(headMeshRef.current.morphTargetInfluences);
+
+      // Instantly shut eyes at the moment of impact (t = 0)
+      headMeshRef.current.morphTargetInfluences[0] = 1.0;
+
+      // Keep them closed for 1.45s (during all primary dizzy swings), then open smoothly over 0.4s
+      gsap.to(headMeshRef.current.morphTargetInfluences, {
+        0: 0.0,
+        delay: 1.45,
+        duration: 0.4,
+        ease: "power2.inOut",
+        onComplete: () => {
+          if (blinkAction) {
+            blinkAction.play();
+          }
+        }
+      });
+    }
+
+    // Click Recoil Physics:
+    // Pushes back deeply on Z-axis and swings in opposite directions with decaying amplitude:
+    // Tap (large recoil) -> return (LEFT shake) -> RIGHT -> LEFT/center -> settle (REST)
+    
+    // Translation Recoil: snap back 1.2 units on Z and shift on X/Y relative to click
+    const recoilPosX = tapData.x * 0.18;
+    const recoilPosY = -tapData.y * 0.18;
+    const recoilPosZ = -1.2;
+
+    gsap.timeline()
+      // Step 1: Rapidly move to recoil position over 0.05s to simulate instant impact push
+      .to(wobblePosition.current, { x: recoilPosX, y: recoilPosY, z: recoilPosZ, duration: 0.05, ease: "power2.out" })
+      // Step 2: Swing to opposite side (LEFT shake / push forward) - starts after 0.04s pause, takes 0.48s (slower, more natural)
+      .to(wobblePosition.current, { 
+        x: -recoilPosX * 0.75, 
+        y: -recoilPosY * 0.75, 
+        z: -recoilPosZ * 0.35, 
+        duration: 0.48, 
+        ease: "power2.out" 
+      }, "+=0.04")
+      // Step 3: Swing back (RIGHT / push back slightly) - 0.45s
+      .to(wobblePosition.current, { 
+        x: recoilPosX * 0.5, 
+        y: recoilPosY * 0.5, 
+        z: recoilPosZ * 0.15, 
+        duration: 0.45, 
+        ease: "power2.inOut" 
+      })
+      // Step 4: Swing back (LEFT/center / push forward slightly) - 0.45s
+      .to(wobblePosition.current, { 
+        x: -recoilPosX * 0.2, 
+        y: -recoilPosY * 0.2, 
+        z: -recoilPosZ * 0.06, 
+        duration: 0.45, 
+        ease: "power2.inOut" 
+      })
+      // Step 5: Settle to rest - 0.6s
+      .to(wobblePosition.current, { x: 0, y: 0, z: 0, duration: 0.6, ease: "power2.inOut" });
+
+    // Rotational Wobble (Pitch, Yaw, Roll): much wider sweeps for an impactful dizzy head shake
+    // Large recoil: Yaw rotates roughly 50-70 degrees (0.85 to 1.05 rad) away from camera
+    const baseRecoilY = (Math.random() > 0.5 ? 1 : -1) * gsap.utils.random(0.85, 1.05);
+    const baseRecoilX = gsap.utils.random(-0.2, 0.15);
+    const baseRecoilZ = (Math.random() > 0.5 ? 1 : -1) * gsap.utils.random(0.15, 0.25);
+
+    const recoilX = baseRecoilX + tapData.y * 0.45; // Pitch
+    const recoilY = baseRecoilY - tapData.x * 0.6;  // Yaw
+    const recoilZ = baseRecoilZ - tapData.x * 0.3;  // Roll
+
+    gsap.timeline()
+      // Step 1: Rapidly rotate to recoil pose over 0.05s
+      .to(wobbleRotation.current, { x: recoilX, y: recoilY, z: recoilZ, duration: 0.05, ease: "power2.out" })
+      // Step 2: Swing to opposite side (LEFT shake) - starts after 0.04s pause, takes 0.5s (damped to approx -7°)
+      .to(wobbleRotation.current, { 
+        x: -recoilX * 0.12, 
+        y: -recoilY * 0.12, 
+        z: -recoilZ * 0.12, 
+        duration: 0.5, 
+        ease: "power2.out" 
+      }, "+=0.04")
+      // Step 3: Swing back (RIGHT) - 0.45s (damped to approx +5°)
+      .to(wobbleRotation.current, { 
+        x: recoilX * 0.08, 
+        y: recoilY * 0.08, 
+        z: recoilZ * 0.08, 
+        duration: 0.45, 
+        ease: "power2.inOut" 
+      })
+      // Step 4: Swing back (LEFT/center) - 0.45s (damped to approx -3°)
+      .to(wobbleRotation.current, { 
+        x: -recoilX * 0.05, 
+        y: -recoilY * 0.05, 
+        z: -recoilZ * 0.05, 
+        duration: 0.45, 
+        ease: "power2.inOut" 
+      })
+      // Step 5: Settle to rest - 0.6s
+      .to(wobbleRotation.current, { x: 0, y: 0, z: 0, duration: 0.6, ease: "power2.inOut" });
+
+    // 3. Scale pop: grows 20% over 0.15s, then shrinks back to normal over 0.35s (slower recoil)
     gsap.timeline()
       .to(groupRef.current.scale, {
-        x: pose.scale[0] * 1.15,
-        y: pose.scale[1] * 1.15,
-        z: pose.scale[2] * 1.15,
-        duration: 0.2,
+        x: pose.scale[0] * 1.2,
+        y: pose.scale[1] * 1.2,
+        z: pose.scale[2] * 1.2,
+        duration: 0.15,
         ease: "power2.out",
       })
       .to(groupRef.current.scale, {
         x: pose.scale[0],
         y: pose.scale[1],
         z: pose.scale[2],
-        duration: 0.2,
+        duration: 0.35,
         ease: "power2.inOut",
       });
 
@@ -229,7 +265,7 @@ function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
         }
       );
     }
-  }, [tapTrigger]);
+  }, [tapData.trigger]);
 
   // Handle frame loop for mouse tracking & breathing float
   useFrame((state) => {
@@ -239,16 +275,20 @@ function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
 
       // 1. Slower and subtler vertical breathing bobbing drift (~4px amplitude, increased by 30% from 0.03)
       const idleFloatY = Math.sin(time * 0.8) * 0.04;
-      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, pose.position[0], 0.05);
-      groupRef.current.position.y = THREE.MathUtils.lerp(
-        groupRef.current.position.y,
+
+      // Guide the base position smoothly (pose transition + breathing drift)
+      basePosition.current.x = THREE.MathUtils.lerp(basePosition.current.x, pose.position[0], 0.05);
+      basePosition.current.y = THREE.MathUtils.lerp(
+        basePosition.current.y,
         pose.position[1] + idleFloatY,
         0.05
       );
+      basePosition.current.z = THREE.MathUtils.lerp(basePosition.current.z, pose.position[2], 0.05);
 
-      if (!gsap.isTweening(groupRef.current.position)) {
-        groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, pose.position[2], 0.05);
-      }
+      // Set actual position as a direct sum of base position and additive wobble translation
+      groupRef.current.position.x = basePosition.current.x + wobblePosition.current.x;
+      groupRef.current.position.y = basePosition.current.y + wobblePosition.current.y;
+      groupRef.current.position.z = basePosition.current.z + wobblePosition.current.z;
 
       // 2. Idle breathing-scale pulse (scales very subtly between 1.0 and 1.02)
       const breathingScale = 1.0 + Math.sin(time * 2.0) * 0.01;
@@ -259,46 +299,24 @@ function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
         groupRef.current.scale.z = THREE.MathUtils.lerp(groupRef.current.scale.z, pose.scale[2] * breathingScale, 0.05);
       }
 
-      // 3. Mouse Look-At Tracking: Subtle weighted rotation tracking (damping: 0.08)
+      // 3. Mouse Look-At Tracking: Guide look-at rotation smoothly in the background
       // Uses global window mouse coordinates mapped to [-1, 1] passed via props
       // Inverts X-rotation so head looks UP when mouse is UP (positive mouse.y)
-      const targetRotationX = -(mouse.y * Math.PI) / 8; // vertical tilt (up/down)
-      const targetRotationY = (mouse.x * Math.PI) / 6;  // horizontal rotation (left/right)
+      const targetLookX = -(mouse.y * Math.PI) / 8; // vertical tilt (up/down)
+      const targetLookY = (mouse.x * Math.PI) / 6;  // horizontal rotation (left/right)
 
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(
-        groupRef.current.rotation.x,
-        targetRotationX,
-        0.08
-      );
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(
-        groupRef.current.rotation.y,
-        targetRotationY,
-        0.08
-      );
-      groupRef.current.rotation.z = THREE.MathUtils.lerp(
-        groupRef.current.rotation.z,
-        pose.rotation[2],
-        0.08
-      );
+      mouseLookRotation.current.x = THREE.MathUtils.lerp(mouseLookRotation.current.x, targetLookX, 0.08);
+      mouseLookRotation.current.y = THREE.MathUtils.lerp(mouseLookRotation.current.y, targetLookY, 0.08);
 
-      // 4. Holographic laser blue scan flickering noise & position tracking (active only during the scanning reveal phase)
-      if (tapLightRef.current && clipPlane.current.constant < 1.48) {
-        tapLightRef.current.position.y = clipPlane.current.constant;
-        tapLightRef.current.position.z = 0.35;
+      // Set actual rotation as a direct sum of look-at tracking and crisp springy wobble rotation
+      groupRef.current.rotation.x = mouseLookRotation.current.x + wobbleRotation.current.x;
+      groupRef.current.rotation.y = mouseLookRotation.current.y + wobbleRotation.current.y;
+      groupRef.current.rotation.z = pose.rotation[2] + wobbleRotation.current.z;
 
-        const flicker = Math.sin(time * 120.0) * Math.cos(time * 67.0) * 4.0;
-        tapLightRef.current.intensity = Math.max(0, tapLightRef.current.intensity + flicker);
-      } else if (tapLightRef.current && !gsap.isTweening(tapLightRef.current.position)) {
-        // Reset light position back to default coordinates once scan finishes
+      // 4. Reset light position back to default coordinates once tap finishes
+      if (tapLightRef.current && !gsap.isTweening(tapLightRef.current.position)) {
         tapLightRef.current.position.set(0, 0.3, 1.5);
       }
-
-      // 5. Update shader uniforms for the clipping reveal glow
-      scene.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh && child.userData.shaderUniforms) {
-          child.userData.shaderUniforms.uClipHeight.value = clipPlane.current.constant;
-        }
-      });
     }
   });
 
@@ -320,11 +338,11 @@ function AvatarModel({ activeSection, tapTrigger, mouse }: AvatarModelProps) {
 interface About3DProps {
   active: boolean;
   activeSection: number;
-  tapTrigger: number;
+  tapData: { x: number; y: number; trigger: number };
   mouse: { x: number; y: number };
 }
 
-export default function About3D({ active, activeSection, tapTrigger, mouse }: About3DProps) {
+export default function About3D({ active, activeSection, tapData, mouse }: About3DProps) {
   if (!active) return null;
 
   return (
@@ -353,7 +371,7 @@ export default function About3D({ active, activeSection, tapTrigger, mouse }: Ab
         <Environment preset="studio" />
 
         <Suspense fallback={null}>
-          <AvatarModel activeSection={activeSection} tapTrigger={tapTrigger} mouse={mouse} />
+          <AvatarModel activeSection={activeSection} tapData={tapData} mouse={mouse} />
         </Suspense>
       </Canvas>
     </div>
