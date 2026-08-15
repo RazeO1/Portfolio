@@ -169,19 +169,19 @@ export default function Projects() {
     <section
       ref={sectionRef}
       id="projects"
-      className="relative w-full h-[400vh] bg-transparent overflow-visible select-none z-20 border-t border-black/10"
+      className="relative w-full h-[400vh] bg-transparent overflow-visible select-none z-20 border-t border-white/5"
     >
       {/* Sticky base container */}
       <div
         ref={containerRef}
-        className="sticky top-0 left-0 w-full h-screen flex flex-col justify-center bg-[#fcf7f3] overflow-hidden px-6 md:px-12 lg:px-24 py-16"
+        className="sticky top-0 left-0 w-full h-screen flex flex-col justify-center bg-[#0A0A0A] overflow-hidden px-6 md:px-12 lg:px-24 py-16"
         style={{
           transform: "translateZ(0)",
           willChange: "transform",
         }}
       >
         {/* Subtle noise paper overlay texture */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px] z-0"></div>
+        <div className="absolute inset-0 pointer-events-none opacity-[0.015] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] z-0"></div>
 
         {/* Master layout grid */}
         <div className="relative z-10 w-full max-w-[1140px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center flex-1 h-full">
@@ -204,17 +204,17 @@ export default function Projects() {
                   >
                     {project.number} / {PROJECTS_DATA.length.toString().padStart(2, "0")}
                   </span>
-                  <span className="text-neutral-400">|</span>
-                  <span className="text-neutral-500 font-medium">{project.category}</span>
+                  <span className="text-neutral-600">|</span>
+                  <span className="text-neutral-400 font-medium">{project.category}</span>
                 </div>
 
                 {/* Project Title */}
-                <h3 className="font-display font-medium text-4xl md:text-5xl lg:text-6xl text-neutral-900 leading-none tracking-tight mb-6">
+                <h3 className="font-display font-medium text-4xl md:text-5xl lg:text-6xl text-white leading-none tracking-tight mb-6">
                   {project.title}
                 </h3>
 
                 {/* Description */}
-                <p className="font-sans text-neutral-600 text-sm md:text-base leading-relaxed max-w-md mb-8">
+                <p className="font-sans text-neutral-400 text-sm md:text-base leading-relaxed max-w-md mb-8">
                   {project.description}
                 </p>
 
@@ -224,7 +224,7 @@ export default function Projects() {
                     href={project.githubLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-neutral-900 hover:text-black hover:line-through transition-all duration-300 font-bold"
+                    className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-neutral-300 hover:text-white hover:line-through transition-all duration-300 font-bold"
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -242,7 +242,7 @@ export default function Projects() {
                   </a>
                   <a
                     href={project.liveLink}
-                    className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-neutral-900 hover:text-black hover:line-through transition-all duration-300 font-bold"
+                    className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-neutral-300 hover:text-white hover:line-through transition-all duration-300 font-bold"
                   >
                     <svg
                       viewBox="0 0 24 24"

@@ -56,6 +56,11 @@ const SECTION_POSES: Record<number, SectionPose> = {
     position: [0, 0, 0],
     scale: [0.576, 0.576, 0.576],
     rotation: [0, 0, 0]
+  },
+  5: { // Showcase
+    position: [0, 0, 0],
+    scale: [0.576, 0.576, 0.576],
+    rotation: [0, 0, 0]
   }
 };
 
@@ -293,10 +298,21 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
       // 2. Idle breathing-scale pulse (scales very subtly between 1.0 and 1.02)
       const breathingScale = 1.0 + Math.sin(time * 2.0) * 0.01;
       
+      let baseScaleX = pose.scale[0];
+      let baseScaleY = pose.scale[1];
+      let baseScaleZ = pose.scale[2];
+
+      if (activeSection === 5 && typeof window !== "undefined" && window.innerWidth < 768) {
+        // Shrink head scale on mobile to avoid overlapping the showcase cards
+        baseScaleX = 0.3;
+        baseScaleY = 0.3;
+        baseScaleZ = 0.3;
+      }
+      
       if (!gsap.isTweening(groupRef.current.scale)) {
-        groupRef.current.scale.x = THREE.MathUtils.lerp(groupRef.current.scale.x, pose.scale[0] * breathingScale, 0.05);
-        groupRef.current.scale.y = THREE.MathUtils.lerp(groupRef.current.scale.y, pose.scale[1] * breathingScale, 0.05);
-        groupRef.current.scale.z = THREE.MathUtils.lerp(groupRef.current.scale.z, pose.scale[2] * breathingScale, 0.05);
+        groupRef.current.scale.x = THREE.MathUtils.lerp(groupRef.current.scale.x, baseScaleX * breathingScale, 0.05);
+        groupRef.current.scale.y = THREE.MathUtils.lerp(groupRef.current.scale.y, baseScaleY * breathingScale, 0.05);
+        groupRef.current.scale.z = THREE.MathUtils.lerp(groupRef.current.scale.z, baseScaleZ * breathingScale, 0.05);
       }
 
       // 3. Mouse Look-At Tracking: Guide look-at rotation smoothly in the background

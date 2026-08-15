@@ -96,12 +96,18 @@ export default function Hero({ active }: HeroProps) {
             <span className="font-bold">© Yash Raj</span>
             <span className="opacity-60 hidden sm:inline">— Design, AI & Software</span>
           </div>
-          <nav className="flex justify-center gap-6 md:gap-12">
+          <nav className="flex justify-center gap-4 md:gap-8">
             <a
               href="#about"
               className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
             >
               About
+            </a>
+            <a
+              href="#showcase"
+              className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
+            >
+              Showcase
             </a>
             <a
               href="#projects"

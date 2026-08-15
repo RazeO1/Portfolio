@@ -1,5 +1,14 @@
 # Session Log
 
+## [2026-08-15 21:05] Prevent Pre-Scroll Card Leakage via CSS Opacity & Pointer Events
+- **Accomplishments**:
+  - Solved the premature card leakage bug shown in `Screenshot 2026-08-15 210021.png` where Card 3 emerged at the bottom-right corner before the showcase track scroll trigger was reached.
+  - Set default HTML classes for all showcase cards to `opacity-0 pointer-events-none` to prevent them from rendering or blocking cursor clicks before the GSAP ScrollTrigger timeline initializes or when React performs post-hydration layout shifts.
+  - Configured the responsive GSAP matchMedia scroll timelines to dynamically manage and animate `opacity` and `pointerEvents` alongside positions (animating `pointerEvents` to `"auto"` when active, and `"none"` when hidden/off-screen).
+  - Verified a successful Next.js production build (`npm run build` exits with `code 0`).
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Added `opacity-0 pointer-events-none` classes to card markup, and updated all responsive GSAP media query timelines with pointer-event and opacity tweens.
+
 ## [2026-08-14 00:38] Line-Based Pretext Text Wrapping & 10% Head Size Decrease & Scanning Cap Glow Reveal
 - **Accomplishments**:
   - Implemented cohesive line-based circular wrapping inside `About.tsx`. Instead of splitting lines into individual shifting words (which causes reading disruption and word overlapping), `PretextParagraph` now renders and shifts each text line as a single solid unit, matching `4.png` perfectly.

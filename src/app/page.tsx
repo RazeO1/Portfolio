@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Loader from "@/components/Loader";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
+import Projects from "@/components/Projects";
 import Lenis from "lenis";
 
 export default function Home() {
@@ -61,41 +62,25 @@ export default function Home() {
         <Hero active={isLoaded} />
       </div>
 
-      {/* About and subsequent sections scroll relative over the Hero, z-index: 2 */}
       <div className="relative z-20 w-full">
         <About active={isLoaded} />
 
-        {/* Section 03 / Selected Works placeholder - Clean editorial cream background, no border */}
-        <section
-          id="projects"
-          className="relative w-full min-h-screen bg-[#FAF8F5] flex flex-col justify-center px-6 md:px-12 lg:px-24 py-20 select-none"
-        >
-          <div className="max-w-4xl space-y-6">
-            <span className="font-mono text-xs md:text-sm uppercase tracking-widest text-[#e35342]">
-              Section 03 / Selected Works
-            </span>
-            <h2 className="font-display font-bold text-4xl md:text-6xl text-black">
-              Projects
-            </h2>
-            <p className="font-mono text-xs md:text-sm text-neutral-500 uppercase tracking-widest">
-              Case studies coming soon • Scroll to explore further
-            </p>
-          </div>
-        </section>
+        {/* Section 04 / Selected Works (Card Stack) - Black background */}
+        <Projects />
 
-        {/* Section 04 / Get in Touch placeholder - Clean editorial cream background, no border */}
+        {/* Section 05 / Get in Touch - Black background */}
         <section
           id="contact"
-          className="relative w-full min-h-screen bg-[#FAF8F5] flex flex-col justify-center px-6 md:px-12 lg:px-24 py-20 select-none"
+          className="relative w-full min-h-screen bg-[#0A0A0A] text-white flex flex-col justify-center px-6 md:px-12 lg:px-24 py-20 select-none border-t border-white/5"
         >
           <div className="max-w-4xl space-y-6">
             <span className="font-mono text-xs md:text-sm uppercase tracking-widest text-[#d5802a]">
-              Section 04 / Get in Touch
+              Section 05 / Get in Touch
             </span>
-            <h2 className="font-display font-bold text-4xl md:text-6xl text-black">
+            <h2 className="font-display font-medium text-4xl md:text-6xl text-white">
               Contact
             </h2>
-            <p className="font-mono text-xs md:text-sm text-neutral-500 uppercase tracking-widest">
+            <p className="font-mono text-xs md:text-sm text-neutral-400 uppercase tracking-widest">
               Let&apos;s connect • Contact info coming soon
             </p>
           </div>

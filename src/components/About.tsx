@@ -7,7 +7,51 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import About3D from "./About3D";
 import { prepareWithSegments, layoutWithLines } from "@chenglou/pretext";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);interface PretextParagraphProps {
+gsap.registerPlugin(useGSAP, ScrollTrigger);
+
+interface DesignItem {
+  id: string;
+  number: string;
+  title: string;
+  category: string;
+  description: string;
+  imgSrc?: string;
+  color: string;
+  accentColor: string;
+}
+
+const SHOWCASE_ITEMS: DesignItem[] = [
+  {
+    id: "neurograph-ai",
+    number: "01",
+    title: "NEUROGRAPH AI",
+    category: "Neural Graphics Platform (UI/UX)",
+    description: "An editorial-style web application designed for high-dimensional neural scene representation. Designed with strict minimalist grids, high-contrast typography, and fluid responsive panels.",
+    imgSrc: "/images/dashboard_ui.jpg",
+    color: "#FAF8F5", // Light cream
+    accentColor: "#de3421",
+  },
+  {
+    id: "symphony-synth",
+    number: "02",
+    title: "SYMPHONY SYNTH",
+    category: "Tactile Audio Interface (UI/UX)",
+    description: "An interactive, hardware-inspired sound design interface. Features custom responsive rotary control knobs, visual frequency waves, and modular routing grids designed for spatial audio producers.",
+    color: "#FAF8F5",
+    accentColor: "#d5802a",
+  },
+  {
+    id: "aether-dna",
+    number: "03",
+    title: "AETHER IDENTITY",
+    category: "Brand Architecture & DNA",
+    description: "Visual identity guidelines, color palettes, and typographic layout ratios for a decentralized cloud computing interface. Emphasizes clean alignment and raw technical layout details.",
+    color: "#FAF8F5",
+    accentColor: "#9b8064",
+  },
+];
+
+interface PretextParagraphProps {
   text: string;
   font: string;
   lineHeight: number;
@@ -275,6 +319,40 @@ export default function About({ active }: AboutProps) {
         onToggle: (self) => setIsAboutInView(self.isActive),
       });
 
+      // Background color transition from white/cream (#FAF8F5) to black (#0A0A0A)
+      // Matches the palette in Design.md (neutral-950 / #000000)
+      gsap.to(sectionRef.current, {
+        backgroundColor: "#0A0A0A",
+        scrollTrigger: {
+          trigger: ".endline-trigger",
+          start: "top 75%",     // Start transition when top of endline hits 75% of viewport
+          end: "bottom 40%",    // End transition when bottom of endline hits 40% of viewport
+          scrub: true,
+        },
+      });
+
+      // Gradually change the text color inside the endline block from #111111 to cream/white #FAF8F5
+      gsap.to(".endline-trigger p", {
+        color: "#FAF8F5",
+        scrollTrigger: {
+          trigger: ".endline-trigger",
+          start: "top 75%",
+          end: "bottom 40%",
+          scrub: true,
+        },
+      });
+
+      // Gradually change the top border color from #e2e2e0 to a subtle dark-mode border
+      gsap.to(".endline-trigger", {
+        borderColor: "rgba(255, 255, 255, 0.15)",
+        scrollTrigger: {
+          trigger: ".endline-trigger",
+          start: "top 75%",
+          end: "bottom 40%",
+          scrub: true,
+        },
+      });
+
       const chapters = [
         { selector: ".headline-trigger", section: 0 },
         { selector: ".chapter-1", section: 1 },
@@ -292,6 +370,200 @@ export default function About({ active }: AboutProps) {
           onToggle: (self) => {
             if (self.isActive) setActiveSection(section);
           },
+        });
+      });
+
+      // Showcase Trigger to update activeSection to 5 (Showcase pose)
+      ScrollTrigger.create({
+        trigger: ".showcase-track",
+        start: "top 50%",
+        end: "bottom 40%",
+        onToggle: (self) => {
+          if (self.isActive) setActiveSection(5);
+        },
+      });
+
+      // Showcase horizontal/vertical 3D staircase timeline (scrubbed with scroll)
+      // Custom responsive paths matching the screen recording depth composition
+      const mm = gsap.matchMedia();
+
+      // Desktop (>= 1024px)
+      mm.add("(min-width: 1024px)", () => {
+        const showcaseTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: ".showcase-track",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 0.5,
+          },
+        });
+
+        // Card 1: Starts prominent on the left/foreground, slides away left & down
+        showcaseTl.fromTo(
+          ".showcase-card-1",
+          { x: "6vw", y: "42vh", scale: 0.98, opacity: 1, rotation: -3, zIndex: 30, pointerEvents: "auto" },
+          { x: "-65vw", y: "55vh", scale: 0.75, opacity: 0, rotation: -8, zIndex: 10, pointerEvents: "none", ease: "power1.inOut" },
+          0
+        );
+
+        // Card 2: Starts right background, moves to center-right foreground, crosses left behind head
+        showcaseTl.fromTo(
+          ".showcase-card-2",
+          { x: "100vw", y: "22vh", scale: 0.75, opacity: 0.15, rotation: 6, zIndex: 10, pointerEvents: "none" },
+          { x: "54vw", y: "28vh", scale: 1.06, opacity: 1, rotation: 1, zIndex: 30, pointerEvents: "auto", duration: 1.5, ease: "power1.inOut" },
+          0
+        );
+        showcaseTl.to(
+          ".showcase-card-2",
+          { x: "4vw", y: "36vh", scale: 0.82, opacity: 0.6, rotation: -3, zIndex: 10, pointerEvents: "none", duration: 1.5, ease: "power1.inOut" },
+          1.5
+        );
+
+        // Card 3: Starts far right background, sweeps in, becomes new front focal point
+        showcaseTl.fromTo(
+          ".showcase-card-3",
+          { x: "140vw", y: "2vh", scale: 0.65, opacity: 0, rotation: -4, zIndex: 10, pointerEvents: "none" },
+          { x: "58vw", y: "6vh", scale: 0.85, opacity: 0.5, rotation: 2, zIndex: 10, pointerEvents: "none", duration: 1.5, ease: "power1.inOut" },
+          0
+        );
+        showcaseTl.to(
+          ".showcase-card-3",
+          { x: "5vw", y: "10vh", scale: 1.08, opacity: 1, rotation: -1, zIndex: 30, pointerEvents: "auto", duration: 1.5, ease: "power1.inOut" },
+          1.5
+        );
+      });
+
+      // Tablet (768px to 1023px)
+      mm.add("(min-width: 768px) and (max-width: 1023px)", () => {
+        const showcaseTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: ".showcase-track",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 0.5,
+          },
+        });
+
+        // Tablet timeline (reduced X and Y offsets to prevent clipping)
+        showcaseTl.fromTo(
+          ".showcase-card-1",
+          { x: "2vw", y: "44vh", scale: 0.95, opacity: 1, rotation: -2, zIndex: 30, pointerEvents: "auto" },
+          { x: "-70vw", y: "55vh", scale: 0.7, opacity: 0, rotation: -6, zIndex: 10, pointerEvents: "none", ease: "power1.inOut" },
+          0
+        );
+
+        showcaseTl.fromTo(
+          ".showcase-card-2",
+          { x: "100vw", y: "24vh", scale: 0.72, opacity: 0.15, rotation: 4, zIndex: 10, pointerEvents: "none" },
+          { x: "50vw", y: "30vh", scale: 1.02, opacity: 1, rotation: 1, zIndex: 30, pointerEvents: "auto", duration: 1.5, ease: "power1.inOut" },
+          0
+        );
+        showcaseTl.to(
+          ".showcase-card-2",
+          { x: "2vw", y: "38vh", scale: 0.78, opacity: 0.5, rotation: -2, zIndex: 10, pointerEvents: "none", duration: 1.5, ease: "power1.inOut" },
+          1.5
+        );
+
+        showcaseTl.fromTo(
+          ".showcase-card-3",
+          { x: "140vw", y: "4vh", scale: 0.6, opacity: 0, rotation: -3, zIndex: 10, pointerEvents: "none" },
+          { x: "54vw", y: "8vh", scale: 0.8, opacity: 0.4, rotation: 1, zIndex: 10, pointerEvents: "none", duration: 1.5, ease: "power1.inOut" },
+          0
+        );
+        showcaseTl.to(
+          ".showcase-card-3",
+          { x: "2vw", y: "12vh", scale: 1.04, opacity: 1, rotation: -1, zIndex: 30, pointerEvents: "auto", duration: 1.5, ease: "power1.inOut" },
+          1.5
+        );
+      });
+
+      // Mobile (< 768px)
+      mm.add("(max-width: 767px)", () => {
+        const showcaseTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: ".showcase-track",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 0.5,
+          },
+        });
+
+        // Mobile timeline (simplified cascading concept centered)
+        showcaseTl.fromTo(
+          ".showcase-card-1",
+          { x: "5vw", y: "45vh", scale: 0.9, opacity: 1, rotation: -1, zIndex: 30, pointerEvents: "auto" },
+          { x: "-80vw", y: "50vh", scale: 0.7, opacity: 0, rotation: -3, zIndex: 10, pointerEvents: "none", ease: "power1.inOut" },
+          0
+        );
+
+        showcaseTl.fromTo(
+          ".showcase-card-2",
+          { x: "110vw", y: "25vh", scale: 0.7, opacity: 0.15, rotation: 2, zIndex: 10, pointerEvents: "none" },
+          { x: "5vw", y: "25vh", scale: 1.0, opacity: 1, rotation: 0, zIndex: 30, pointerEvents: "auto", duration: 1.5, ease: "power1.inOut" },
+          0
+        );
+        showcaseTl.to(
+          ".showcase-card-2",
+          { x: "-80vw", y: "25vh", scale: 0.7, opacity: 0, rotation: -2, zIndex: 10, pointerEvents: "none", duration: 1.5, ease: "power1.inOut" },
+          1.5
+        );
+
+        showcaseTl.fromTo(
+          ".showcase-card-3",
+          { x: "110vw", y: "25vh", scale: 0.7, opacity: 0, rotation: 1, zIndex: 10, pointerEvents: "none" },
+          { x: "110vw", y: "25vh", scale: 0.7, opacity: 0, rotation: 1, zIndex: 10, pointerEvents: "none", duration: 1.2 },
+          0
+        );
+        showcaseTl.to(
+          ".showcase-card-3",
+          { x: "5vw", y: "25vh", scale: 1.0, opacity: 1, rotation: 0, zIndex: 30, pointerEvents: "auto", duration: 1.8, ease: "power1.inOut" },
+          1.2
+        );
+      });
+
+      // Hover feedback for the cards
+      const cards = gsap.utils.toArray<HTMLElement>(".showcase-card");
+      cards.forEach((card) => {
+        const image = card.querySelector(".showcase-image");
+        const vector = card.querySelector(".showcase-vector");
+        const number = card.querySelector(".showcase-number");
+
+        card.addEventListener("mouseenter", () => {
+          gsap.to(card, {
+            y: -8,
+            borderColor: "rgba(255, 255, 255, 0.25)",
+            boxShadow: "rgba(0, 0, 0, 0.4) 0px 20px 40px -15px",
+            duration: 0.4,
+            ease: "power2.out",
+          });
+          if (image) {
+            gsap.to(image, { scale: 1.03, duration: 0.6, ease: "power2.out" });
+          }
+          if (vector) {
+            gsap.to(vector, { scale: 1.05, duration: 0.6, ease: "power2.out" });
+          }
+          if (number) {
+            gsap.to(number, { x: 5, duration: 0.3, ease: "power2.out" });
+          }
+        });
+
+        card.addEventListener("mouseleave", () => {
+          gsap.to(card, {
+            y: 0,
+            borderColor: "rgba(255, 255, 255, 0.1)",
+            boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 20px -10px",
+            duration: 0.4,
+            ease: "power2.out",
+          });
+          if (image) {
+            gsap.to(image, { scale: 1, duration: 0.6, ease: "power2.out" });
+          }
+          if (vector) {
+            gsap.to(vector, { scale: 1, duration: 0.6, ease: "power2.out" });
+          }
+          if (number) {
+            gsap.to(number, { x: 0, duration: 0.3, ease: "power2.out" });
+          }
         });
       });
     },
@@ -451,6 +723,94 @@ export default function About({ active }: AboutProps) {
           <p className="text-[22px] sm:text-[28px] md:text-[34px] text-[#111111] leading-relaxed font-medium tracking-tight">
             That&apos;s how I like to build. Curious enough to explore. Technical enough to ship. And obsessive enough to keep going until the whole thing feels like it couldn&apos;t have been built any other way.
           </p>
+        </div>
+
+        {/* Section 03 / Creative Showcase - Black background */}
+        <div className="showcase-track w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] min-h-[300vh] bg-[#0A0A0A] text-white flex flex-col justify-start select-none overflow-hidden border-t border-white/5 pointer-events-auto z-30">
+          {/* Subtle noise paper overlay texture */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.015] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] z-0"></div>
+
+          {/* Sticky container that keeps the viewport locked during horizontal scroll sweep */}
+          <div className="sticky top-0 left-0 w-full h-screen overflow-hidden flex flex-col justify-center px-6 md:px-12 lg:px-24 py-16 z-10">
+            <div className="relative z-10 w-full max-w-[1240px] mx-auto">
+              
+              {/* Showcase Cards Staggered Staircase Layout */}
+              <div className="relative w-full h-[75vh] z-20">
+                {SHOWCASE_ITEMS.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className={`showcase-card showcase-card-${idx + 1} absolute rounded-xl border border-white/10 bg-[#121212] p-2 flex flex-col justify-center shadow-md overflow-hidden opacity-0 pointer-events-none w-[250px] sm:w-[280px] md:w-[320px] lg:w-[340px] xl:w-[360px] left-0`}
+                    style={{
+                      boxShadow: "rgba(0, 0, 0, 0.2) 0px 10px 30px -15px",
+                      // Staggered staircase vertical positioning: bottom to top
+                      top: idx === 0 ? "50vh" : idx === 1 ? "25vh" : "0vh",
+                    }}
+                  >
+                    {/* Image/Graphic Area */}
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
+                      {item.imgSrc ? (
+                        <img
+                          src={item.imgSrc}
+                          alt={item.title}
+                          className="showcase-image w-full h-full object-cover transform transition-transform duration-700"
+                        />
+                      ) : (
+                        <div className="w-full h-full p-3 flex items-center justify-center overflow-hidden">
+                          {item.id === "symphony-synth" && (
+                            <div className="showcase-vector w-full h-full flex flex-col justify-between text-neutral-400 transform transition-transform duration-700">
+                              <div className="flex justify-between items-center text-[7px] font-mono opacity-50">
+                                <span>OSC-A: TRIANGLE</span>
+                                <span>FILTER: LOWPASS</span>
+                              </div>
+                              <div className="flex gap-3 justify-center items-center my-auto">
+                                {[1, 2, 3].map((k) => (
+                                   <div key={k} className="relative w-8 h-8 rounded-full border border-white/20 bg-neutral-900 flex items-center justify-center">
+                                     <div className="absolute top-0.5 w-0.5 h-2 bg-white/40 rounded-full origin-bottom rotate-[45deg]"></div>
+                                     <svg className="absolute w-full h-full stroke-white/5 fill-none" viewBox="0 0 32 32">
+                                       <circle cx="16" cy="16" r="11" />
+                                     </svg>
+                                   </div>
+                                ))}
+                              </div>
+                              <div className="space-y-1">
+                                <svg viewBox="0 0 100 20" className="w-full h-4 stroke-white/20 fill-none">
+                                  <path d="M 0,10 C 10,2, 20,18, 30,10 C 40,2, 50,18, 60,10 C 70,2, 80,18, 90,10 L 100,10" strokeWidth="0.75" />
+                                </svg>
+                              </div>
+                            </div>
+                          )}
+
+                          {item.id === "aether-dna" && (
+                            <div className="showcase-vector w-full h-full flex flex-col justify-between text-neutral-400 transform transition-transform duration-700">
+                              <div className="border border-white/10 rounded p-2 flex-1 flex flex-col justify-between font-mono text-[7px] leading-tight">
+                                <div className="flex justify-between border-b border-white/5 pb-1">
+                                  <span className="opacity-50">TYPO SYSTEM</span>
+                                  <span className="text-[#de3421]">R-1.618</span>
+                                </div>
+                                <div className="py-1 text-left space-y-0.5">
+                                  <div className="text-[12px] font-display font-medium text-white tracking-tight leading-none">
+                                    Averia Serif
+                                  </div>
+                                  <div className="text-[7px] font-mono text-neutral-500">
+                                    Geist Mono Regular
+                                  </div>
+                                </div>
+                                <div className="flex justify-between border-t border-white/5 pt-1 opacity-50">
+                                  <span>COL-12</span>
+                                  <span>G-24PX</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </div>
         </div>
 
       </div>
