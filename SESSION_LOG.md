@@ -1,5 +1,65 @@
 # Session Log
 
+## [2026-08-15 22:42] Converted Art Showcase to Natural Scrolling Flow
+- **Accomplishments**:
+  - Re-implemented the staircase art showcase layout to follow the **natural vertical scroll flow** of the page rather than locking the screen in a sticky viewport box, aligning 100% with the Scheme Engine scroll mechanics in the video reference.
+  - Positioned cards relatively and staggered them horizontally in a left/right/left flow using native Tailwind offsets (`mr-auto ml-[5vw]`, `ml-auto mr-[5vw]`, etc.) and rotational offsets (`rotate-[-2deg]`, `rotate-[3deg]`, `rotate-[-1deg]`).
+  - Added large vertical spacers (`space-y-[35vh]`) so the cards scroll up naturally one by one, framing the centered sticky 3D head as they pass it.
+  - Setup simple, high-performance ScrollTriggers for each card to highlight the corresponding art title in the sticky left index as the card crosses the center of the viewport.
+  - Bound the sticky index item click handlers to smooth `scrollIntoView` triggers, providing a premium interactive navigation experience.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Simplified GSAP hook block (removed screen-lock matchedMedia timelines, replaced with clean activeCard scroll triggers), and simplified cards container markup structure.
+
+## [2026-08-15 22:20] Implemented Premium Art Showcase Staircase Cascade
+- **Accomplishments**:
+  - Restored `SHOWCASE_ITEMS` and `DesignItem` data structures in [`About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx) to showcase art designs (`NEUROGRAPH AI`, `SYMPHONY SYNTH`, `AETHER IDENTITY`).
+  - Implemented an editorial sticky column layout on the left of the showcase section displaying the vertical index of art design names. Added an active highlight state controlled by scroll progress and click-to-scroll navigation triggers.
+  - Implemented a responsive diagonal card cascade around the centered 3D head on the right side of the screen matching the Scheme Engine scroll timeline mechanics from `Screen Recording 2026-08-15 220410.mp4`.
+  - Removed inline `top` styles from cards to let GSAP handle vertical positioning completely, preventing viewport displacement drift.
+  - Removed `overflow-hidden` from `.showcase-track` to allow `position: sticky` on the inner container to work properly, relying on the body's `overflow-x: clip` in [`globals.css`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/globals.css) to clip horizontal card animation overflows.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Re-engineered layout markup, restored definitions, added scroll activeCard triggers, and recreated matchedMedia timelines.
+
+## [2026-08-15 22:03] Removed Showcase Cards Entirely
+- **Accomplishments**:
+  - Removed all showcase cards, their mapping loop, and nested styling structures from the showcase section (`.showcase-track`) in [`About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx) as requested by the user in `Screenshot 2026-08-15 220006.png`.
+  - Simplified the `.showcase-track` container from a `min-h-[300vh]` scrolling track to a simple, clean, full-viewport `h-screen` spacing segment.
+  - Cleaned up the unused `SHOWCASE_ITEMS` and `DesignItem` typescript declarations.
+  - Deleted the card-specific GSAP scroll-triggered position timelines and card-specific mouseenter/mouseleave hover events to avoid compilation errors and runtime leaks.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Removed card markup, cleaned up variables, simplified container layout structure and height, and deleted card GSAP timelines and hover event listeners.
+
+## [2026-08-15 21:58] Removed Showcase Top Border Divider
+- **Accomplishments**:
+  - Removed `border-t border-white/5` from the `.showcase-track` classes.
+  - This removes the thin white line divider visible at the boundary between the about section's endline area and the showcase container, enabling the black backgrounds to transition seamlessly into a single continuous visual segment as shown in `Screenshot 2026-08-15 215651.png`.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Removed `border-t border-white/5` from `.showcase-track` div.
+
+## [2026-08-15 21:56] Corrected Sticky 3D Head Layering (Z-Index Overlap)
+- **Accomplishments**:
+  - Increased the z-index of the Sticky 3D Canvas Wrapper from `z-20` to `z-[35]`.
+  - This ensures the 3D head renders correctly in front of the sibling `.showcase-track` (which has `z-30` and an opaque black background), restoring the head's visibility during the showcase section.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Raised Sticky 3D Canvas Wrapper z-index to `z-[35]`.
+
+## [2026-08-15 21:52] Fixed Showcase Section Bleed Layout & Side Square Artifact
+- **Accomplishments**:
+  - Moved the `.showcase-track` container outside of the Centered Scrollable Content flex wrapper. Because `.showcase-track` is now a direct child of the `#about` section (which is full-width with no horizontal padding), it natively spans 100% of the page width using `w-full relative`.
+  - Removed the `w-screen`, `left-1/2`, `right-1/2`, `-ml-[50vw]`, and `-mr-[50vw]` CSS bleed hacks which caused width calculation mismatch relative to parent padding/vertical scrollbars, correcting the off-center rendering offset that produced the side black square artifact circled in `Screenshot 2026-08-15 214828.png`.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Adjusted wrapper div closing tags placement, removed margin/positioning viewport hacks, and simplified class definitions for `.showcase-track`.
+
+## [2026-08-15 21:47] Fixed Showcase Section Layout, Navigation, and Hover Animations
+- **Accomplishments**:
+  - Added `id="showcase"` anchor element to the `.showcase-track` container, resolving a broken navigation link issue where clicking "Showcase" in the header failed to scroll the page.
+  - Wrapped each showcase card's content inside a dedicated `.showcase-card-inner` container.
+  - Moved the hover translation (`y: -8`) animation to `.showcase-card-inner`, completely isolating it from the outer `.showcase-card` container controlled by GSAP ScrollTrigger. This resolves the position animation override bug that caused cards to jump, jitter, or break layout positions when hovered.
+  - Implemented card text content rendering. Renders each card's title, category, number, and description inside the markup using clean typography, restoring the intended premium portfolio details.
+  - Verified that all animations perform smoothly with zero console warnings or compilation errors.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Added inner wrappers, rendered text labels, corrected target selectors for hover events, and added showcase anchor id.
+
 ## [2026-08-15 21:05] Prevent Pre-Scroll Card Leakage via CSS Opacity & Pointer Events
 - **Accomplishments**:
   - Solved the premature card leakage bug shown in `Screenshot 2026-08-15 210021.png` where Card 3 emerged at the bottom-right corner before the showcase track scroll trigger was reached.

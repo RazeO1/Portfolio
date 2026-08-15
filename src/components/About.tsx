@@ -1,4 +1,5 @@
 "use client";
+// Rebuild trigger: Slot conveyor update 1.
 
 import { useRef, useState, useEffect, useMemo } from "react";
 import { useGSAP } from "@gsap/react";
@@ -8,49 +9,25 @@ import About3D from "./About3D";
 import { prepareWithSegments, layoutWithLines } from "@chenglou/pretext";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
-
-interface DesignItem {
+interface ProjectItem {
   id: string;
-  number: string;
   title: string;
-  category: string;
-  description: string;
-  imgSrc?: string;
-  color: string;
-  accentColor: string;
+  creator: string;
+  project: string;
+  image?: string;
 }
 
-const SHOWCASE_ITEMS: DesignItem[] = [
-  {
-    id: "neurograph-ai",
-    number: "01",
-    title: "NEUROGRAPH AI",
-    category: "Neural Graphics Platform (UI/UX)",
-    description: "An editorial-style web application designed for high-dimensional neural scene representation. Designed with strict minimalist grids, high-contrast typography, and fluid responsive panels.",
-    imgSrc: "/images/dashboard_ui.jpg",
-    color: "#FAF8F5", // Light cream
-    accentColor: "#de3421",
-  },
-  {
-    id: "symphony-synth",
-    number: "02",
-    title: "SYMPHONY SYNTH",
-    category: "Tactile Audio Interface (UI/UX)",
-    description: "An interactive, hardware-inspired sound design interface. Features custom responsive rotary control knobs, visual frequency waves, and modular routing grids designed for spatial audio producers.",
-    color: "#FAF8F5",
-    accentColor: "#d5802a",
-  },
-  {
-    id: "aether-dna",
-    number: "03",
-    title: "AETHER IDENTITY",
-    category: "Brand Architecture & DNA",
-    description: "Visual identity guidelines, color palettes, and typographic layout ratios for a decentralized cloud computing interface. Emphasizes clean alignment and raw technical layout details.",
-    color: "#FAF8F5",
-    accentColor: "#9b8064",
-  },
+const PROJECTS: ProjectItem[] = [
+  { id: "neurograph-ai", title: "NEUROGRAPH AI", creator: "ELENA ROSTOVA", project: "NEUROGRAPH", image: "/images/dashboard_ui.jpg" },
+  { id: "symphony-synth", title: "SYMPHONY SYNTH", creator: "MARCUS VANCE", project: "SYMPHONY AUDIO" },
+  { id: "aether-dna", title: "AETHER IDENTITY", creator: "LUCAS VANCE", project: "AETHER NET" },
+  { id: "helios-energy", title: "HELIOS INTERFACE", creator: "KAITO SATO", project: "HELIOS CORP" },
+  { id: "lumina-fashion", title: "LUMINA COLLECTION", creator: "SOPHIA LOREN", project: "LUMINA PARIS" },
+  { id: "chronos-watch", title: "CHRONOS TIMEPIECE", creator: "HANS ZIMMER", project: "CHRONOS SWISS" },
+  { id: "orion-space", title: "ORION VOYAGER", creator: "ARTHUR CLARKE", project: "ORION SPACE" },
+  { id: "vortex-dynamics", title: "VORTEX DYNAMICS", creator: "NIKOLA TESLA", project: "VORTEX LAB" },
+  { id: "apex-pavilion", title: "APEX PAVILION", creator: "ZAHA HADID", project: "APEX STUDIO" },
 ];
-
 interface PretextParagraphProps {
   text: string;
   font: string;
@@ -265,6 +242,7 @@ export default function About({ active }: AboutProps) {
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [device, setDevice] = useState<"mobile" | "desktop">("desktop");
+  const [activeCard, setActiveCard] = useState(0);
 
   useEffect(() => {
     if (isAboutInView) {
@@ -383,154 +361,176 @@ export default function About({ active }: AboutProps) {
         },
       });
 
-      // Showcase horizontal/vertical 3D staircase timeline (scrubbed with scroll)
-      // Custom responsive paths matching the screen recording depth composition
-      const mm = gsap.matchMedia();
+      // Check for prefers-reduced-motion
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      // Desktop (>= 1024px)
-      mm.add("(min-width: 1024px)", () => {
-        const showcaseTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: ".showcase-track",
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.5,
-          },
+      if (!prefersReducedMotion) {
+        const DESKTOP_SLOTS = [
+          { x: "-55vw", y: "45vh", scale: 0.12, opacity: 0.0, zIndex: 10 },
+          { x: "-42vw", y: "32vh", scale: 0.22, opacity: 0.35, zIndex: 12 },
+          { x: "-28vw", y: "20vh", scale: 0.40, opacity: 0.65, zIndex: 15 },
+          { x: "-14vw", y: "8vh", scale: 0.70, opacity: 0.85, zIndex: 20 },
+          { x: "0vw", y: "0vh", scale: 1.00, opacity: 1.0, zIndex: 50 },
+          { x: "14vw", y: "-8vh", scale: 0.75, opacity: 0.85, zIndex: 20 },
+          { x: "28vw", y: "-20vh", scale: 0.45, opacity: 0.65, zIndex: 15 },
+          { x: "42vw", y: "-32vh", scale: 0.25, opacity: 0.45, zIndex: 12 },
+          { x: "55vw", y: "-45vh", scale: 0.12, opacity: 0.0, zIndex: 10 },
+        ];
+
+        const TABLET_SLOTS = [
+          { x: "-48vw", y: "38vh", scale: 0.12, opacity: 0.0, zIndex: 10 },
+          { x: "-36vw", y: "27vh", scale: 0.20, opacity: 0.35, zIndex: 12 },
+          { x: "-24vw", y: "17vh", scale: 0.35, opacity: 0.65, zIndex: 15 },
+          { x: "-12vw", y: "7vh", scale: 0.65, opacity: 0.85, zIndex: 20 },
+          { x: "0vw", y: "0vh", scale: 0.90, opacity: 1.0, zIndex: 50 },
+          { x: "12vw", y: "-7vh", scale: 0.68, opacity: 0.85, zIndex: 20 },
+          { x: "24vw", y: "-17vh", scale: 0.40, opacity: 0.65, zIndex: 15 },
+          { x: "36vw", y: "-27vh", scale: 0.22, opacity: 0.45, zIndex: 12 },
+          { x: "48vw", y: "-38vh", scale: 0.12, opacity: 0.0, zIndex: 10 },
+        ];
+
+        const MOBILE_SLOTS = [
+          { x: "-35vw", y: "25vh", scale: 0.10, opacity: 0.0, zIndex: 10 },
+          { x: "-26vw", y: "18vh", scale: 0.18, opacity: 0.30, zIndex: 12 },
+          { x: "-18vw", y: "12vh", scale: 0.30, opacity: 0.55, zIndex: 15 },
+          { x: "-9vw", y: "6vh", scale: 0.60, opacity: 0.80, zIndex: 20 },
+          { x: "0vw", y: "0vh", scale: 0.80, opacity: 1.0, zIndex: 50 },
+          { x: "9vw", y: "-6vh", scale: 0.62, opacity: 0.80, zIndex: 20 },
+          { x: "18vw", y: "-12vh", scale: 0.35, opacity: 0.55, zIndex: 15 },
+          { x: "26vw", y: "-18vh", scale: 0.20, opacity: 0.40, zIndex: 12 },
+          { x: "35vw", y: "-25vh", scale: 0.10, opacity: 0.0, zIndex: 10 },
+        ];
+
+        const buildSlotTimeline = (cardSelector: string, slots: typeof DESKTOP_SLOTS) => {
+          const tl = gsap.timeline();
+          tl.set(cardSelector, {
+            x: slots[0].x,
+            y: slots[0].y,
+            scale: slots[0].scale,
+            opacity: slots[0].opacity,
+            zIndex: slots[0].zIndex,
+            pointerEvents: "none",
+          });
+
+          for (let s = 1; s < slots.length; s++) {
+            tl.to(cardSelector, {
+              x: slots[s].x,
+              y: slots[s].y,
+              scale: slots[s].scale,
+              opacity: slots[s].opacity,
+              zIndex: slots[s].zIndex,
+              pointerEvents: s >= 3 && s <= 5 ? "auto" : "none",
+              duration: 1,
+              ease: "power1.inOut",
+            });
+          }
+          return tl;
+        };
+
+        const mm = gsap.matchMedia();
+
+        mm.add("(min-width: 1024px)", () => {
+          const masterTl = gsap.timeline({ paused: true });
+
+          PROJECTS.forEach((item, idx) => {
+            const cardTl = buildSlotTimeline(`.showcase-card-${idx + 1}`, DESKTOP_SLOTS);
+            masterTl.add(cardTl, idx);
+          });
+
+          gsap.fromTo(masterTl,
+            { time: 4 },
+            {
+              time: 12,
+              ease: "none",
+              scrollTrigger: {
+                trigger: ".showcase-track",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0.5,
+                onUpdate: (self) => {
+                  const progress = self.progress;
+                  const idx = Math.min(8, Math.max(0, Math.round(progress * 8)));
+                  setActiveCard(idx);
+                }
+              }
+            }
+          );
         });
 
-        // Card 1: Starts prominent on the left/foreground, slides away left & down
-        showcaseTl.fromTo(
-          ".showcase-card-1",
-          { x: "6vw", y: "42vh", scale: 0.98, opacity: 1, rotation: -3, zIndex: 30, pointerEvents: "auto" },
-          { x: "-65vw", y: "55vh", scale: 0.75, opacity: 0, rotation: -8, zIndex: 10, pointerEvents: "none", ease: "power1.inOut" },
-          0
-        );
+        mm.add("(min-width: 768px) and (max-width: 1023px)", () => {
+          const masterTl = gsap.timeline({ paused: true });
 
-        // Card 2: Starts right background, moves to center-right foreground, crosses left behind head
-        showcaseTl.fromTo(
-          ".showcase-card-2",
-          { x: "100vw", y: "22vh", scale: 0.75, opacity: 0.15, rotation: 6, zIndex: 10, pointerEvents: "none" },
-          { x: "54vw", y: "28vh", scale: 1.06, opacity: 1, rotation: 1, zIndex: 30, pointerEvents: "auto", duration: 1.5, ease: "power1.inOut" },
-          0
-        );
-        showcaseTl.to(
-          ".showcase-card-2",
-          { x: "4vw", y: "36vh", scale: 0.82, opacity: 0.6, rotation: -3, zIndex: 10, pointerEvents: "none", duration: 1.5, ease: "power1.inOut" },
-          1.5
-        );
+          PROJECTS.forEach((item, idx) => {
+            const cardTl = buildSlotTimeline(`.showcase-card-${idx + 1}`, TABLET_SLOTS);
+            masterTl.add(cardTl, idx);
+          });
 
-        // Card 3: Starts far right background, sweeps in, becomes new front focal point
-        showcaseTl.fromTo(
-          ".showcase-card-3",
-          { x: "140vw", y: "2vh", scale: 0.65, opacity: 0, rotation: -4, zIndex: 10, pointerEvents: "none" },
-          { x: "58vw", y: "6vh", scale: 0.85, opacity: 0.5, rotation: 2, zIndex: 10, pointerEvents: "none", duration: 1.5, ease: "power1.inOut" },
-          0
-        );
-        showcaseTl.to(
-          ".showcase-card-3",
-          { x: "5vw", y: "10vh", scale: 1.08, opacity: 1, rotation: -1, zIndex: 30, pointerEvents: "auto", duration: 1.5, ease: "power1.inOut" },
-          1.5
-        );
-      });
-
-      // Tablet (768px to 1023px)
-      mm.add("(min-width: 768px) and (max-width: 1023px)", () => {
-        const showcaseTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: ".showcase-track",
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.5,
-          },
+          gsap.fromTo(masterTl,
+            { time: 4 },
+            {
+              time: 12,
+              ease: "none",
+              scrollTrigger: {
+                trigger: ".showcase-track",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0.5,
+                onUpdate: (self) => {
+                  const progress = self.progress;
+                  const idx = Math.min(8, Math.max(0, Math.round(progress * 8)));
+                  setActiveCard(idx);
+                }
+              }
+            }
+          );
         });
 
-        // Tablet timeline (reduced X and Y offsets to prevent clipping)
-        showcaseTl.fromTo(
-          ".showcase-card-1",
-          { x: "2vw", y: "44vh", scale: 0.95, opacity: 1, rotation: -2, zIndex: 30, pointerEvents: "auto" },
-          { x: "-70vw", y: "55vh", scale: 0.7, opacity: 0, rotation: -6, zIndex: 10, pointerEvents: "none", ease: "power1.inOut" },
-          0
-        );
+        mm.add("(max-width: 767px)", () => {
+          const masterTl = gsap.timeline({ paused: true });
 
-        showcaseTl.fromTo(
-          ".showcase-card-2",
-          { x: "100vw", y: "24vh", scale: 0.72, opacity: 0.15, rotation: 4, zIndex: 10, pointerEvents: "none" },
-          { x: "50vw", y: "30vh", scale: 1.02, opacity: 1, rotation: 1, zIndex: 30, pointerEvents: "auto", duration: 1.5, ease: "power1.inOut" },
-          0
-        );
-        showcaseTl.to(
-          ".showcase-card-2",
-          { x: "2vw", y: "38vh", scale: 0.78, opacity: 0.5, rotation: -2, zIndex: 10, pointerEvents: "none", duration: 1.5, ease: "power1.inOut" },
-          1.5
-        );
+          PROJECTS.forEach((item, idx) => {
+            const cardTl = buildSlotTimeline(`.showcase-card-${idx + 1}`, MOBILE_SLOTS);
+            masterTl.add(cardTl, idx);
+          });
 
-        showcaseTl.fromTo(
-          ".showcase-card-3",
-          { x: "140vw", y: "4vh", scale: 0.6, opacity: 0, rotation: -3, zIndex: 10, pointerEvents: "none" },
-          { x: "54vw", y: "8vh", scale: 0.8, opacity: 0.4, rotation: 1, zIndex: 10, pointerEvents: "none", duration: 1.5, ease: "power1.inOut" },
-          0
-        );
-        showcaseTl.to(
-          ".showcase-card-3",
-          { x: "2vw", y: "12vh", scale: 1.04, opacity: 1, rotation: -1, zIndex: 30, pointerEvents: "auto", duration: 1.5, ease: "power1.inOut" },
-          1.5
-        );
-      });
-
-      // Mobile (< 768px)
-      mm.add("(max-width: 767px)", () => {
-        const showcaseTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: ".showcase-track",
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.5,
-          },
+          gsap.fromTo(masterTl,
+            { time: 4 },
+            {
+              time: 12,
+              ease: "none",
+              scrollTrigger: {
+                trigger: ".showcase-track",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0.5,
+                onUpdate: (self) => {
+                  const progress = self.progress;
+                  const idx = Math.min(8, Math.max(0, Math.round(progress * 8)));
+                  setActiveCard(idx);
+                }
+              }
+            }
+          );
         });
-
-        // Mobile timeline (simplified cascading concept centered)
-        showcaseTl.fromTo(
-          ".showcase-card-1",
-          { x: "5vw", y: "45vh", scale: 0.9, opacity: 1, rotation: -1, zIndex: 30, pointerEvents: "auto" },
-          { x: "-80vw", y: "50vh", scale: 0.7, opacity: 0, rotation: -3, zIndex: 10, pointerEvents: "none", ease: "power1.inOut" },
-          0
-        );
-
-        showcaseTl.fromTo(
-          ".showcase-card-2",
-          { x: "110vw", y: "25vh", scale: 0.7, opacity: 0.15, rotation: 2, zIndex: 10, pointerEvents: "none" },
-          { x: "5vw", y: "25vh", scale: 1.0, opacity: 1, rotation: 0, zIndex: 30, pointerEvents: "auto", duration: 1.5, ease: "power1.inOut" },
-          0
-        );
-        showcaseTl.to(
-          ".showcase-card-2",
-          { x: "-80vw", y: "25vh", scale: 0.7, opacity: 0, rotation: -2, zIndex: 10, pointerEvents: "none", duration: 1.5, ease: "power1.inOut" },
-          1.5
-        );
-
-        showcaseTl.fromTo(
-          ".showcase-card-3",
-          { x: "110vw", y: "25vh", scale: 0.7, opacity: 0, rotation: 1, zIndex: 10, pointerEvents: "none" },
-          { x: "110vw", y: "25vh", scale: 0.7, opacity: 0, rotation: 1, zIndex: 10, pointerEvents: "none", duration: 1.2 },
-          0
-        );
-        showcaseTl.to(
-          ".showcase-card-3",
-          { x: "5vw", y: "25vh", scale: 1.0, opacity: 1, rotation: 0, zIndex: 30, pointerEvents: "auto", duration: 1.8, ease: "power1.inOut" },
-          1.2
-        );
-      });
+      }
 
       // Hover feedback for the cards
       const cards = gsap.utils.toArray<HTMLElement>(".showcase-card");
       cards.forEach((card) => {
+        const inner = card.querySelector(".showcase-card-inner");
         const image = card.querySelector(".showcase-image");
         const vector = card.querySelector(".showcase-vector");
         const number = card.querySelector(".showcase-number");
 
         card.addEventListener("mouseenter", () => {
+          if (inner) {
+            gsap.to(inner, {
+              y: -8,
+              duration: 0.4,
+              ease: "power2.out",
+            });
+          }
           gsap.to(card, {
-            y: -8,
             borderColor: "rgba(255, 255, 255, 0.25)",
             boxShadow: "rgba(0, 0, 0, 0.4) 0px 20px 40px -15px",
             duration: 0.4,
@@ -548,8 +548,14 @@ export default function About({ active }: AboutProps) {
         });
 
         card.addEventListener("mouseleave", () => {
+          if (inner) {
+            gsap.to(inner, {
+              y: 0,
+              duration: 0.4,
+              ease: "power2.out",
+            });
+          }
           gsap.to(card, {
-            y: 0,
             borderColor: "rgba(255, 255, 255, 0.1)",
             boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 20px -10px",
             duration: 0.4,
@@ -573,7 +579,7 @@ export default function About({ active }: AboutProps) {
   return (
     <section ref={sectionRef} id="about" className="relative w-full bg-[#FAF8F5] select-none z-20">
       {/* Sticky 3D Canvas Wrapper (Absolute to not push content down) */}
-      <div className="absolute inset-0 pointer-events-none z-20">
+      <div className="absolute inset-0 pointer-events-none z-[35]">
         <div className="sticky top-0 left-0 w-full h-screen flex items-center justify-center">
           <About3D active={active} activeSection={activeSection} tapData={tapData} mouse={mouse} />
           <div
@@ -724,33 +730,84 @@ export default function About({ active }: AboutProps) {
             That&apos;s how I like to build. Curious enough to explore. Technical enough to ship. And obsessive enough to keep going until the whole thing feels like it couldn&apos;t have been built any other way.
           </p>
         </div>
+      </div>
 
-        {/* Section 03 / Creative Showcase - Black background */}
-        <div className="showcase-track w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] min-h-[300vh] bg-[#0A0A0A] text-white flex flex-col justify-start select-none overflow-hidden border-t border-white/5 pointer-events-auto z-30">
-          {/* Subtle noise paper overlay texture */}
-          <div className="absolute inset-0 pointer-events-none opacity-[0.015] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] z-0"></div>
+      {/* Section 03 / Creative Showcase - Black background */}
+      <div id="showcase" className="showcase-track w-full relative min-h-[600vh] bg-[#0A0A0A] text-white flex flex-col justify-start select-none z-30">
+        {/* Subtle noise paper overlay texture */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.015] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] z-0"></div>
 
-          {/* Sticky container that keeps the viewport locked during horizontal scroll sweep */}
-          <div className="sticky top-0 left-0 w-full h-screen overflow-hidden flex flex-col justify-center px-6 md:px-12 lg:px-24 py-16 z-10">
-            <div className="relative z-10 w-full max-w-[1240px] mx-auto">
-              
-              {/* Showcase Cards Staggered Staircase Layout */}
-              <div className="relative w-full h-[75vh] z-20">
-                {SHOWCASE_ITEMS.map((item, idx) => (
+        {/* Sticky viewport container (pinned during the 600vh scroll) */}
+        <div className="sticky top-0 left-0 w-full h-screen overflow-hidden flex items-center justify-between px-6 md:px-12 lg:px-24 py-16 z-10">
+          
+          {/* Left Column: Sticky Design Names Index */}
+          <div className="hidden lg:flex flex-col justify-center h-full max-w-[280px] z-25 font-mono text-left space-y-6 pt-4">
+            <div className="text-[10px] uppercase tracking-widest text-[#de3421] mb-2 font-bold">
+              Selected Artworks
+            </div>
+            <div className="space-y-4">
+              {PROJECTS.map((item, idx) => {
+                const isActive = activeCard === idx;
+                return (
                   <div
                     key={item.id}
-                    className={`showcase-card showcase-card-${idx + 1} absolute rounded-xl border border-white/10 bg-[#121212] p-2 flex flex-col justify-center shadow-md overflow-hidden opacity-0 pointer-events-none w-[250px] sm:w-[280px] md:w-[320px] lg:w-[340px] xl:w-[360px] left-0`}
-                    style={{
-                      boxShadow: "rgba(0, 0, 0, 0.2) 0px 10px 30px -15px",
-                      // Staggered staircase vertical positioning: bottom to top
-                      top: idx === 0 ? "50vh" : idx === 1 ? "25vh" : "0vh",
+                    className={`transition-all duration-500 flex items-start gap-4 cursor-pointer ${
+                      isActive ? "opacity-100 translate-x-2" : "opacity-35 hover:opacity-60"
+                    }`}
+                    onClick={() => {
+                      const track = document.querySelector(".showcase-track");
+                      if (track) {
+                        const start = (track as HTMLElement).offsetTop;
+                        const height = (track as HTMLElement).offsetHeight - window.innerHeight;
+                        const targetScroll = start + (idx / (PROJECTS.length - 1)) * height;
+                        window.scrollTo({ top: targetScroll, behavior: "smooth" });
+                      }
                     }}
                   >
+                    <span className={`text-[10px] ${isActive ? "text-[#de3421]" : "text-white/40"}`}>
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium tracking-wider uppercase text-white font-display">
+                        {item.title}
+                      </span>
+                      <span className="text-[9px] text-white/50 tracking-widest uppercase mt-0.5">
+                        {item.project}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mobile Header: Sticky Active Design Name */}
+          <div className="absolute top-6 left-6 lg:hidden z-25 font-mono text-left pt-4">
+            <span className="text-[9px] uppercase tracking-widest text-[#de3421] block mb-1">
+              Selected Artwork
+            </span>
+            <span className="text-sm font-bold uppercase tracking-wider text-white font-display">
+              {PROJECTS[activeCard]?.title}
+            </span>
+          </div>
+
+          {/* Center/Right Area: Staircase Cascade Cards */}
+          <div className="relative flex-1 h-[80vh] z-10 flex items-center justify-center">
+            <div className="relative w-full h-full max-w-[1200px] mx-auto">
+              {PROJECTS.map((item, idx) => (
+                <div
+                  key={item.id}
+                  className={`showcase-card showcase-card-${idx + 1} absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-white/10 bg-[#121212] p-2 flex flex-col justify-center shadow-md overflow-hidden opacity-0 pointer-events-none w-[250px] sm:w-[280px] md:w-[310px] lg:w-[330px] xl:w-[350px] transition-all duration-500 hover:border-white/20 z-10 will-change-transform`}
+                  style={{
+                    boxShadow: "rgba(0, 0, 0, 0.3) 0px 15px 45px -20px",
+                  }}
+                >
+                  <div className="showcase-card-inner w-full h-full flex flex-col justify-center">
                     {/* Image/Graphic Area */}
                     <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-white/5 bg-[#1a1a1a] flex items-center justify-center">
-                      {item.imgSrc ? (
+                      {item.image ? (
                         <img
-                          src={item.imgSrc}
+                          src={item.image}
                           alt={item.title}
                           className="showcase-image w-full h-full object-cover transform transition-transform duration-700"
                         />
@@ -802,17 +859,52 @@ export default function About({ active }: AboutProps) {
                               </div>
                             </div>
                           )}
+
+                          {item.id !== "symphony-synth" && item.id !== "aether-dna" && (
+                            <div className="w-full h-full p-4 flex flex-col justify-between text-neutral-400 z-10 select-none bg-neutral-900/50">
+                              <div className="flex justify-between items-center text-[7px] font-mono opacity-40">
+                                <span>GRID: 12-COL</span>
+                                <span>RENDER: COMPOSITE</span>
+                              </div>
+                              <div className="flex justify-center items-center my-auto">
+                                <div className="relative w-10 h-10 rounded-full border border-dashed border-white/20 flex items-center justify-center animate-spin [animation-duration:20s]">
+                                  <div className="w-5 h-5 border border-white/15 rotate-45"></div>
+                                </div>
+                              </div>
+                              <div className="flex justify-between items-center text-[7px] font-mono opacity-40 border-t border-white/5 pt-1">
+                                <span>PLATFORM: ART</span>
+                                <span>PROJECT: {item.id.toUpperCase()}</span>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  </div>
-                ))}
-              </div>
 
+                    {/* Card Content (Creator, Project, Title) */}
+                    <div className="mt-3 px-1 text-left flex flex-col justify-start font-mono">
+                      <div className="flex justify-between items-baseline mb-1 border-b border-white/5 pb-1">
+                        <span className="text-[9px] uppercase tracking-widest text-[#de3421] font-semibold">
+                          {item.creator}
+                        </span>
+                        <span className="text-[8px] text-white/40 tracking-wider">
+                          {String(idx + 1).padStart(2, "0")}
+                        </span>
+                      </div>
+                      <h4 className="font-display font-medium text-xs sm:text-sm text-white uppercase tracking-wider mt-1">
+                        {item.project}
+                      </h4>
+                      <p className="text-[10px] text-neutral-400 font-light mt-0.5 uppercase tracking-wide">
+                        {item.title}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
 
+        </div>
       </div>
     </section>
   );
