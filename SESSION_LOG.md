@@ -1,5 +1,19 @@
 # Session Log
 
+## [2026-08-19 21:30] Procedural WebGL Space Tunnel and Brand-Colored Starfield
+- **Accomplishments**:
+  - Replaced the static background image (`galaxy_tunnel.png`) in `About.tsx` with a fully procedural, real-time GPU-rendered background shader inside `About3D.tsx` (`WarpTunnelBackdrop` component).
+  - Designed a custom GLSL fragment shader (`CosmicTunnelShader`) that renders a swirling wormhole vortex with 3 spiral arms, utilizing fractional Brownian motion (FBM) noise for organic nebula clouds.
+  - Custom-mapped colors to the portfolio's signature branding: blends brand red (`#de3421`), warm amber (`#e2a222`), and cream white (`#FAF8F5`) on a deep charcoal black background (`#0A0A0A`).
+  - Added camera-relative coordinate locking to the background plane, keeping the backdrop centered in the perspective viewport as the camera floats, rolls, and pans down the tunnel.
+  - Multi-colored the flying `Starfield` particles to match the design palette, creating mixed streams of cream, brand red, and gold warp speed trails.
+  - Verified static compilation: build successfully compiled with Turbopack.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Removed static background image div.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Created `CosmicTunnelShader` and `WarpTunnelBackdrop` component; updated `Starfield` buffer attributes to inject brand vertex colors.
+- **Pending Tasks & Next Steps**:
+  - Complete contact section transitions.
+
 ## [2026-08-19 21:10] Unified Mouse Look-At Tracking in Projects Section
 - **Accomplishments**:
   - Removed the camera-relative slerped quaternion rotation branch in `AvatarModel`'s `useFrame` loop.

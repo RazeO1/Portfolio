@@ -350,7 +350,95 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
   );
 }
 
-const CosmicTunnelShader = {
+const CosmicTunnelBackdropShader = {
+  uniforms: {
+    uTime: { value: 0 },
+    uOpacity: { value: 0 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float uTime;
+    uniform float uOpacity;
+    varying vec2 vUv;
+
+    void main() {
+      vec2 uv = vUv - vec2(0.5);
+      float r = length(uv);
+
+      vec3 colorCream = vec3(0.98, 0.97, 0.96); // #FAF8F5
+      vec3 colorRed = vec3(0.87, 0.20, 0.13);   // #de3421
+
+      // Circular glowing wormhole core (exponential decay)
+      float core = exp(-r * 8.0);
+      float halo = exp(-r * 3.0) * 0.65;
+
+      vec3 finalColor = mix(colorRed, colorCream, core / (core + halo + 0.001));
+
+      // Make the backdrop plane transparent outside the glowing core region
+      float alpha = clamp(core + halo, 0.0, 1.0) * uOpacity;
+      
+      // Apply smooth radial fall-off to the alpha channel
+      alpha *= smoothstep(0.5, 0.2, r);
+
+      gl_FragColor = vec4(finalColor, alpha);
+    }
+  `
+};
+
+function WarpTunnelBackdrop({ activeSection }: { activeSection: number }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const opacityRef = useRef(0);
+
+  const activeSectionRef = useRef(activeSection);
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
+
+  useFrame((state) => {
+    if (!meshRef.current || !materialRef.current) return;
+
+    const time = state.clock.getElapsedTime();
+    materialRef.current.uniforms.uTime.value = time;
+
+    // Lock backdrop position in front of camera at constant Z offset (Z=-25)
+    meshRef.current.position.set(
+      state.camera.position.x,
+      state.camera.position.y,
+      state.camera.position.z - 25.0
+    );
+
+    // Keep it facing flat towards the camera
+    meshRef.current.quaternion.copy(state.camera.quaternion);
+
+    const currentSection = activeSectionRef.current;
+    const targetOpacity = currentSection === 6 ? 1.0 : 0.0;
+    opacityRef.current = THREE.MathUtils.lerp(opacityRef.current, targetOpacity, 0.08);
+    materialRef.current.uniforms.uOpacity.value = opacityRef.current;
+  });
+
+  return (
+    <mesh ref={meshRef} position={[0, 0, -25.0]} renderOrder={-1}>
+      <planeGeometry args={[18, 18]} />
+      <shaderMaterial
+        ref={materialRef}
+        vertexShader={CosmicTunnelBackdropShader.vertexShader}
+        fragmentShader={CosmicTunnelBackdropShader.fragmentShader}
+        uniforms={CosmicTunnelBackdropShader.uniforms}
+        transparent
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+const CosmicTunnelCylinderShader = {
   uniforms: {
     uTime: { value: 0 },
     uOpacity: { value: 0 },
@@ -376,34 +464,44 @@ const CosmicTunnelShader = {
     }
 
     void main() {
-      vec2 uv = vUv - vec2(0.5);
-      float r = length(uv);
-      float theta = atan(uv.y, uv.x);
+      // 1. Generate sharp, glowing warp-speed light streaks in three layers
+      // Scaled differently to have variable length, speed, and density
+      float whiteStreaks = smoothstep(0.6, 0.99, sin(vUv.x * 90.0 + vUv.y * 8.0 - uTime * 20.0) * 0.5 + 0.5);
+      float goldStreaks = smoothstep(0.65, 0.98, sin(vUv.x * 50.0 + vUv.y * 14.0 - uTime * 28.0) * 0.5 + 0.5);
+      float redStreaks = smoothstep(0.6, 0.97, sin(vUv.x * 70.0 - vUv.y * 10.0 - uTime * 14.0) * 0.5 + 0.5);
 
-      float swirl = theta + 4.5 * r - uTime * 0.35;
-      float arms = smoothstep(0.2, 0.8, sin(swirl * 3.0) * 0.5 + 0.5);
-      float cloud = fbm(uv * 10.0 + vec2(uTime * 0.05));
+      // 2. High-contrast swirling nebula clouds
+      vec2 nebulaUV = vec2(vUv.x * 2.0 + sin(vUv.y * 4.0 - uTime * 0.3) * 0.15, vUv.y * 2.0 - uTime * 0.25);
+      float cloudVal = fbm(nebulaUV * 6.0);
+      float cloudRed = pow(cloudVal, 3.5) * 2.2;
+      float cloudAmber = pow(fbm(nebulaUV * 10.0 + vec2(1.0, 1.0)), 3.0) * 1.6;
 
-      vec3 colorCream = vec3(0.98, 0.97, 0.96); // #FAF8F5
-      vec3 colorRed = vec3(0.87, 0.20, 0.13);   // #de3421
-      vec3 colorBlack = vec3(0.04, 0.04, 0.04); // #0A0A0A
-      vec3 colorAmber = vec3(0.88, 0.63, 0.13); // #e2a222
+      // Color Palette Vectors
+      vec3 colorCream = vec3(0.98, 0.97, 0.96); // #FAF8F5 (cream)
+      vec3 colorRed = vec3(0.87, 0.20, 0.13);   // #de3421 (brand red)
+      vec3 colorBlack = vec3(0.04, 0.04, 0.04); // #0A0A0A (dark background)
+      vec3 colorAmber = vec3(0.88, 0.63, 0.13); // #e2a222 (amber gold)
 
-      vec3 nebulaColor = mix(colorBlack, colorRed, arms * 0.65);
-      nebulaColor = mix(nebulaColor, colorAmber, arms * cloud * 0.3);
+      // Base: mix gas filaments into dark space
+      vec3 finalColor = colorBlack;
+      finalColor = mix(finalColor, colorRed, cloudRed * 0.8);
+      finalColor = mix(finalColor, colorAmber, cloudAmber * 0.65);
 
-      float coreGlow = exp(-r * 6.5);
-      vec3 finalColor = mix(nebulaColor, colorCream, coreGlow);
+      // Additive blending for volumetric-looking light trails
+      finalColor += colorRed * redStreaks * 1.5;
+      finalColor += colorAmber * goldStreaks * 1.8;
+      finalColor += colorCream * whiteStreaks * 2.5;
 
-      float vignette = smoothstep(0.5, 0.22, r);
-      finalColor = mix(colorBlack, finalColor, vignette);
+      // Fade out at ends of tube to prevent harsh clipping boundaries
+      float fade = smoothstep(0.0, 0.12, vUv.y) * smoothstep(1.0, 0.85, vUv.y);
+      finalColor = mix(colorBlack, finalColor, fade);
 
       gl_FragColor = vec4(finalColor, uOpacity);
     }
   `
 };
 
-function WarpTunnelBackdrop({ activeSection }: { activeSection: number }) {
+function WarpTunnelCylinder({ activeSection }: { activeSection: number }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const opacityRef = useRef(0);
@@ -413,36 +511,41 @@ function WarpTunnelBackdrop({ activeSection }: { activeSection: number }) {
     activeSectionRef.current = activeSection;
   }, [activeSection]);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (!meshRef.current || !materialRef.current) return;
 
     const time = state.clock.getElapsedTime();
+    const dt = Math.min(delta, 0.1);
+
     materialRef.current.uniforms.uTime.value = time;
 
     meshRef.current.position.set(
       state.camera.position.x,
       state.camera.position.y,
-      state.camera.position.z - 8.0
+      -10.0
     );
 
-    meshRef.current.quaternion.copy(state.camera.quaternion);
-
     const currentSection = activeSectionRef.current;
+    const speed = currentSection === 6 ? 0.008 : 0.002;
+    meshRef.current.rotation.y += speed * 60 * dt;
+
     const targetOpacity = currentSection === 6 ? 1.0 : 0.0;
     opacityRef.current = THREE.MathUtils.lerp(opacityRef.current, targetOpacity, 0.08);
     materialRef.current.uniforms.uOpacity.value = opacityRef.current;
   });
 
   return (
-    <mesh ref={meshRef} position={[0, 0, -8.0]} renderOrder={-1}>
-      <planeGeometry args={[22, 22]} />
+    <mesh ref={meshRef} position={[0, 0, -10.0]} rotation={[Math.PI / 2, 0, 0]} renderOrder={-2}>
+      {/* 64x64 segments subdivision ensures smooth perspective coordinate mapping inside tube */}
+      <cylinderGeometry args={[3.2, 3.2, 45, 64, 64, true]} />
       <shaderMaterial
         ref={materialRef}
-        vertexShader={CosmicTunnelShader.vertexShader}
-        fragmentShader={CosmicTunnelShader.fragmentShader}
-        uniforms={CosmicTunnelShader.uniforms}
+        vertexShader={CosmicTunnelCylinderShader.vertexShader}
+        fragmentShader={CosmicTunnelCylinderShader.fragmentShader}
+        uniforms={CosmicTunnelCylinderShader.uniforms}
         transparent
         depthWrite={false}
+        side={THREE.DoubleSide}
       />
     </mesh>
   );
@@ -969,6 +1072,7 @@ export default function About3D({ active, activeSection, projectsProgress, tapDa
           <AvatarModel activeSection={activeSection} tapData={tapData} mouse={mouse} />
           <Starfield activeSection={activeSection} />
           <WarpTunnelBackdrop activeSection={activeSection} />
+          <WarpTunnelCylinder activeSection={activeSection} />
           <CameraPath activeSection={activeSection} projectsProgress={projectsProgress} />
           <ProjectCapsules activeSection={activeSection} />
         </Suspense>
