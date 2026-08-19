@@ -1,5 +1,60 @@
 # Session Log
 
+## [2026-08-19 16:40] Dead-Centered 3D Head and Spiral Showcase Realignment
+- **Accomplishments**:
+  - Reverted horizontal shifts inside `About3D.tsx`'s `useFrame` loop, keeping the 3D head centerpiece dead-centered (`basePosX = 0`) across both the showcase and about text chapters.
+  - Centered the spiral staircase orbital center in [`About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx) to exactly `w / 2` and `h / 2` across all viewports, ensuring it aligns perfectly concentric with the 3D head model.
+  - Confirmed that the C-shape helical math successfully wraps cards on the right side of the centered head, leaving the left-panel editorial category index completely clear of overlaps on desktop.
+  - Verified static production build compilation exits with `code 0`.
+  - Ran automated visual tests with Playwright to verify the centered layout at 60% progress.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Centered `centerX` and `centerY` in the card positioning calculations.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Removed the horizontal shifts inside `useFrame`.
+- **Pending Tasks & Next Steps**:
+  - Map final project details in `Projects.tsx`.
+
+## [2026-08-19 16:25] Spiral Staircase Cascade around 3D Head Centerpiece
+- **Accomplishments**:
+  - Restored 3D head visibility in the showcase section by setting Section Pose 5 (Showcase) in [`About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx) back to its full centered size (`scale: [0.576, 0.576, 0.576]`).
+  - Implemented responsive horizontal shift for the 3D head centerpiece inside `About3D.tsx`'s `useFrame` loop (`basePosX = 0.52` on desktop, `0.3` on tablet) to smoothly slide it to the right during showcase mode, matching the spiral center.
+  - Developed mathematical orbital spiral staircase cascade formula in [`About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx) to arrange cards in a helical C-shape sweep winding around the 3D head centerpiece.
+  - Tangent-rotated the cards using their position angle `theta` (`rotate(${cardRotation}deg)`) to align them flat along the helical curve, matching a winding staircase look.
+  - Flattened card wrapper structure to `absolute inset-0 w-full h-full pointer-events-none z-10` directly inside the sticky viewport container, resolving parent coordinate offsets.
+  - Successfully verified compile-time static page build and ran automated visual tests with Playwright to verify the concentric spiral arrangement at 60% progress.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Implemented spiral coordinate math, tangent rotations, responsive center offsets, and absolute container restructuring.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Restored pose 5 scale and added dynamic horizontal offsets inside `useFrame`.
+- **Pending Tasks & Next Steps**:
+  - Map final project details in `Projects.tsx`.
+
+## [2026-08-19 15:45] Visual Verification and Left Panel Category Refinements via Playwright
+- **Accomplishments**:
+  - Eliminated 3D head canvas overlap with the showcase section by setting Section Pose 5 (Showcase) in [`About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx) to scale down to `0` and position out of view (`[0, -2, -5]`), allowing a clean backdrop transition.
+  - Added dynamic `category` headers to the showcase project items, replacing duplicate index labels on the left of the screen with a large, bold Category title that transitions on scroll (e.g. `NEURAL NETWORKS`, `CREATIVE SOUND`, `3D ENVIRONMENTS`).
+  - Laced a refined mini scroll-index side list below the category title, preserving index links and highlights.
+  - Used Playwright to perform automated visual tests of the cascade at `25%`, `60%`, and `90%` scroll positions, verifying that the mathematical zigzag cascade cards and captions align, layer, and fade exactly as in the Scheme Engine video starting from `00:00:10`.
+  - Verified static production build compilation exits with `code 0`.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Added category fields to projects, restructured left panel layout to show category header and mini-index, and formatted mobile layout labels.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Configured Section Pose 5 to shrink scale and hide head from showcase scene.
+- **Pending Tasks & Next Steps**:
+  - Finish content data mapping in `Projects.tsx`.
+
+## [2026-08-19 15:10] Refined Art Showcase to Mathematical Zigzag Stair Cascade
+- **Accomplishments**:
+  - Refined the creative art showcase scroll cascade to implement the continuous ever-rising zigzag staircase formula from the video reference (`Screen Recording 2026-08-15 220410.mp4` and user prototype in `claude html.html`).
+  - Implemented high-performance direct DOM updates inside a single ScrollTrigger `onUpdate` callback, avoiding React state re-render lag and achieving smooth 60fps scrolling.
+  - Positioned upcoming cards in a stretched, squashed staircase queue that animates smoothly on scroll, peaks size at the active spot, and recedes up and to the right into a faded trail.
+  - Positioned card captions absolutely below the cards, with opacity and vertical offsets faded in dynamically as cards approach active focus and faded out as they recede.
+  - Added responsiveness to the mathematical layout by scaling spacing factors (`activeX/Y`, steps) based on screen width/breakpoints.
+  - Handled prefers-reduced-motion accessibility fallbacks.
+  - Verified compilation: build succeeded cleanly with zero warnings or errors.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Replaced the slot-timeline matchMedia triggers with a single ScrollTrigger running the dynamic cascade formula; restructured markup and styling to support responsive layout variables, absolute captions, and dot overlay patterns.
+- **Pending Tasks & Next Steps**:
+  - Move on to completing details for Projects.tsx.
+  - Test contact section responsiveness.
+
 ## [2026-08-15 22:42] Converted Art Showcase to Natural Scrolling Flow
 - **Accomplishments**:
   - Re-implemented the staircase art showcase layout to follow the **natural vertical scroll flow** of the page rather than locking the screen in a sticky viewport box, aligning 100% with the Scheme Engine scroll mechanics in the video reference.
