@@ -48,8 +48,8 @@ const SECTION_POSES: Record<number, { position: [number, number, number]; scale:
     rotation: [0, 0, 0]
   },
   6: { // Projects / Tunnel Backdrop
-    position: [0, 0.58, -1.8],
-    scale: [0.38, 0.38, 0.38],
+    position: [0, 0, -3.2],
+    scale: [0.23, 0.23, 0.23],
     rotation: [-0.3, -0.4, 0]
   }
 };
@@ -254,6 +254,7 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
   }, [tapData]);
 
   // 3. Main R3F loop: updates positions and look-at rotations
+  // 3. Main R3F loop: updates positions and look-at rotations
   useFrame((state) => {
     if (!groupRef.current) return;
 
@@ -268,10 +269,14 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
 
     // Guide the base position smoothly (pose transition + breathing drift)
     if (currentSection === 6) {
-      // Head falls together with camera, offset 2.0 units in front and dead-centered
-      basePosition.current.x = THREE.MathUtils.lerp(basePosition.current.x, state.camera.position.x, 0.15);
-      basePosition.current.y = THREE.MathUtils.lerp(basePosition.current.y, state.camera.position.y + idleFloatY, 0.15);
-      basePosition.current.z = THREE.MathUtils.lerp(basePosition.current.z, state.camera.position.z - 2.0, 0.15);
+      // Head falls together with camera, offset 3.2 units in front and dead-centered
+      const localOffset = new THREE.Vector3(0, 0, -3.2);
+      const targetPos = localOffset.applyQuaternion(state.camera.quaternion).add(state.camera.position);
+      // Add idle vertical bobbing relative to camera up vector
+      const upVector = new THREE.Vector3(0, 1, 0).applyQuaternion(state.camera.quaternion);
+      targetPos.addScaledVector(upVector, idleFloatY);
+
+      basePosition.current.lerp(targetPos, 0.15);
     } else {
       basePosition.current.x = THREE.MathUtils.lerp(basePosition.current.x, pose.position[0], 0.05);
       basePosition.current.y = THREE.MathUtils.lerp(
@@ -283,9 +288,10 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
     }
 
     // Set actual position as a direct sum of base position and additive wobble translation
-    groupRef.current.position.x = basePosition.current.x + wobblePosition.current.x;
-    groupRef.current.position.y = basePosition.current.y + wobblePosition.current.y;
-    groupRef.current.position.z = basePosition.current.z + wobblePosition.current.z;
+    groupRef.current.position.copy(basePosition.current);
+    groupRef.current.position.x += wobblePosition.current.x;
+    groupRef.current.position.y += wobblePosition.current.y;
+    groupRef.current.position.z += wobblePosition.current.z;
 
     // Breathing-scale pulse
     const breathingScale = 1.0 + Math.sin(time * 2.0) * 0.01;
@@ -314,10 +320,23 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
     mouseLookRotation.current.x = THREE.MathUtils.lerp(mouseLookRotation.current.x, targetLookX, 0.08);
     mouseLookRotation.current.y = THREE.MathUtils.lerp(mouseLookRotation.current.y, targetLookY, 0.08);
 
-    // Set actual rotation as a direct sum of base pose rotation, look-at tracking, and springy wobble rotation
-    groupRef.current.rotation.x = pose.rotation[0] + mouseLookRotation.current.x + wobbleRotation.current.x;
-    groupRef.current.rotation.y = pose.rotation[1] + mouseLookRotation.current.y + wobbleRotation.current.y;
-    groupRef.current.rotation.z = pose.rotation[2] + wobbleRotation.current.z;
+    if (currentSection === 6) {
+      // Slerp group's rotation towards target camera-relative quaternion to perfectly follow mouse/camera look
+      const localEuler = new THREE.Euler(
+        pose.rotation[0] + mouseLookRotation.current.x + wobbleRotation.current.x,
+        pose.rotation[1] + mouseLookRotation.current.y + wobbleRotation.current.y,
+        wobbleRotation.current.z,
+        'YXZ'
+      );
+      const localQuat = new THREE.Quaternion().setFromEuler(localEuler);
+      const targetQuat = state.camera.quaternion.clone().multiply(localQuat);
+      groupRef.current.quaternion.slerp(targetQuat, 0.15);
+    } else {
+      // Set actual rotation as a direct sum of base pose rotation, look-at tracking, and springy wobble rotation
+      groupRef.current.rotation.x = pose.rotation[0] + mouseLookRotation.current.x + wobbleRotation.current.x;
+      groupRef.current.rotation.y = pose.rotation[1] + mouseLookRotation.current.y + wobbleRotation.current.y;
+      groupRef.current.rotation.z = pose.rotation[2] + wobbleRotation.current.z;
+    }
 
     // Reset light position back to default coordinates once tap finishes
     if (tapLightRef.current && !gsap.isTweening(tapLightRef.current.position)) {
