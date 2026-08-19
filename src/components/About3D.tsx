@@ -268,9 +268,9 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
 
     // Guide the base position smoothly (pose transition + breathing drift)
     if (currentSection === 6) {
-      // Head falls together with camera, offset 2.0 units in front and slightly up
+      // Head falls together with camera, offset 2.0 units in front and dead-centered
       basePosition.current.x = THREE.MathUtils.lerp(basePosition.current.x, state.camera.position.x, 0.15);
-      basePosition.current.y = THREE.MathUtils.lerp(basePosition.current.y, state.camera.position.y + 0.58 + idleFloatY, 0.15);
+      basePosition.current.y = THREE.MathUtils.lerp(basePosition.current.y, state.camera.position.y + idleFloatY, 0.15);
       basePosition.current.z = THREE.MathUtils.lerp(basePosition.current.z, state.camera.position.z - 2.0, 0.15);
     } else {
       basePosition.current.x = THREE.MathUtils.lerp(basePosition.current.x, pose.position[0], 0.05);
@@ -534,7 +534,7 @@ function CameraPath({ activeSection, projectsProgress }: { activeSection: number
       currentTargetX.current = THREE.MathUtils.lerp(currentTargetX.current, targetLookX, 0.05);
 
       persCamera.position.set(floatX, floatY, camZ);
-      persCamera.lookAt(new THREE.Vector3(currentTargetX.current, -0.12, camZ - 4.0));
+      persCamera.lookAt(new THREE.Vector3(currentTargetX.current, 0, camZ - 4.0));
 
       // Dynamic FOV adjustment: zooms in when close to focus Z coordinate (cz + 3.2)
       const cardZs = [-4, -13, -22];
