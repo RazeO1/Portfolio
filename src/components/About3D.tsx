@@ -50,7 +50,7 @@ const SECTION_POSES: Record<number, { position: [number, number, number]; scale:
   6: { // Projects / Tunnel Backdrop
     position: [0, 0, -3.2],
     scale: [0.23, 0.23, 0.23],
-    rotation: [-0.3, -0.4, 0]
+    rotation: [0, 0, 0]
   }
 };
 
@@ -320,23 +320,10 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
     mouseLookRotation.current.x = THREE.MathUtils.lerp(mouseLookRotation.current.x, targetLookX, 0.08);
     mouseLookRotation.current.y = THREE.MathUtils.lerp(mouseLookRotation.current.y, targetLookY, 0.08);
 
-    if (currentSection === 6) {
-      // Slerp group's rotation towards target camera-relative quaternion to perfectly follow mouse/camera look
-      const localEuler = new THREE.Euler(
-        pose.rotation[0] + mouseLookRotation.current.x + wobbleRotation.current.x,
-        pose.rotation[1] + mouseLookRotation.current.y + wobbleRotation.current.y,
-        wobbleRotation.current.z,
-        'YXZ'
-      );
-      const localQuat = new THREE.Quaternion().setFromEuler(localEuler);
-      const targetQuat = state.camera.quaternion.clone().multiply(localQuat);
-      groupRef.current.quaternion.slerp(targetQuat, 0.15);
-    } else {
-      // Set actual rotation as a direct sum of base pose rotation, look-at tracking, and springy wobble rotation
-      groupRef.current.rotation.x = pose.rotation[0] + mouseLookRotation.current.x + wobbleRotation.current.x;
-      groupRef.current.rotation.y = pose.rotation[1] + mouseLookRotation.current.y + wobbleRotation.current.y;
-      groupRef.current.rotation.z = pose.rotation[2] + wobbleRotation.current.z;
-    }
+    // Set actual rotation as a direct sum of base pose rotation, look-at tracking, and springy wobble rotation
+    groupRef.current.rotation.x = pose.rotation[0] + mouseLookRotation.current.x + wobbleRotation.current.x;
+    groupRef.current.rotation.y = pose.rotation[1] + mouseLookRotation.current.y + wobbleRotation.current.y;
+    groupRef.current.rotation.z = pose.rotation[2] + wobbleRotation.current.z;
 
     // Reset light position back to default coordinates once tap finishes
     if (tapLightRef.current && !gsap.isTweening(tapLightRef.current.position)) {
