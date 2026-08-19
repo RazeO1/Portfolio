@@ -63,6 +63,7 @@ interface AvatarModelProps {
 function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const tapLightRef = useRef<THREE.PointLight>(null);
+  const headMeshRef = useRef<THREE.Mesh | null>(null);
 
   // Expose activeSection to ref to prevent R3F stale closures
   const activeSectionRef = useRef(activeSection);
@@ -76,16 +77,9 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
 
   // Position, breathing, and wobble physics states
   const basePosition = useRef(new THREE.Vector3(0, 0, 0));
-  const wobblePosition = useRef(new THREE.Vector3(0, 0, 0));
-  const wobbleRotation = useRef(new THREE.Vector3(0, 0, 0));
-  const mouseLookRotation = useRef(new THREE.Vector2(0, 0));
-
-  // Physics velocities and spring factors
-  const wobblePosVelocity = useRef(new THREE.Vector3(0, 0, 0));
-  const wobbleRotVelocity = useRef(new THREE.Vector3(0, 0, 0));
-
-  const SPRING_TENSION = 180.0;
-  const SPRING_DAMPING = 12.0;
+  const wobblePosition = useRef({ x: 0, y: 0, z: 0 });
+  const wobbleRotation = useRef({ x: 0, y: 0, z: 0 });
+  const mouseLookRotation = useRef({ x: 0, y: 0 });
 
   // 1. Traverse mesh to apply chrome materials, set corrective rotation, and play blinking animations on load
   useEffect(() => {
@@ -101,79 +95,173 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
         });
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+
+        // Store reference to the head mesh containing shape keys
+        if (mesh.morphTargetInfluences) {
+          headMeshRef.current = mesh;
+        }
       }
     });
 
     // Pitch: 0.4 rad (tilts face down to look straight at screen), Yaw: -0.85 rad (aligns face forward)
     scene.rotation.set(0.4, -0.85, 0);
 
-    const blinkAction = actions["Blink"];
+    // Play shape key blink action loop
+    const blinkAction = actions["white_mesh (1)Action.004"];
     if (blinkAction) {
-      blinkAction.reset().fadeIn(0.2).play();
+      blinkAction.reset().fadeIn(0.5).play();
+      blinkAction.setLoop(THREE.LoopRepeat, Infinity);
     }
   }, [actions, scene]);
 
-  // 2. Click Tap interactive springy displacement trigger
+  // 2. Click Tap interactive GSAP recoil and eye-shut triggers
   const lastTapTrigger = useRef(tapData.trigger);
   useEffect(() => {
     if (tapData.trigger > lastTapTrigger.current) {
       lastTapTrigger.current = tapData.trigger;
+      const group = groupRef.current;
+      if (!group) return;
 
-      // Apply explosive spring impact on position and rotation based on cursor offset
-      const impactForceX = tapData.x * 0.9;
-      const impactForceY = tapData.y * 0.9;
+      const currentSection = activeSectionRef.current;
+      const pose = SECTION_POSES[currentSection] || SECTION_POSES[0];
 
-      wobblePosVelocity.current.set(impactForceX, impactForceY, -0.85);
-      wobbleRotVelocity.current.set(-impactForceY * 4.5, impactForceX * 4.5, gsap.utils.random(-2.0, 2.0));
+      // Kill active tweens to prevent stacking
+      gsap.killTweensOf(wobblePosition.current);
+      gsap.killTweensOf(wobbleRotation.current);
+      gsap.killTweensOf(group.scale);
 
-      // Trigger blue click light flash
+      // Stop natural blinking animation loop completely to release morph target control
+      const blinkAction = actions["white_mesh (1)Action.004"];
+      if (blinkAction) {
+        blinkAction.stop();
+      }
+
+      if (headMeshRef.current && headMeshRef.current.morphTargetInfluences) {
+        gsap.killTweensOf(headMeshRef.current.morphTargetInfluences);
+
+        // Instantly shut eyes at the moment of impact (t = 0)
+        headMeshRef.current.morphTargetInfluences[0] = 1.0;
+
+        // Keep them closed for 1.45s (during all primary dizzy swings), then open smoothly over 0.4s
+        gsap.to(headMeshRef.current.morphTargetInfluences, {
+          0: 0.0,
+          delay: 1.45,
+          duration: 0.4,
+          ease: "power2.inOut",
+          onComplete: () => {
+            if (blinkAction) {
+              blinkAction.play();
+            }
+          }
+        });
+      }
+
+      // Click Recoil translation: snap back 1.2 units on Z and shift on X/Y relative to click
+      const recoilPosX = tapData.x * 0.18;
+      const recoilPosY = -tapData.y * 0.18;
+      const recoilPosZ = -1.2;
+
+      gsap.timeline()
+        .to(wobblePosition.current, { x: recoilPosX, y: recoilPosY, z: recoilPosZ, duration: 0.05, ease: "power2.out" })
+        .to(wobblePosition.current, { 
+          x: -recoilPosX * 0.75, 
+          y: -recoilPosY * 0.75, 
+          z: -recoilPosZ * 0.35, 
+          duration: 0.48, 
+          ease: "power2.out" 
+        }, "+=0.04")
+        .to(wobblePosition.current, { 
+          x: recoilPosX * 0.5, 
+          y: recoilPosY * 0.5, 
+          z: recoilPosZ * 0.15, 
+          duration: 0.45, 
+          ease: "power2.inOut" 
+        })
+        .to(wobblePosition.current, { 
+          x: -recoilPosX * 0.2, 
+          y: -recoilPosY * 0.2, 
+          z: -recoilPosZ * 0.06, 
+          duration: 0.45, 
+          ease: "power2.inOut" 
+        })
+        .to(wobblePosition.current, { x: 0, y: 0, z: 0, duration: 0.6, ease: "power2.inOut" });
+
+      // Click Recoil rotation: wide dizzy head shakes
+      const baseRecoilY = (Math.random() > 0.5 ? 1 : -1) * gsap.utils.random(0.85, 1.05);
+      const baseRecoilX = gsap.utils.random(-0.2, 0.15);
+      const baseRecoilZ = (Math.random() > 0.5 ? 1 : -1) * gsap.utils.random(0.15, 0.25);
+
+      const recoilX = baseRecoilX + tapData.y * 0.45;
+      const recoilY = baseRecoilY - tapData.x * 0.6;
+      const recoilZ = baseRecoilZ - tapData.x * 0.3;
+
+      gsap.timeline()
+        .to(wobbleRotation.current, { x: recoilX, y: recoilY, z: recoilZ, duration: 0.05, ease: "power2.out" })
+        .to(wobbleRotation.current, { 
+          x: -recoilX * 0.12, 
+          y: -recoilY * 0.12, 
+          z: -recoilZ * 0.12, 
+          duration: 0.5, 
+          ease: "power2.out" 
+        }, "+=0.04")
+        .to(wobbleRotation.current, { 
+          x: recoilX * 0.08, 
+          y: recoilY * 0.08, 
+          z: recoilZ * 0.08, 
+          duration: 0.45, 
+          ease: "power2.inOut" 
+        })
+        .to(wobbleRotation.current, { 
+          x: -recoilX * 0.05, 
+          y: -recoilY * 0.05, 
+          z: -recoilZ * 0.05, 
+          duration: 0.45, 
+          ease: "power2.inOut" 
+        })
+        .to(wobbleRotation.current, { x: 0, y: 0, z: 0, duration: 0.6, ease: "power2.inOut" });
+
+      // Scale pop: grows 20% over 0.15s, then returns
+      gsap.timeline()
+        .to(group.scale, {
+          x: pose.scale[0] * 1.2,
+          y: pose.scale[1] * 1.2,
+          z: pose.scale[2] * 1.2,
+          duration: 0.15,
+          ease: "power2.out",
+        })
+        .to(group.scale, {
+          x: pose.scale[0],
+          y: pose.scale[1],
+          z: pose.scale[2],
+          duration: 0.35,
+          ease: "power2.inOut",
+        });
+
+      // Emissive blue light glow flash
       if (tapLightRef.current) {
         gsap.killTweensOf(tapLightRef.current);
-        tapLightRef.current.position.set(tapData.x * 1.5, tapData.y * 1.5, 1.2);
-        
-        gsap.timeline()
-          .to(tapLightRef.current, { intensity: 45.0, duration: 0.08, ease: "power2.out" })
-          .to(tapLightRef.current, { intensity: 0, duration: 0.65, ease: "power2.inOut" });
+        gsap.fromTo(
+          tapLightRef.current,
+          { intensity: 12.0 },
+          {
+            intensity: 0.0,
+            duration: 1.2,
+            ease: "power2.out",
+          }
+        );
       }
     }
   }, [tapData]);
 
-  // 3. Main R3F loop: updates spring physics and targets positions
-  useFrame((state, delta) => {
+  // 3. Main R3F loop: updates positions and look-at rotations
+  useFrame((state) => {
     if (!groupRef.current) return;
 
     const time = state.clock.getElapsedTime();
-    const dt = Math.min(delta, 0.1); // Clamp delta
 
     // Retrieve base pose data based on active section
     const currentSection = activeSectionRef.current;
     const pose = SECTION_POSES[currentSection] || SECTION_POSES[0];
-
-    // Spring physics update for interactive cursor-tapping displacement
-    const posForceX = -SPRING_TENSION * wobblePosition.current.x - SPRING_DAMPING * wobblePosVelocity.current.x;
-    const posForceY = -SPRING_TENSION * wobblePosition.current.y - SPRING_DAMPING * wobblePosVelocity.current.y;
-    const posForceZ = -SPRING_TENSION * wobblePosition.current.z - SPRING_DAMPING * wobblePosVelocity.current.z;
-
-    wobblePosVelocity.current.x += posForceX * dt;
-    wobblePosVelocity.current.y += posForceY * dt;
-    wobblePosVelocity.current.z += posForceZ * dt;
-
-    wobblePosition.current.x += wobblePosVelocity.current.x * dt;
-    wobblePosition.current.y += wobblePosVelocity.current.y * dt;
-    wobblePosition.current.z += wobblePosVelocity.current.z * dt;
-
-    // Spring physics update for rotational impacts
-    const rotForceX = -SPRING_TENSION * wobbleRotation.current.x - SPRING_DAMPING * wobbleRotVelocity.current.x;
-    const rotForceY = -SPRING_TENSION * wobbleRotation.current.y - SPRING_DAMPING * wobbleRotVelocity.current.y;
-    const rotForceZ = -SPRING_TENSION * wobbleRotation.current.z - SPRING_DAMPING * wobbleRotVelocity.current.z;
-
-    wobbleRotVelocity.current.x += rotForceX * dt;
-    wobbleRotVelocity.current.y += rotForceY * dt;
-    wobbleRotVelocity.current.z += rotForceZ * dt;
-
-    wobbleRotation.current.x += wobbleRotVelocity.current.x * dt;
-    wobbleRotation.current.y += wobbleRotVelocity.current.y * dt;
-    wobbleRotation.current.z += wobbleRotVelocity.current.z * dt;
 
     // Organic breathing float frequency mapping
     const idleFloatY = Math.sin(time * 0.8) * 0.04;
@@ -241,7 +329,7 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
     <group ref={groupRef} dispose={null} scale={[0.576, 0.576, 0.576]} position={[0, 0, 0]}>
       {/* Front key light to illuminate the chrome face during tunnel travel */}
       <directionalLight position={[1, 1, 3]} intensity={1.5} color="#ffffff" />
-      <directionalLight position={[-1, 1.5, 2.5]} intensity={0.8} color="#de3421" />
+      <directionalLight position={[-1, 1.5, 2.5]} intensity={0.5} color="#ffffff" />
 
       {/* Front PointLight for blue emissive click glow effect */}
       <pointLight
@@ -744,7 +832,7 @@ export default function About3D({ active, activeSection, projectsProgress, tapDa
           shadow-mapSize-height={1024}
         />
         <directionalLight position={[-6, 4, 3]} intensity={0.6} />
-        <directionalLight position={[-2, 6, -6]} intensity={3.0} color="#de3421" />
+        <directionalLight position={[-2, 6, -6]} intensity={0.8} color="#ffffff" />
 
         <Environment preset="studio" />
 
