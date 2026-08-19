@@ -350,6 +350,104 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
   );
 }
 
+const CosmicTunnelShader = {
+  uniforms: {
+    uTime: { value: 0 },
+    uOpacity: { value: 0 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float uTime;
+    uniform float uOpacity;
+    varying vec2 vUv;
+
+    float fbm(vec2 uv) {
+      float f = 0.0;
+      f += 0.5000 * sin(uv.x * 3.0 + uv.y * 2.0 + uTime * 0.4);
+      f += 0.2500 * sin(uv.x * 6.0 - uv.y * 4.0 - uTime * 0.6);
+      f += 0.1250 * sin(uv.x * 12.0 + uv.y * 8.0 + uTime * 0.8);
+      return f * 0.5 + 0.5;
+    }
+
+    void main() {
+      vec2 uv = vUv - vec2(0.5);
+      float r = length(uv);
+      float theta = atan(uv.y, uv.x);
+
+      float swirl = theta + 4.5 * r - uTime * 0.35;
+      float arms = smoothstep(0.2, 0.8, sin(swirl * 3.0) * 0.5 + 0.5);
+      float cloud = fbm(uv * 10.0 + vec2(uTime * 0.05));
+
+      vec3 colorCream = vec3(0.98, 0.97, 0.96); // #FAF8F5
+      vec3 colorRed = vec3(0.87, 0.20, 0.13);   // #de3421
+      vec3 colorBlack = vec3(0.04, 0.04, 0.04); // #0A0A0A
+      vec3 colorAmber = vec3(0.88, 0.63, 0.13); // #e2a222
+
+      vec3 nebulaColor = mix(colorBlack, colorRed, arms * 0.65);
+      nebulaColor = mix(nebulaColor, colorAmber, arms * cloud * 0.3);
+
+      float coreGlow = exp(-r * 6.5);
+      vec3 finalColor = mix(nebulaColor, colorCream, coreGlow);
+
+      float vignette = smoothstep(0.5, 0.22, r);
+      finalColor = mix(colorBlack, finalColor, vignette);
+
+      gl_FragColor = vec4(finalColor, uOpacity);
+    }
+  `
+};
+
+function WarpTunnelBackdrop({ activeSection }: { activeSection: number }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const opacityRef = useRef(0);
+
+  const activeSectionRef = useRef(activeSection);
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
+
+  useFrame((state) => {
+    if (!meshRef.current || !materialRef.current) return;
+
+    const time = state.clock.getElapsedTime();
+    materialRef.current.uniforms.uTime.value = time;
+
+    meshRef.current.position.set(
+      state.camera.position.x,
+      state.camera.position.y,
+      state.camera.position.z - 8.0
+    );
+
+    meshRef.current.quaternion.copy(state.camera.quaternion);
+
+    const currentSection = activeSectionRef.current;
+    const targetOpacity = currentSection === 6 ? 1.0 : 0.0;
+    opacityRef.current = THREE.MathUtils.lerp(opacityRef.current, targetOpacity, 0.08);
+    materialRef.current.uniforms.uOpacity.value = opacityRef.current;
+  });
+
+  return (
+    <mesh ref={meshRef} position={[0, 0, -8.0]} renderOrder={-1}>
+      <planeGeometry args={[22, 22]} />
+      <shaderMaterial
+        ref={materialRef}
+        vertexShader={CosmicTunnelShader.vertexShader}
+        fragmentShader={CosmicTunnelShader.fragmentShader}
+        uniforms={CosmicTunnelShader.uniforms}
+        transparent
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
 function Starfield({ activeSection }: { activeSection: number }) {
   const pointsRef = useRef<THREE.Points>(null);
   const count = 1500;
@@ -359,10 +457,11 @@ function Starfield({ activeSection }: { activeSection: number }) {
     activeSectionRef.current = activeSection;
   }, [activeSection]);
 
-  // Initialize random positions for the stars in a cylindrical tunnel
-  const [positions, speeds] = useMemo(() => {
+  // Initialize random positions and brand colors for the stars in a cylindrical tunnel
+  const [positions, speeds, colors] = useMemo(() => {
     const pos = new Float32Array(count * 3);
     const sp = new Float32Array(count);
+    const cols = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = 1.6 + Math.random() * 7.4;
@@ -373,8 +472,26 @@ function Starfield({ activeSection }: { activeSection: number }) {
       pos[i * 3 + 2] = z;
 
       sp[i] = 0.04 + Math.random() * 0.12;
+
+      const rand = Math.random();
+      if (rand < 0.5) {
+        // Cream White (#FAF8F5)
+        cols[i * 3] = 0.98;
+        cols[i * 3 + 1] = 0.97;
+        cols[i * 3 + 2] = 0.96;
+      } else if (rand < 0.9) {
+        // Brand Red (#de3421)
+        cols[i * 3] = 0.87;
+        cols[i * 3 + 1] = 0.20;
+        cols[i * 3 + 2] = 0.13;
+      } else {
+        // Gold/Amber (#e2a222)
+        cols[i * 3] = 0.88;
+        cols[i * 3 + 1] = 0.63;
+        cols[i * 3 + 2] = 0.13;
+      }
     }
-    return [pos, sp];
+    return [pos, sp, cols];
   }, []);
 
   const speedFactor = useRef(0);
@@ -426,9 +543,15 @@ function Starfield({ activeSection }: { activeSection: number }) {
           count={count}
           itemSize={3}
         />
+        <bufferAttribute
+          attach="attributes-color"
+          args={[colors, 3]}
+          count={count}
+          itemSize={3}
+        />
       </bufferGeometry>
       <pointsMaterial
-        color="#ffffff"
+        vertexColors={true}
         size={0.038}
         sizeAttenuation={true}
         transparent={true}
@@ -845,6 +968,7 @@ export default function About3D({ active, activeSection, projectsProgress, tapDa
         <Suspense fallback={null}>
           <AvatarModel activeSection={activeSection} tapData={tapData} mouse={mouse} />
           <Starfield activeSection={activeSection} />
+          <WarpTunnelBackdrop activeSection={activeSection} />
           <CameraPath activeSection={activeSection} projectsProgress={projectsProgress} />
           <ProjectCapsules activeSection={activeSection} />
         </Suspense>
