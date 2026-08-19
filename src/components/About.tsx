@@ -646,6 +646,15 @@ export default function About({ active }: AboutProps) {
       {/* Sticky 3D Canvas Wrapper (Absolute to not push content down) */}
       <div className="absolute inset-0 pointer-events-none z-[35]">
         <div className="sticky top-0 left-0 w-full h-screen flex items-center justify-center">
+          {/* Galaxy background image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center pointer-events-none transition-all duration-1000 ease-in-out z-0"
+            style={{
+              backgroundImage: "url('/galaxy_tunnel.png')",
+              opacity: activeSection === 6 ? 1.0 : 0.0,
+              visibility: activeSection === 6 ? "visible" : "hidden",
+            }}
+          />
           <About3D
             active={active}
             activeSection={activeSection}

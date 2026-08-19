@@ -1,5 +1,63 @@
 # Session Log
 
+## [2026-08-19 21:10] Unified Mouse Look-At Tracking in Projects Section
+- **Accomplishments**:
+  - Removed the camera-relative slerped quaternion rotation branch in `AvatarModel`'s `useFrame` loop.
+  - Unified the 3D head's rotation behavior across all sections (0-6) using direct Euler rotation summation, making the mouse following action identically direct and responsive in the Projects section.
+  - Set the default base rotation values for pose 6 to `[0, 0, 0]` in `SECTION_POSES`, removing default pitch/yaw tilts so the head faces the screen symmetrically.
+  - Verified static compilation: build successfully compiled with Turbopack.
+- **Key Files Modified**:
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Removed the quaternion slerp code block and simplified the `useFrame` loop; set pose 6 rotation to neutral.
+- **Pending Tasks & Next Steps**:
+  - Complete contact section transitions.
+
+## [2026-08-19 21:05] Camera-Relative Mouse-Tracking and Scale Correction in Projects Section
+- **Accomplishments**:
+  - Implemented camera-relative slerped quaternion rotations in the Projects section (Section 6), making the 3D head follow the mouse cursor with look-at tracking relative to the moving camera's viewpoint.
+  - Corrected the visual size regression in the tunnel by pushing the head offset to `Z = -3.2` units in front of the camera (instead of `-2.0`) and scaling the model down to `0.23` (instead of `0.38`), giving it a balanced backdrop size.
+  - Handled smooth transitions between Euler-based world rotations in sections 0-5 and camera-relative quaternions in section 6.
+  - Verified static compilation: build successfully compiled with Turbopack.
+- **Key Files Modified**:
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Calculated and slerped target quaternions inside `useFrame` for Section 6, and updated pose settings.
+- **Pending Tasks & Next Steps**:
+  - Complete contact section transitions.
+
+## [2026-08-19 20:55] Vertical Centering of 3D Head Centerpiece in Projects Section
+- **Accomplishments**:
+  - Removed the `+0.58` Y-axis camera offset in `AvatarModel`'s `useFrame` loop for Section 6 (Projects), centering the 3D head centerpiece vertically on the screen.
+  - Adjusted the camera `lookAt` Y target in `CameraPath`'s `useFrame` loop from `-0.12` to `0`, ensuring the camera looks straight down the center line of the cylinder starfield tunnel.
+  - Verified static compilation: build successfully compiled with Turbopack.
+- **Key Files Modified**:
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Centered the head's Y position in `AvatarModel` and the camera's `lookAt` target in `CameraPath`.
+- **Pending Tasks & Next Steps**:
+  - Complete contact section transitions.
+
+## [2026-08-19 20:45] Auto-Blinking, Tap Timelines, and Rim Light Restorations for 3D Head
+- **Accomplishments**:
+  - Restored the auto-blinking animation sequence on model load by mapping it to the correct animation action key (`white_mesh (1)Action.004`) from the optimized GLTF model.
+  - Re-implemented the GSAP-driven click/tap recoil translation, rotation shake, and scale pop timelines, restoring the fluid organic interaction feel on clicking/tapping the head centerpiece.
+  - Re-integrated the click-induced eye-closing behavior by tweening the mesh shape-key `morphTargetInfluences` (shutting eyes instantly on impact, holding them closed for 1.45s, and opening them smoothly back to auto-blinking).
+  - Removed all red color casting by replacing red contour/rim directional lights with neutral grey/white directional fill lights in both the `<AvatarModel>` group and the main `<Canvas>` backlight parameters.
+  - Resolved TypeScript compilation errors by adding null-checks and utilizing a local variable pointer (`const group = groupRef.current`) for the mutable group ref scale.
+  - Verified static compilation: build successfully compiled with Turbopack.
+- **Key Files Modified**:
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Restored correct action names, GSAP tap animations, shape key transitions, and white directional light colors; added TypeScript compile-time null safety checks.
+- **Pending Tasks & Next Steps**:
+  - Complete contact section transitions.
+
+## [2026-08-19 19:45] Centering and Chrome Material Restorations for 3D Head Centerpiece
+- **Accomplishments**:
+  - Restored uniform center-aligned pose values for sections 0, 1, 2, 3, 4, and 5 in `SECTION_POSES` inside `About3D.tsx`, solving the horizontal offset/scale shifts that caused the 3D head to collide with paragraph columns.
+  - Reset initial base position coordinates in the `basePosition` ref back to `[0, 0, 0]` to guarantee layout alignment on mount.
+  - Re-implemented the GLTF scene traverse block in `AvatarModel` to apply the mirror-like clearcoat physical chrome materials (`metalness: 1.0`, `roughness: 0.1`, `clearcoat: 1.0`) on model load.
+  - Re-applied corrective pitch/yaw rotations (`scene.rotation.set(0.4, -0.85, 0)`) to the scene root on load, aligning the avatar head to look straight at the screen.
+  - Visually verified both the About text chapters and the spiral Showcase stack in Playwright, ensuring the 3D head centerpiece sits dead-centered, fully sized, and gorgeously polished.
+  - Verified static compilation: build successfully compiled with Turbopack.
+- **Key Files Modified**:
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Restored uniform pose coordinates, initial base vector values, and scene traversal physical materials/corrective rotations.
+- **Pending Tasks & Next Steps**:
+  - Complete contact section transitions.
+
 ## [2026-08-19 19:35] Ref-Synchronized State and DOM-Driven Project Cards in 3D Galaxy Tunnel
 - **Accomplishments**:
   - Exposed `activeSection` and `projectsProgress` on the global `window` object to allow seamless verification and testing inside headless browser environments.
