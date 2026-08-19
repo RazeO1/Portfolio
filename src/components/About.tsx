@@ -6,6 +6,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import About3D from "./About3D";
+import Projects from "./Projects";
 import { prepareWithSegments, layoutWithLines } from "@chenglou/pretext";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -238,6 +239,7 @@ interface AboutProps {
 export default function About({ active }: AboutProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState(0);
+  const [projectsProgress, setProjectsProgress] = useState(0);
   const [tapData, setTapData] = useState({ x: 0, y: 0, trigger: 0 });
   const [isAboutInView, setIsAboutInView] = useState(false);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
@@ -259,6 +261,13 @@ export default function About({ active }: AboutProps) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).activeSection = activeSection;
+      (window as any).projectsProgress = projectsProgress;
+    }
+  }, [activeSection, projectsProgress]);
 
   const bodyFont = device === "desktop" ? "300 17px sans-serif" : "300 16px sans-serif";
   const bodyLineHeight = device === "desktop" ? 17 * 1.6 : 16 * 1.6;
@@ -637,7 +646,13 @@ export default function About({ active }: AboutProps) {
       {/* Sticky 3D Canvas Wrapper (Absolute to not push content down) */}
       <div className="absolute inset-0 pointer-events-none z-[35]">
         <div className="sticky top-0 left-0 w-full h-screen flex items-center justify-center">
-          <About3D active={active} activeSection={activeSection} tapData={tapData} mouse={mouse} />
+          <About3D
+            active={active}
+            activeSection={activeSection}
+            projectsProgress={projectsProgress}
+            tapData={tapData}
+            mouse={mouse}
+          />
           <div
             onClick={handleTapHead}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160px] h-[160px] lg:w-[240px] lg:h-[240px] rounded-full cursor-pointer pointer-events-auto z-30"
@@ -994,6 +1009,12 @@ export default function About({ active }: AboutProps) {
 
         </div>
       </div>
+
+      <Projects
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+        setProjectsProgress={setProjectsProgress}
+      />
     </section>
   );
 }

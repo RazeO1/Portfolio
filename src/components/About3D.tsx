@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useEffect, Suspense } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useGLTF, useAnimations, Environment } from "@react-three/drei";
+import { useRef, useEffect, useMemo, Suspense } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useGLTF, useAnimations, Environment, Html } from "@react-three/drei";
 import * as THREE from "three";
 import gsap from "gsap";
 
@@ -10,47 +10,32 @@ import gsap from "gsap";
 if (typeof window !== "undefined") {
   const originalWarn = console.warn;
   console.warn = (...args: unknown[]) => {
-    if (args[0] && typeof args[0] === "string") {
-      const msg = args[0];
-      if (
-        msg.includes("THREE.Clock: This module has been deprecated") ||
-        msg.includes("THREE.WebGLShadowMap") ||
-        msg.includes("THREE.WebGLProgram") ||
-        msg.includes("warning X4122")
-      ) {
-        return;
-      }
-    }
-    originalWarn.apply(console, args);
+    if (args[0] && typeof args[0] === "string" && args[0].includes("THREE.Clock")) return;
+    originalWarn(...args);
   };
 }
 
-interface SectionPose {
-  position: [number, number, number];
-  scale: [number, number, number];
-  rotation: [number, number, number];
-}
-
-const SECTION_POSES: Record<number, SectionPose> = {
-  0: { // Intro / Centered
-    position: [0, 0, 0],
-    scale: [0.576, 0.576, 0.576],
+// 3D Poses definitions for the Avatar Head across sections
+const SECTION_POSES: Record<number, { position: [number, number, number]; scale: [number, number, number]; rotation: [number, number, number] }> = {
+  0: { // Hero / Landing
+    position: [0, -0.22, 0.45],
+    scale: [0.6, 0.6, 0.6],
     rotation: [0, 0, 0]
   },
-  1: { // Craft
-    position: [0, 0, 0],
-    scale: [0.576, 0.576, 0.576],
-    rotation: [0, 0, 0]
+  1: { // Creative Design Ch.
+    position: [-1.15, -0.15, 0.5],
+    scale: [0.55, 0.55, 0.55],
+    rotation: [0.1, 0.5, -0.05]
   },
-  2: { // Intelligence
-    position: [0, 0, 0],
-    scale: [0.576, 0.576, 0.576],
-    rotation: [0, 0, 0]
+  2: { // Engineering Ch.
+    position: [1.1, -0.2, 0.5],
+    scale: [0.55, 0.55, 0.55],
+    rotation: [0.05, -0.4, 0.05]
   },
-  3: { // Experience
-    position: [0, 0, 0],
-    scale: [0.576, 0.576, 0.576],
-    rotation: [0, 0, 0]
+  3: { // User Experience Ch.
+    position: [-1.15, -0.15, 0.5],
+    scale: [0.55, 0.55, 0.55],
+    rotation: [0.15, 0.45, -0.08]
   },
   4: { // Obsession & Conclusion
     position: [0, 0, 0],
@@ -61,6 +46,11 @@ const SECTION_POSES: Record<number, SectionPose> = {
     position: [0, 0, 0],
     scale: [0.576, 0.576, 0.576],
     rotation: [0, 0, 0]
+  },
+  6: { // Projects / Tunnel Backdrop
+    position: [0, 0.58, -1.8],
+    scale: [0.38, 0.38, 0.38],
+    rotation: [-0.3, -0.4, 0]
   }
 };
 
@@ -74,214 +64,109 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const tapLightRef = useRef<THREE.PointLight>(null);
 
-  // Wobble offsets for physical springy click reactions
-  const wobblePosition = useRef({ x: 0, y: 0, z: 0 });
-  const wobbleRotation = useRef({ x: 0, y: 0, z: 0 });
+  // Expose activeSection to ref to prevent R3F stale closures
+  const activeSectionRef = useRef(activeSection);
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
 
-  // Separate smooth look-at tracking/breathing values from high-frequency click wobbles
-  const mouseLookRotation = useRef({ x: 0, y: 0 });
-  const basePosition = useRef({ x: 0, y: 0, z: 0 });
-
-  // Store reference to the mesh with morph target influences to manually control eyes (Blink)
-  const headMeshRef = useRef<THREE.Mesh | null>(null);
-
-  // Load optimized glb model
+  // Load avatar glb and setup animations
   const { scene, animations } = useGLTF("/chrome_avatar_blinking.glb");
   const { actions } = useAnimations(animations, groupRef);
 
+  // Position, breathing, and wobble physics states
+  const basePosition = useRef(new THREE.Vector3(0, -0.22, 0.45));
+  const wobblePosition = useRef(new THREE.Vector3(0, 0, 0));
+  const wobbleRotation = useRef(new THREE.Vector3(0, 0, 0));
+  const mouseLookRotation = useRef(new THREE.Vector2(0, 0));
+
+  // Physics velocities and spring factors
+  const wobblePosVelocity = useRef(new THREE.Vector3(0, 0, 0));
+  const wobbleRotVelocity = useRef(new THREE.Vector3(0, 0, 0));
+
+  const SPRING_TENSION = 180.0;
+  const SPRING_DAMPING = 12.0;
+
+  // 1. Play blinking animations on load
   useEffect(() => {
-    // Play shape key blink action loop
-    const action = actions["white_mesh (1)Action.004"];
-    if (action) {
-      action.reset().fadeIn(0.5).play();
-      action.setLoop(THREE.LoopRepeat, Infinity);
-    }
-
-    scene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh;
-        const mat = new THREE.MeshPhysicalMaterial({
-          metalness: 1.0,
-          roughness: 0.1,
-          clearcoat: 1.0,
-          clearcoatRoughness: 0.05,
-          color: new THREE.Color("#f3f3f3"),
-        });
-
-        // Store reference to the head mesh containing shape keys
-        if (mesh.morphTargetInfluences) {
-          headMeshRef.current = mesh;
-        }
-
-        mesh.material = mat;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-      }
-    });
-
-    // Restore original GLB parent rotations (keeps it upright) and apply corrections on the scene root:
-    // Pitch: 0.4 rad (tilts face down to look straight at the screen), Yaw: -0.85 rad (aligns face forward)
-    scene.rotation.set(0.4, -0.85, 0);
-  }, [actions, scene]);
-
-  // Handle tap animations (physics push back and eyes closing morph target)
-  useEffect(() => {
-    if (tapData.trigger === 0 || !groupRef.current) return;
-
-    const pose = SECTION_POSES[activeSection] || SECTION_POSES[0];
-
-    // Kill active tweens to prevent stacking
-    gsap.killTweensOf(wobblePosition.current);
-    gsap.killTweensOf(wobbleRotation.current);
-    gsap.killTweensOf(groupRef.current.scale);
-
-    // Stop natural blinking animation loop completely to release morph target control
-    const blinkAction = actions["white_mesh (1)Action.004"];
+    const blinkAction = actions["Blink"];
     if (blinkAction) {
-      blinkAction.stop();
+      blinkAction.reset().fadeIn(0.2).play();
     }
+  }, [actions]);
 
-    if (headMeshRef.current && headMeshRef.current.morphTargetInfluences) {
-      gsap.killTweensOf(headMeshRef.current.morphTargetInfluences);
+  // 2. Click Tap interactive springy displacement trigger
+  const lastTapTrigger = useRef(tapData.trigger);
+  useEffect(() => {
+    if (tapData.trigger > lastTapTrigger.current) {
+      lastTapTrigger.current = tapData.trigger;
 
-      // Instantly shut eyes at the moment of impact (t = 0)
-      headMeshRef.current.morphTargetInfluences[0] = 1.0;
+      // Apply explosive spring impact on position and rotation based on cursor offset
+      const impactForceX = tapData.x * 0.9;
+      const impactForceY = tapData.y * 0.9;
 
-      // Keep them closed for 1.45s (during all primary dizzy swings), then open smoothly over 0.4s
-      gsap.to(headMeshRef.current.morphTargetInfluences, {
-        0: 0.0,
-        delay: 1.45,
-        duration: 0.4,
-        ease: "power2.inOut",
-        onComplete: () => {
-          if (blinkAction) {
-            blinkAction.play();
-          }
-        }
-      });
+      wobblePosVelocity.current.set(impactForceX, impactForceY, -0.85);
+      wobbleRotVelocity.current.set(-impactForceY * 4.5, impactForceX * 4.5, gsap.utils.random(-2.0, 2.0));
+
+      // Trigger blue click light flash
+      if (tapLightRef.current) {
+        gsap.killTweensOf(tapLightRef.current);
+        tapLightRef.current.position.set(tapData.x * 1.5, tapData.y * 1.5, 1.2);
+        
+        gsap.timeline()
+          .to(tapLightRef.current, { intensity: 45.0, duration: 0.08, ease: "power2.out" })
+          .to(tapLightRef.current, { intensity: 0, duration: 0.65, ease: "power2.inOut" });
+      }
     }
+  }, [tapData]);
 
-    // Click Recoil Physics:
-    // Pushes back deeply on Z-axis and swings in opposite directions with decaying amplitude:
-    // Tap (large recoil) -> return (LEFT shake) -> RIGHT -> LEFT/center -> settle (REST)
-    
-    // Translation Recoil: snap back 1.2 units on Z and shift on X/Y relative to click
-    const recoilPosX = tapData.x * 0.18;
-    const recoilPosY = -tapData.y * 0.18;
-    const recoilPosZ = -1.2;
+  // 3. Main R3F loop: updates spring physics and targets positions
+  useFrame((state, delta) => {
+    if (!groupRef.current) return;
 
-    gsap.timeline()
-      // Step 1: Rapidly move to recoil position over 0.05s to simulate instant impact push
-      .to(wobblePosition.current, { x: recoilPosX, y: recoilPosY, z: recoilPosZ, duration: 0.05, ease: "power2.out" })
-      // Step 2: Swing to opposite side (LEFT shake / push forward) - starts after 0.04s pause, takes 0.48s (slower, more natural)
-      .to(wobblePosition.current, { 
-        x: -recoilPosX * 0.75, 
-        y: -recoilPosY * 0.75, 
-        z: -recoilPosZ * 0.35, 
-        duration: 0.48, 
-        ease: "power2.out" 
-      }, "+=0.04")
-      // Step 3: Swing back (RIGHT / push back slightly) - 0.45s
-      .to(wobblePosition.current, { 
-        x: recoilPosX * 0.5, 
-        y: recoilPosY * 0.5, 
-        z: recoilPosZ * 0.15, 
-        duration: 0.45, 
-        ease: "power2.inOut" 
-      })
-      // Step 4: Swing back (LEFT/center / push forward slightly) - 0.45s
-      .to(wobblePosition.current, { 
-        x: -recoilPosX * 0.2, 
-        y: -recoilPosY * 0.2, 
-        z: -recoilPosZ * 0.06, 
-        duration: 0.45, 
-        ease: "power2.inOut" 
-      })
-      // Step 5: Settle to rest - 0.6s
-      .to(wobblePosition.current, { x: 0, y: 0, z: 0, duration: 0.6, ease: "power2.inOut" });
+    const time = state.clock.getElapsedTime();
+    const dt = Math.min(delta, 0.1); // Clamp delta
 
-    // Rotational Wobble (Pitch, Yaw, Roll): much wider sweeps for an impactful dizzy head shake
-    // Large recoil: Yaw rotates roughly 50-70 degrees (0.85 to 1.05 rad) away from camera
-    const baseRecoilY = (Math.random() > 0.5 ? 1 : -1) * gsap.utils.random(0.85, 1.05);
-    const baseRecoilX = gsap.utils.random(-0.2, 0.15);
-    const baseRecoilZ = (Math.random() > 0.5 ? 1 : -1) * gsap.utils.random(0.15, 0.25);
+    // Retrieve base pose data based on active section
+    const currentSection = activeSectionRef.current;
+    const pose = SECTION_POSES[currentSection] || SECTION_POSES[0];
 
-    const recoilX = baseRecoilX + tapData.y * 0.45; // Pitch
-    const recoilY = baseRecoilY - tapData.x * 0.6;  // Yaw
-    const recoilZ = baseRecoilZ - tapData.x * 0.3;  // Roll
+    // Spring physics update for interactive cursor-tapping displacement
+    const posForceX = -SPRING_TENSION * wobblePosition.current.x - SPRING_DAMPING * wobblePosVelocity.current.x;
+    const posForceY = -SPRING_TENSION * wobblePosition.current.y - SPRING_DAMPING * wobblePosVelocity.current.y;
+    const posForceZ = -SPRING_TENSION * wobblePosition.current.z - SPRING_DAMPING * wobblePosVelocity.current.z;
 
-    gsap.timeline()
-      // Step 1: Rapidly rotate to recoil pose over 0.05s
-      .to(wobbleRotation.current, { x: recoilX, y: recoilY, z: recoilZ, duration: 0.05, ease: "power2.out" })
-      // Step 2: Swing to opposite side (LEFT shake) - starts after 0.04s pause, takes 0.5s (damped to approx -7°)
-      .to(wobbleRotation.current, { 
-        x: -recoilX * 0.12, 
-        y: -recoilY * 0.12, 
-        z: -recoilZ * 0.12, 
-        duration: 0.5, 
-        ease: "power2.out" 
-      }, "+=0.04")
-      // Step 3: Swing back (RIGHT) - 0.45s (damped to approx +5°)
-      .to(wobbleRotation.current, { 
-        x: recoilX * 0.08, 
-        y: recoilY * 0.08, 
-        z: recoilZ * 0.08, 
-        duration: 0.45, 
-        ease: "power2.inOut" 
-      })
-      // Step 4: Swing back (LEFT/center) - 0.45s (damped to approx -3°)
-      .to(wobbleRotation.current, { 
-        x: -recoilX * 0.05, 
-        y: -recoilY * 0.05, 
-        z: -recoilZ * 0.05, 
-        duration: 0.45, 
-        ease: "power2.inOut" 
-      })
-      // Step 5: Settle to rest - 0.6s
-      .to(wobbleRotation.current, { x: 0, y: 0, z: 0, duration: 0.6, ease: "power2.inOut" });
+    wobblePosVelocity.current.x += posForceX * dt;
+    wobblePosVelocity.current.y += posForceY * dt;
+    wobblePosVelocity.current.z += posForceZ * dt;
 
-    // 3. Scale pop: grows 20% over 0.15s, then shrinks back to normal over 0.35s (slower recoil)
-    gsap.timeline()
-      .to(groupRef.current.scale, {
-        x: pose.scale[0] * 1.2,
-        y: pose.scale[1] * 1.2,
-        z: pose.scale[2] * 1.2,
-        duration: 0.15,
-        ease: "power2.out",
-      })
-      .to(groupRef.current.scale, {
-        x: pose.scale[0],
-        y: pose.scale[1],
-        z: pose.scale[2],
-        duration: 0.35,
-        ease: "power2.inOut",
-      });
+    wobblePosition.current.x += wobblePosVelocity.current.x * dt;
+    wobblePosition.current.y += wobblePosVelocity.current.y * dt;
+    wobblePosition.current.z += wobblePosVelocity.current.z * dt;
 
-    // Emissive blue light glow flash on the face
-    if (tapLightRef.current) {
-      gsap.killTweensOf(tapLightRef.current);
-      gsap.fromTo(
-        tapLightRef.current,
-        { intensity: 12.0 },
-        {
-          intensity: 0.0,
-          duration: 1.2,
-          ease: "power2.out",
-        }
-      );
-    }
-  }, [tapData.trigger]);
+    // Spring physics update for rotational impacts
+    const rotForceX = -SPRING_TENSION * wobbleRotation.current.x - SPRING_DAMPING * wobbleRotVelocity.current.x;
+    const rotForceY = -SPRING_TENSION * wobbleRotation.current.y - SPRING_DAMPING * wobbleRotVelocity.current.y;
+    const rotForceZ = -SPRING_TENSION * wobbleRotation.current.z - SPRING_DAMPING * wobbleRotVelocity.current.z;
 
-  // Handle frame loop for mouse tracking & breathing float
-  useFrame((state) => {
-    if (groupRef.current) {
-      const pose = SECTION_POSES[activeSection] || SECTION_POSES[0];
-      const time = state.clock.getElapsedTime();
+    wobbleRotVelocity.current.x += rotForceX * dt;
+    wobbleRotVelocity.current.y += rotForceY * dt;
+    wobbleRotVelocity.current.z += rotForceZ * dt;
 
-      // 1. Slower and subtler vertical breathing bobbing drift (~4px amplitude, increased by 30% from 0.03)
-      const idleFloatY = Math.sin(time * 0.8) * 0.04;
+    wobbleRotation.current.x += wobbleRotVelocity.current.x * dt;
+    wobbleRotation.current.y += wobbleRotVelocity.current.y * dt;
+    wobbleRotation.current.z += wobbleRotVelocity.current.z * dt;
 
-      // Guide the base position smoothly (pose transition + breathing drift)
+    // Organic breathing float frequency mapping
+    const idleFloatY = Math.sin(time * 0.8) * 0.04;
+
+    // Guide the base position smoothly (pose transition + breathing drift)
+    if (currentSection === 6) {
+      // Head falls together with camera, offset 2.0 units in front and slightly up
+      basePosition.current.x = THREE.MathUtils.lerp(basePosition.current.x, state.camera.position.x, 0.15);
+      basePosition.current.y = THREE.MathUtils.lerp(basePosition.current.y, state.camera.position.y + 0.58 + idleFloatY, 0.15);
+      basePosition.current.z = THREE.MathUtils.lerp(basePosition.current.z, state.camera.position.z - 2.0, 0.15);
+    } else {
       basePosition.current.x = THREE.MathUtils.lerp(basePosition.current.x, pose.position[0], 0.05);
       basePosition.current.y = THREE.MathUtils.lerp(
         basePosition.current.y,
@@ -289,55 +174,57 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
         0.05
       );
       basePosition.current.z = THREE.MathUtils.lerp(basePosition.current.z, pose.position[2], 0.05);
+    }
 
-      // Set actual position as a direct sum of base position and additive wobble translation
-      groupRef.current.position.x = basePosition.current.x + wobblePosition.current.x;
-      groupRef.current.position.y = basePosition.current.y + wobblePosition.current.y;
-      groupRef.current.position.z = basePosition.current.z + wobblePosition.current.z;
+    // Set actual position as a direct sum of base position and additive wobble translation
+    groupRef.current.position.x = basePosition.current.x + wobblePosition.current.x;
+    groupRef.current.position.y = basePosition.current.y + wobblePosition.current.y;
+    groupRef.current.position.z = basePosition.current.z + wobblePosition.current.z;
 
-      // 2. Idle breathing-scale pulse (scales very subtly between 1.0 and 1.02)
-      const breathingScale = 1.0 + Math.sin(time * 2.0) * 0.01;
-      
-      let baseScaleX = pose.scale[0];
-      let baseScaleY = pose.scale[1];
-      let baseScaleZ = pose.scale[2];
+    // Breathing-scale pulse
+    const breathingScale = 1.0 + Math.sin(time * 2.0) * 0.01;
+    
+    let baseScaleX = pose.scale[0];
+    let baseScaleY = pose.scale[1];
+    let baseScaleZ = pose.scale[2];
 
-      if (activeSection === 5 && typeof window !== "undefined" && window.innerWidth < 768) {
-        // Shrink head scale on mobile to avoid overlapping the showcase cards
-        baseScaleX = 0.3;
-        baseScaleY = 0.3;
-        baseScaleZ = 0.3;
-      }
-      
-      if (!gsap.isTweening(groupRef.current.scale)) {
-        groupRef.current.scale.x = THREE.MathUtils.lerp(groupRef.current.scale.x, baseScaleX * breathingScale, 0.05);
-        groupRef.current.scale.y = THREE.MathUtils.lerp(groupRef.current.scale.y, baseScaleY * breathingScale, 0.05);
-        groupRef.current.scale.z = THREE.MathUtils.lerp(groupRef.current.scale.z, baseScaleZ * breathingScale, 0.05);
-      }
+    if (currentSection === 5 && typeof window !== "undefined" && window.innerWidth < 768) {
+      // Shrink head scale on mobile to avoid overlapping the showcase cards
+      baseScaleX = 0.3;
+      baseScaleY = 0.3;
+      baseScaleZ = 0.3;
+    }
+    
+    if (!gsap.isTweening(groupRef.current.scale)) {
+      groupRef.current.scale.x = THREE.MathUtils.lerp(groupRef.current.scale.x, baseScaleX * breathingScale, 0.05);
+      groupRef.current.scale.y = THREE.MathUtils.lerp(groupRef.current.scale.y, baseScaleY * breathingScale, 0.05);
+      groupRef.current.scale.z = THREE.MathUtils.lerp(groupRef.current.scale.z, baseScaleZ * breathingScale, 0.05);
+    }
 
-      // 3. Mouse Look-At Tracking: Guide look-at rotation smoothly in the background
-      // Uses global window mouse coordinates mapped to [-1, 1] passed via props
-      // Inverts X-rotation so head looks UP when mouse is UP (positive mouse.y)
-      const targetLookX = -(mouse.y * Math.PI) / 8; // vertical tilt (up/down)
-      const targetLookY = (mouse.x * Math.PI) / 6;  // horizontal rotation (left/right)
+    // Mouse Look-At Tracking: Guide look-at rotation smoothly in the background
+    const targetLookX = -(mouse.y * Math.PI) / 8; // vertical tilt (up/down)
+    const targetLookY = (mouse.x * Math.PI) / 6;  // horizontal rotation (left/right)
 
-      mouseLookRotation.current.x = THREE.MathUtils.lerp(mouseLookRotation.current.x, targetLookX, 0.08);
-      mouseLookRotation.current.y = THREE.MathUtils.lerp(mouseLookRotation.current.y, targetLookY, 0.08);
+    mouseLookRotation.current.x = THREE.MathUtils.lerp(mouseLookRotation.current.x, targetLookX, 0.08);
+    mouseLookRotation.current.y = THREE.MathUtils.lerp(mouseLookRotation.current.y, targetLookY, 0.08);
 
-      // Set actual rotation as a direct sum of look-at tracking and crisp springy wobble rotation
-      groupRef.current.rotation.x = mouseLookRotation.current.x + wobbleRotation.current.x;
-      groupRef.current.rotation.y = mouseLookRotation.current.y + wobbleRotation.current.y;
-      groupRef.current.rotation.z = pose.rotation[2] + wobbleRotation.current.z;
+    // Set actual rotation as a direct sum of base pose rotation, look-at tracking, and springy wobble rotation
+    groupRef.current.rotation.x = pose.rotation[0] + mouseLookRotation.current.x + wobbleRotation.current.x;
+    groupRef.current.rotation.y = pose.rotation[1] + mouseLookRotation.current.y + wobbleRotation.current.y;
+    groupRef.current.rotation.z = pose.rotation[2] + wobbleRotation.current.z;
 
-      // 4. Reset light position back to default coordinates once tap finishes
-      if (tapLightRef.current && !gsap.isTweening(tapLightRef.current.position)) {
-        tapLightRef.current.position.set(0, 0.3, 1.5);
-      }
+    // Reset light position back to default coordinates once tap finishes
+    if (tapLightRef.current && !gsap.isTweening(tapLightRef.current.position)) {
+      tapLightRef.current.position.set(0, 0.3, 1.5);
     }
   });
 
   return (
     <group ref={groupRef} dispose={null} scale={[0.576, 0.576, 0.576]} position={[0, 0, 0]}>
+      {/* Front key light to illuminate the chrome face during tunnel travel */}
+      <directionalLight position={[1, 1, 3]} intensity={1.5} color="#ffffff" />
+      <directionalLight position={[-1, 1.5, 2.5]} intensity={0.8} color="#de3421" />
+
       {/* Front PointLight for blue emissive click glow effect */}
       <pointLight
         ref={tapLightRef}
@@ -351,14 +238,471 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
   );
 }
 
+function Starfield({ activeSection }: { activeSection: number }) {
+  const pointsRef = useRef<THREE.Points>(null);
+  const count = 1500;
+
+  const activeSectionRef = useRef(activeSection);
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
+
+  // Initialize random positions for the stars in a cylindrical tunnel
+  const [positions, speeds] = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const sp = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 1.6 + Math.random() * 7.4;
+      const z = Math.random() * 32 - 22;
+
+      pos[i * 3] = Math.cos(angle) * radius;
+      pos[i * 3 + 1] = Math.sin(angle) * radius;
+      pos[i * 3 + 2] = z;
+
+      sp[i] = 0.04 + Math.random() * 0.12;
+    }
+    return [pos, sp];
+  }, []);
+
+  const speedFactor = useRef(0);
+  const opacityFactor = useRef(0);
+
+  useFrame((state, delta) => {
+    if (!pointsRef.current) return;
+
+    const currentSection = activeSectionRef.current;
+
+    const targetSpeed = currentSection === 6 ? 1.0 : 0.0;
+    speedFactor.current = THREE.MathUtils.lerp(speedFactor.current, targetSpeed, 0.05);
+
+    const targetOpacity = currentSection === 6 ? 0.75 : 0.0;
+    opacityFactor.current = THREE.MathUtils.lerp(opacityFactor.current, targetOpacity, 0.05);
+
+    const mat = pointsRef.current.material as THREE.PointsMaterial;
+    if (mat) {
+      mat.opacity = opacityFactor.current;
+    }
+
+    const geo = pointsRef.current.geometry;
+    const posArr = geo.attributes.position.array as Float32Array;
+    const dt = Math.min(delta, 0.1);
+
+    for (let i = 0; i < count; i++) {
+      const speed = (0.015 + speeds[i] * 0.85) * speedFactor.current + 0.002;
+      posArr[i * 3 + 2] += speed * 60 * dt;
+
+      if (posArr[i * 3 + 2] > 5) {
+        posArr[i * 3 + 2] = -27;
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 1.6 + Math.random() * 7.4;
+        posArr[i * 3] = Math.cos(angle) * radius;
+        posArr[i * 3 + 1] = Math.sin(angle) * radius;
+      }
+    }
+
+    geo.attributes.position.needsUpdate = true;
+    pointsRef.current.rotation.z += (0.015 * speedFactor.current + 0.002) * 60 * dt;
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[positions, 3]}
+          count={count}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        color="#ffffff"
+        size={0.038}
+        sizeAttenuation={true}
+        transparent={true}
+        opacity={0}
+        depthWrite={false}
+      />
+    </points>
+  );
+}
+
+const PROJECTS_LIST = [
+  {
+    id: "aether-net",
+    number: "01",
+    title: "AETHER-NET",
+    category: "AI & Neural Graphics Pipeline",
+    year: "2026",
+    description: "An experimental neural field generator that bakes high-dimensional representations of scenes into low-latency WebGL shaders. Drastically speeds up real-time Gaussian Splatting and NeRF visualization in-browser.",
+    tech: ["Three.js", "GLSL Shaders", "PyTorch", "WebGL 2.0"],
+    color: "#f5e1cd",
+    accentColor: "#de3421",
+    githubLink: "https://github.com/RazeO1/aether-net",
+    liveLink: "#",
+    z: -4,
+    x: 1.5,
+    y: 0.05,
+    isRight: true
+  },
+  {
+    id: "khepri",
+    number: "02",
+    title: "KHEPRI ENGINE",
+    category: "Interactive Vector Physics Editor",
+    year: "2025",
+    description: "A browser-based vector modeling canvas driven by a custom WASM physical solver engine. Supports structural constraints, rigid-body joints, and real-time tension stress heat-mapping.",
+    tech: ["Rust", "WASM", "Canvas2D", "GSAP Core"],
+    color: "#ebc299",
+    accentColor: "#d5802a",
+    githubLink: "https://github.com/RazeO1/khepri",
+    liveLink: "#",
+    z: -13,
+    x: -1.5,
+    y: -0.15,
+    isRight: false
+  },
+  {
+    id: "nox",
+    number: "03",
+    title: "NOX SPATIAL",
+    category: "Generative Audio Ambient Player",
+    year: "2025",
+    description: "A procedural spatial audio synthesizer that maps cursor coordinates, local weather, and page interaction velocity into a continuous ambient soundscape. Visualizes frequency nodes in real time.",
+    tech: ["Tone.js", "Web Audio API", "HTML5 Canvas", "Tailwind CSS"],
+    color: "#e2dbd4",
+    accentColor: "#9b8064",
+    githubLink: "https://github.com/RazeO1/nox",
+    liveLink: "#",
+    z: -22,
+    x: 1.5,
+    y: 0.15,
+    isRight: true
+  }
+];
+
+function CameraPath({ activeSection, projectsProgress }: { activeSection: number; projectsProgress: number }) {
+  const { camera } = useThree();
+  const persCamera = camera as THREE.PerspectiveCamera;
+  const smoothedProgress = useRef(0);
+  const currentTargetX = useRef(0);
+
+  // Expose props to refs to avoid R3F stale closure issues inside useFrame
+  const projectsProgressRef = useRef(projectsProgress);
+  const activeSectionRef = useRef(activeSection);
+
+  useEffect(() => {
+    projectsProgressRef.current = projectsProgress;
+    activeSectionRef.current = activeSection;
+  }, [projectsProgress, activeSection]);
+
+  useFrame((state, delta) => {
+    const latestProgress = projectsProgressRef.current;
+    const latestSection = activeSectionRef.current;
+
+    // Smoothen progress changes
+    smoothedProgress.current = THREE.MathUtils.lerp(
+      smoothedProgress.current,
+      latestProgress,
+      0.04
+    );
+
+    if (latestSection === 6) {
+      // Z travel from Z=5.0 down to Z=-27.0
+      const camZ = 5.0 - smoothedProgress.current * 32.0;
+
+      // Subtly float camera on X and Y for a handheld look
+      const floatX = Math.sin(state.clock.getElapsedTime() * 0.4) * 0.12;
+      const floatY = Math.cos(state.clock.getElapsedTime() * 0.3) * 0.12;
+
+      // Dynamic tilt: tilt towards upcoming project's side
+      let targetLookX = 0;
+      if (camZ > -4) {
+        targetLookX = 0.28;
+      } else if (camZ > -13) {
+        targetLookX = -0.28;
+      } else if (camZ > -22) {
+        targetLookX = 0.28;
+      }
+
+      currentTargetX.current = THREE.MathUtils.lerp(currentTargetX.current, targetLookX, 0.05);
+
+      persCamera.position.set(floatX, floatY, camZ);
+      persCamera.lookAt(new THREE.Vector3(currentTargetX.current, -0.12, camZ - 4.0));
+
+      // Dynamic FOV adjustment: zooms in when close to focus Z coordinate (cz + 3.2)
+      const cardZs = [-4, -13, -22];
+      let minDist = 999;
+      cardZs.forEach((cz) => {
+        const d = Math.abs(camZ - (cz + 3.2));
+        if (d < minDist) minDist = d;
+      });
+
+      // Warp speed stretch: FOV climbs between cards and tightens to 40 at focus points
+      const targetFOV = 40 + THREE.MathUtils.clamp(minDist * 3.5, 0, 16);
+      persCamera.fov = THREE.MathUtils.lerp(persCamera.fov, targetFOV, 0.08);
+      persCamera.updateProjectionMatrix();
+    } else {
+      // Smoothly return camera to home position
+      persCamera.position.lerp(new THREE.Vector3(0, 0, 5.0), 0.05);
+      
+      const lookTarget = new THREE.Vector3(0, 0, 0);
+      const targetRot = new THREE.Matrix4().lookAt(persCamera.position, lookTarget, new THREE.Vector3(0, 1, 0));
+      const targetQuat = new THREE.Quaternion().setFromRotationMatrix(targetRot);
+      persCamera.quaternion.slerp(targetQuat, 0.05);
+
+      if (persCamera.fov !== 45) {
+        persCamera.fov = THREE.MathUtils.lerp(persCamera.fov, 45, 0.05);
+        persCamera.updateProjectionMatrix();
+      }
+    }
+  });
+
+  return null;
+}
+
+function ProjectCapsules({ activeSection }: { activeSection: number }) {
+  const { camera } = useThree();
+  const capsuleRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Expose activeSection to ref to prevent R3F stale closure
+  const activeSectionRef = useRef(activeSection);
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
+
+  useFrame(() => {
+    const camZ = camera.position.z;
+    const currentSection = activeSectionRef.current;
+
+    PROJECTS_LIST.forEach((item, idx) => {
+      const el = capsuleRefs.current[idx];
+      if (!el) return;
+
+      const dist = camZ - item.z;
+      let opacity = 0;
+      let blur = 0;
+
+      if (currentSection === 6 && dist > -0.5 && dist < 12.0) {
+        // Smooth opacity bell curve
+        if (dist < 1.5) {
+          opacity = THREE.MathUtils.clamp((dist + 0.5) / 2.0, 0, 1);
+        } else if (dist > 8.0) {
+          opacity = THREE.MathUtils.clamp((12.0 - dist) / 4.0, 0, 1);
+        } else {
+          opacity = 1.0;
+        }
+
+        // Depth of Field Focus: sharpest at sweet spot dist = 3.2
+        const focusError = Math.abs(dist - 3.2);
+        blur = THREE.MathUtils.clamp((focusError - 0.6) * 1.8, 0, 12);
+      }
+
+      // Directly update DOM element styles in the frame tick for high-end rendering speed
+      el.style.opacity = String(opacity);
+      el.style.filter = `blur(${blur}px)`;
+      el.style.pointerEvents = opacity > 0.1 ? "auto" : "none";
+      el.style.display = opacity <= 0.01 ? "none" : "flex";
+    });
+  });
+
+  return (
+    <group>
+      {PROJECTS_LIST.map((item, idx) => {
+        return (
+          <group key={item.id} position={[item.x, item.y, item.z]} rotation={[0, item.isRight ? -0.15 : 0.15, 0]}>
+            <Html
+              transform
+              distanceFactor={1.3}
+            >
+              <div 
+                ref={(el) => { capsuleRefs.current[idx] = el; }}
+                className="flex flex-col lg:flex-row items-stretch gap-6 text-white p-6 rounded-2xl border border-white/10 w-[740px] select-none pointer-events-auto"
+                style={{
+                  backgroundColor: "rgba(10, 10, 10, 0.85)",
+                  backdropFilter: "blur(12px)",
+                  boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+                  opacity: 0,
+                  display: "none"
+                }}
+              >
+                {item.isRight ? (
+                  <>
+                    {/* Left: Editorial text */}
+                    <div className="w-[50%] flex flex-col justify-center text-left pr-2">
+                      <div className="flex items-center gap-3 font-mono text-[9px] uppercase tracking-widest mb-3">
+                        <span className="font-bold" style={{ color: item.accentColor }}>
+                          {item.number} / 03
+                        </span>
+                        <span className="text-neutral-600">|</span>
+                        <span className="text-neutral-400 font-medium">{item.category}</span>
+                      </div>
+                      <h3 className="font-display font-medium text-2xl md:text-3xl text-white leading-none tracking-tight mb-4">
+                        {item.title}
+                      </h3>
+                      <p className="font-sans text-neutral-400 text-[11px] leading-relaxed mb-6">
+                        {item.description}
+                      </p>
+                      <div className="flex gap-4 items-center">
+                        <a href={item.githubLink} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-neutral-300 hover:text-white hover:line-through transition-all duration-300 font-bold">
+                          Codebase
+                        </a>
+                        <a href={item.liveLink} className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-neutral-300 hover:text-white hover:line-through transition-all duration-300 font-bold">
+                          Live Demo
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Right: Card */}
+                    <div className="w-[50%] flex justify-end items-center">
+                      <div
+                        className="w-full max-w-[320px] h-[220px] rounded-xl border border-black p-4 flex flex-col justify-between shadow-sm"
+                        style={{ backgroundColor: item.color }}
+                      >
+                        <div className="flex justify-between items-start border-b border-black/10 pb-2">
+                          <div className="flex flex-col">
+                            <span className="font-mono text-[8px] uppercase tracking-widest text-neutral-500 mb-0.5">
+                              selected work
+                            </span>
+                            <span className="font-display font-bold text-sm text-black leading-none">
+                              {item.title}
+                            </span>
+                          </div>
+                          <div className="font-mono text-[8px] font-bold text-black border border-black/20 rounded-full px-1.5 py-0.5">
+                            {item.year}
+                          </div>
+                        </div>
+
+                        <div className="flex-1 w-full flex items-center justify-center py-2 opacity-75">
+                          {idx === 0 && (
+                            <svg className="w-[110px] h-[70px] stroke-black/30 fill-none" viewBox="0 0 100 60">
+                              <g className="animate-pulse">
+                                <circle cx="20" cy="15" r="1.5" className="fill-black" />
+                                <circle cx="50" cy="45" r="1.5" className="fill-black" />
+                                <circle cx="80" cy="20" r="1.5" className="fill-black" />
+                                <circle cx="40" cy="15" r="1.5" className="fill-black" />
+                                <circle cx="70" cy="40" r="1.5" className="fill-black" />
+                              </g>
+                              <path d="M20 15 L50 45 L80 20 M40 15 L70 40 L50 45 M20 15 L40 15 L80 20 L70 40" strokeWidth="0.5" />
+                            </svg>
+                          )}
+                        </div>
+
+                        <div className="border-t border-black/10 pt-2 flex flex-col gap-1.5">
+                          <div className="flex flex-wrap gap-1">
+                            {item.tech.slice(0, 3).map((tag) => (
+                              <span key={tag} className="font-mono text-[7px] uppercase tracking-wider bg-[#fcf7f3]/60 border border-black/5 rounded-md px-1 py-0.2 font-bold text-neutral-700">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="flex justify-between items-center text-[7px] font-mono text-neutral-500 uppercase tracking-widest font-semibold">
+                            <span>Selected Works</span>
+                            <span>{item.number}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Left: Card */}
+                    <div className="w-[50%] flex justify-start items-center">
+                      <div
+                        className="w-full max-w-[320px] h-[220px] rounded-xl border border-black p-4 flex flex-col justify-between shadow-sm"
+                        style={{ backgroundColor: item.color }}
+                      >
+                        <div className="flex justify-between items-start border-b border-black/10 pb-2">
+                          <div className="flex flex-col">
+                            <span className="font-mono text-[8px] uppercase tracking-widest text-neutral-500 mb-0.5">
+                              selected work
+                            </span>
+                            <span className="font-display font-bold text-sm text-black leading-none">
+                              {item.title}
+                            </span>
+                          </div>
+                          <div className="font-mono text-[8px] font-bold text-black border border-black/20 rounded-full px-1.5 py-0.5">
+                            {item.year}
+                          </div>
+                        </div>
+
+                        <div className="flex-1 w-full flex items-center justify-center py-2 opacity-75">
+                          {idx === 1 && (
+                            <svg className="w-[90px] h-[70px] stroke-black/35 fill-none" viewBox="0 0 100 60">
+                              <circle cx="50" cy="30" r="18" strokeWidth="0.5" strokeDasharray="3,3" />
+                              <rect x="35" y="15" width="30" height="30" strokeWidth="0.75" />
+                              <line x1="50" y1="30" x2="65" y2="45" strokeWidth="1" className="stroke-[#de3421]" />
+                            </svg>
+                          )}
+                          {idx === 2 && (
+                            <svg className="w-[110px] h-[70px] stroke-black/35 fill-none" viewBox="0 0 100 60">
+                              <path d="M10 30 C 20 10, 25 50, 35 30 C 45 10, 55 50, 65 30 C 75 10, 85 50, 90 30" strokeWidth="0.75" />
+                              <circle cx="35" cy="30" r="2.5" className="fill-[#de3421] stroke-none" />
+                              <circle cx="65" cy="30" r="2.5" className="fill-[#de3421] stroke-none" />
+                            </svg>
+                          )}
+                        </div>
+
+                        <div className="border-t border-black/10 pt-2 flex flex-col gap-1.5">
+                          <div className="flex flex-wrap gap-1">
+                            {item.tech.slice(0, 3).map((tag) => (
+                              <span key={tag} className="font-mono text-[7px] uppercase tracking-wider bg-[#fcf7f3]/60 border border-black/5 rounded-md px-1 py-0.2 font-bold text-neutral-700">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="flex justify-between items-center text-[7px] font-mono text-neutral-500 uppercase tracking-widest font-semibold">
+                            <span>Selected Works</span>
+                            <span>{item.number}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Editorial text */}
+                    <div className="w-[50%] flex flex-col justify-center text-left pl-2">
+                      <div className="flex items-center gap-3 font-mono text-[9px] uppercase tracking-widest mb-3">
+                        <span className="font-bold" style={{ color: item.accentColor }}>
+                          {item.number} / 03
+                        </span>
+                        <span className="text-neutral-600">|</span>
+                        <span className="text-neutral-400 font-medium">{item.category}</span>
+                      </div>
+                      <h3 className="font-display font-medium text-2xl md:text-3xl text-white leading-none tracking-tight mb-4">
+                        {item.title}
+                      </h3>
+                      <p className="font-sans text-neutral-400 text-[11px] leading-relaxed mb-6">
+                        {item.description}
+                      </p>
+                      <div className="flex gap-4 items-center">
+                        <a href={item.githubLink} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-neutral-300 hover:text-white hover:line-through transition-all duration-300 font-bold">
+                          Codebase
+                        </a>
+                        <a href={item.liveLink} className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-neutral-300 hover:text-white hover:line-through transition-all duration-300 font-bold">
+                          Live Demo
+                        </a>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </Html>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 interface About3DProps {
   active: boolean;
   activeSection: number;
+  projectsProgress: number;
   tapData: { x: number; y: number; trigger: number };
   mouse: { x: number; y: number };
 }
 
-export default function About3D({ active, activeSection, tapData, mouse }: About3DProps) {
+export default function About3D({ active, activeSection, projectsProgress, tapData, mouse }: About3DProps) {
   if (!active) return null;
 
   return (
@@ -388,6 +732,9 @@ export default function About3D({ active, activeSection, tapData, mouse }: About
 
         <Suspense fallback={null}>
           <AvatarModel activeSection={activeSection} tapData={tapData} mouse={mouse} />
+          <Starfield activeSection={activeSection} />
+          <CameraPath activeSection={activeSection} projectsProgress={projectsProgress} />
+          <ProjectCapsules activeSection={activeSection} />
         </Suspense>
       </Canvas>
     </div>

@@ -1,5 +1,40 @@
 # Session Log
 
+## [2026-08-19 19:35] Ref-Synchronized State and DOM-Driven Project Cards in 3D Galaxy Tunnel
+- **Accomplishments**:
+  - Exposed `activeSection` and `projectsProgress` on the global `window` object to allow seamless verification and testing inside headless browser environments.
+  - Exposed the initialized `Lenis` smooth-scroll controller on `window.lenis` to permit simulated scrolling and wheel triggers in automated Playwright scripts.
+  - Corrected a critical R3F stale closure bug: mapped `activeSection` and `projectsProgress` props to local mutable refs (`activeSectionRef`, `projectsProgressRef`) inside the `<AvatarModel>`, `<Starfield>`, and `<CameraPath>` hooks, ensuring frame loops read fresh updates during scrolling.
+  - Solved Three.js viewport clipping: adjusted the head's falling Y-offset from `+0.88` to `+0.58` units relative to the camera, centering the head centerpiece inside the top-center frustum beautifully on all screens.
+  - Implemented 3D studio light travel: parented active white key and red fill directional lights directly inside the `<AvatarModel>`'s `<group>` container so they follow the head centerpiece down the negative Z-axis, keeping the polished chrome materials lit with rich specular highlights.
+  - Engineered direct DOM style mutations inside a single `useFrame` loop in `<ProjectCapsules>`: binds project capsule opacities and depth-of-field blurs to the camera Z depth on every frame, eliminating mounting delays and achieving smooth 60fps card transitions.
+  - Visual verification: successfully ran Playwright testing loops to confirm that Project 1 (`Aether-Net`) is fully faded out at 38% progress, while Project 2 (`Khepri Engine`) emerges on the left side of the cylinder starfield tunnel with cinematic focus blur.
+  - Verified static compilation: build successfully compiled with Turbopack.
+- **Key Files Modified**:
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Exposed `window.lenis`.
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Added window logging hooks.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Updated all components to use ref-synchronized state access, added local group lights, adjusted head viewport Y-offset, and converted card opacities/blurs to direct DOM style updates inside `useFrame`.
+- **Pending Tasks & Next Steps**:
+  - Complete contact section transitions.
+
+## [2026-08-19 18:42] Cinematic Alternate Projects Slide Transition and WebGL Starfield Warp Tunnel
+- **Accomplishments**:
+  - Combined `<Projects />` inside the parent `<About />` structure in [`About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx) and removed it from [`page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx) to seamlessly share the sticky WebGL Canvas.
+  - Added a responsive 3D starfield tunnel generator component (`Starfield`) inside [`About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx) that animates 1,500 point particles along the Z-axis and rotates on the Z-axis.
+  - Programmed smooth speed and opacity fading so the starfield warp tunnel is invisible elsewhere but activates at high warp speed when `activeSection === 6` (Projects).
+  - Set up a cinematic Projects Pose (`6`) in [`About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx) that scales down the chrome head centerpiece, pans it upwards, and tilts it back to sit centered-top as a backdrop.
+  - Refactored [`Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx) to support absolute full-screen project slides that alternate layouts side-to-side (Project 1: Text Left / Card Right; Project 2: Card Left / Text Right; Project 3: Text Left / Card Right).
+  - Wired a GSAP timeline scrubbing transitions between slides seamlessly on scroll, translating and fading slides on the Y-axis to prevent vertical overlaps.
+  - Verified static production build compilation exits with `code 0`.
+  - Conducted live visual verification in Playwright at 35% projects progress.
+- **Key Files Modified**:
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Integrated `<Projects />` render loop.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Programmed `Starfield` cylinder mesh and pose 6 parameters.
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Re-architected slide structure, layout logic, and GSAP transition scrubbing.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Cleaned up Projects import and rendering tags.
+- **Pending Tasks & Next Steps**:
+  - Complete contact section transitions.
+
 ## [2026-08-19 16:40] Dead-Centered 3D Head and Spiral Showcase Realignment
 - **Accomplishments**:
   - Reverted horizontal shifts inside `About3D.tsx`'s `useFrame` loop, keeping the 3D head centerpiece dead-centered (`basePosX = 0`) across both the showcase and about text chapters.

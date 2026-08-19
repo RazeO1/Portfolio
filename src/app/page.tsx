@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Loader from "@/components/Loader";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
-import Projects from "@/components/Projects";
 import Lenis from "lenis";
 
 export default function Home() {
@@ -30,6 +29,10 @@ export default function Home() {
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
       smoothWheel: true,
     });
+
+    if (typeof window !== "undefined") {
+      (window as any).lenis = lenis;
+    }
 
     function raf(time: number) {
       lenis.raf(time);
@@ -64,9 +67,6 @@ export default function Home() {
 
       <div className="relative z-20 w-full">
         <About active={isLoaded} />
-
-        {/* Section 04 / Selected Works (Card Stack) - Black background */}
-        <Projects />
 
         {/* Section 05 / Get in Touch - Black background */}
         <section
