@@ -18,24 +18,24 @@ if (typeof window !== "undefined") {
 // 3D Poses definitions for the Avatar Head across sections
 const SECTION_POSES: Record<number, { position: [number, number, number]; scale: [number, number, number]; rotation: [number, number, number] }> = {
   0: { // Hero / Landing
-    position: [0, -0.22, 0.45],
-    scale: [0.6, 0.6, 0.6],
+    position: [0, 0, 0],
+    scale: [0.576, 0.576, 0.576],
     rotation: [0, 0, 0]
   },
   1: { // Creative Design Ch.
-    position: [-1.15, -0.15, 0.5],
-    scale: [0.55, 0.55, 0.55],
-    rotation: [0.1, 0.5, -0.05]
+    position: [0, 0, 0],
+    scale: [0.576, 0.576, 0.576],
+    rotation: [0, 0, 0]
   },
   2: { // Engineering Ch.
-    position: [1.1, -0.2, 0.5],
-    scale: [0.55, 0.55, 0.55],
-    rotation: [0.05, -0.4, 0.05]
+    position: [0, 0, 0],
+    scale: [0.576, 0.576, 0.576],
+    rotation: [0, 0, 0]
   },
   3: { // User Experience Ch.
-    position: [-1.15, -0.15, 0.5],
-    scale: [0.55, 0.55, 0.55],
-    rotation: [0.15, 0.45, -0.08]
+    position: [0, 0, 0],
+    scale: [0.576, 0.576, 0.576],
+    rotation: [0, 0, 0]
   },
   4: { // Obsession & Conclusion
     position: [0, 0, 0],
@@ -75,7 +75,7 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
   const { actions } = useAnimations(animations, groupRef);
 
   // Position, breathing, and wobble physics states
-  const basePosition = useRef(new THREE.Vector3(0, -0.22, 0.45));
+  const basePosition = useRef(new THREE.Vector3(0, 0, 0));
   const wobblePosition = useRef(new THREE.Vector3(0, 0, 0));
   const wobbleRotation = useRef(new THREE.Vector3(0, 0, 0));
   const mouseLookRotation = useRef(new THREE.Vector2(0, 0));
@@ -87,13 +87,31 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
   const SPRING_TENSION = 180.0;
   const SPRING_DAMPING = 12.0;
 
-  // 1. Play blinking animations on load
+  // 1. Traverse mesh to apply chrome materials, set corrective rotation, and play blinking animations on load
   useEffect(() => {
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        mesh.material = new THREE.MeshPhysicalMaterial({
+          metalness: 1.0,
+          roughness: 0.1,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.05,
+          color: new THREE.Color("#f3f3f3"),
+        });
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      }
+    });
+
+    // Pitch: 0.4 rad (tilts face down to look straight at screen), Yaw: -0.85 rad (aligns face forward)
+    scene.rotation.set(0.4, -0.85, 0);
+
     const blinkAction = actions["Blink"];
     if (blinkAction) {
       blinkAction.reset().fadeIn(0.2).play();
     }
-  }, [actions]);
+  }, [actions, scene]);
 
   // 2. Click Tap interactive springy displacement trigger
   const lastTapTrigger = useRef(tapData.trigger);
