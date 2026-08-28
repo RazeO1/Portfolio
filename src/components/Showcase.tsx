@@ -365,9 +365,15 @@ export default function Showcase() {
   useEffect(() => {
     const updateSize = () => {
       if (bookRef.current) {
-        setBookSize({
-          width: bookRef.current.clientWidth,
-          height: bookRef.current.clientHeight,
+        const w = bookRef.current.clientWidth;
+        const h = bookRef.current.clientHeight;
+        setBookSize({ width: w, height: h });
+        
+        setLoupe((prev) => {
+          if (prev.x === 0 && prev.y === 0) {
+            return { ...prev, x: w * 0.88, y: h * 0.855 };
+          }
+          return prev;
         });
       }
     };
@@ -384,7 +390,6 @@ export default function Showcase() {
       window.removeEventListener("resize", updateSize);
     };
   }, []);
-
 
   // Handle lean tilt effect towards pointer coordinates
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -642,8 +647,8 @@ export default function Showcase() {
 
     setLoupe((prev) => ({
       ...prev,
-      x: Math.max(-loupeR * 0.4, Math.min(width + loupeR * 0.4, localX)),
-      y: Math.max(-loupeR * 0.4, Math.min(height + loupeR * 0.8, localY)),
+      x: Math.max(-loupeR * 0.7, Math.min(width + loupeR * 0.7, localX)),
+      y: Math.max(-loupeR * 0.7, Math.min(height + loupeR * 1.0, localY)),
     }));
   };
 
@@ -720,7 +725,9 @@ export default function Showcase() {
         className={`strip ${isEdge ? "edge" : ""}`} 
         style={{ 
           "--i": i,
-          transform: `rotateY(${(i === 0 ? 0 : (turn.dir === "next" ? 1 : -1) * td * (180 / Math.PI)).toFixed(3)}deg)`
+          "--lit": l1.toFixed(3),
+          "--a1": a1,
+          "--a2": a2,
         } as any}
       >
         <div 
@@ -728,26 +735,20 @@ export default function Showcase() {
           style={{ 
             backgroundImage: `url(${pageUrls[turn.from]})`, 
             backgroundPositionX: faceFrontX,
-            "--lit": l1.toFixed(3),
-            "--a1": a1,
-            "--a2": a2,
-          } as any}
+          }}
         >
-          <div className="sh" style={{ opacity: a1 } as any} />
-          <div className="gl" style={{ opacity: (Math.sin(Math.PI * turn.t) * l1 * l1 * 0.20).toFixed(3) } as any} />
+          <div className="sh" />
+          <div className="gl" />
         </div>
         <div 
           className="face back" 
           style={{ 
             backgroundImage: `url(${pageUrls[turn.to]})`, 
             backgroundPositionX: faceBackX,
-            "--lit": l1.toFixed(3),
-            "--a1": a2,
-            "--a2": a1,
-          } as any}
+          }}
         >
-          <div className="sh" style={{ opacity: a2 } as any} />
-          <div className="gl" style={{ opacity: (Math.sin(Math.PI * turn.t) * l1 * l1 * 0.20).toFixed(3) } as any} />
+          <div className="sh" />
+          <div className="gl" />
         </div>
         {renderStrips(i + 1)}
       </div>
@@ -761,7 +762,7 @@ export default function Showcase() {
     if (!turn) {
       return (
         <div className="sb-full absolute inset-0 rounded-sm overflow-hidden shadow-md">
-          <img src={pageUrls[idx]} alt={PAGES[idx].title} className="w-full h-full object-cover" />
+          <img src={pageUrls[idx]} alt={PAGES[idx].title} className="w-full h-auto block" />
         </div>
       );
     }
@@ -774,14 +775,14 @@ export default function Showcase() {
       <>
         {/* Left half page behind */}
         <div className="sb-half left absolute top-0 bottom-0 left-0 w-1/2 overflow-hidden">
-          <img src={pageUrls[leftIndex]} className="w-[200%] max-w-none h-full object-cover" alt="" />
-          <div className="gutter-shade left absolute top-0 bottom-0 right-0 w-[46%] bg-gradient-to-l from-black/15 to-transparent pointer-events-none" />
+          <img src={pageUrls[leftIndex]} className="sb-half-img left w-[200%] max-w-none h-auto block" alt="" />
+          <div className="gutter-shade left absolute top-0 bottom-0 right-0 w-[46%]" />
         </div>
 
         {/* Right half page behind */}
         <div className="sb-half right absolute top-0 bottom-0 left-1/2 w-1/2 overflow-hidden">
-          <img src={pageUrls[rightIndex]} className="w-[200%] max-w-none h-full object-cover -ml-[100%]" alt="" />
-          <div className="gutter-shade right absolute top-0 bottom-0 left-0 w-[46%] bg-gradient-to-r from-black/10 to-transparent pointer-events-none" />
+          <img src={pageUrls[rightIndex]} className="sb-half-img right w-[200%] max-w-none h-auto block -ml-[100%]" alt="" />
+          <div className="gutter-shade right absolute top-0 bottom-0 left-0 w-[46%]" />
         </div>
 
         {/* The sweeping turning page curl */}
@@ -796,15 +797,7 @@ export default function Showcase() {
             zIndex: 6,
             left: turn.dir === "next" ? "50%" : "auto",
             right: turn.dir === "prev" ? "50%" : "auto",
-            transformOrigin: turn.dir === "next" ? "left center" : "right center",
-            transform: `rotateY(${((turn.dir === "next" ? -1 : 1) * (Math.PI * turn.t + BETA * Math.sin(Math.PI * turn.t)) * (180 / Math.PI)).toFixed(2)}deg)`,
-            "--n": N,
-            "--span": SPAN,
-            "--bw": `${width}px`,
-            "--tt": `${((Math.PI * turn.t + BETA * Math.sin(Math.PI * turn.t)) * (180 / Math.PI)).toFixed(2)}deg`,
-            "--td": `${((2 * (BETA * Math.sin(Math.PI * turn.t)) / N) * (180 / Math.PI)).toFixed(3)}deg`,
-            "--shade": Math.sin(Math.PI * turn.t).toFixed(3),
-          } as any}
+          }}
         >
           {renderStrips(0)}
         </div>
@@ -829,6 +822,19 @@ export default function Showcase() {
     }
     setIdx(i);
   };
+
+  const tiltStyle = useMemo(() => {
+    return {
+      transform: `rotateX(${view.rx.toFixed(2)}deg) rotateY(${view.ry.toFixed(2)}deg) scale(${view.z.toFixed(3)})`,
+      transformStyle: "preserve-3d",
+      "--tt": turn ? `${((Math.PI * turn.t + BETA * Math.sin(Math.PI * turn.t)) * (180 / Math.PI)).toFixed(2)}deg` : "0deg",
+      "--td": turn ? `${((2 * (BETA * Math.sin(Math.PI * turn.t)) / N) * (180 / Math.PI)).toFixed(3)}deg` : "0deg",
+      "--shade": turn ? Math.sin(Math.PI * turn.t).toFixed(3) : "0",
+      "--bw": `${width}px`,
+      "--span": SPAN,
+      "--n": N,
+    } as any;
+  }, [view, turn, width]);
 
   return (
     <section id="showcase" className="relative w-full py-24 select-none bg-[#fcf7f3] border-t border-black/5 flex flex-col items-center">
@@ -865,21 +871,13 @@ export default function Showcase() {
           <div className="sb-3d relative flex-1 w-full max-w-[900px] aspect-[1760/1240] perspective-[1750px]">
             <div
               className="sb-tilt w-full h-full relative"
-              style={{
-                transform: `rotateX(${view.rx.toFixed(2)}deg) rotateY(${view.ry.toFixed(2)}deg) scale(${view.z.toFixed(3)})`,
-                transformStyle: "preserve-3d",
-              }}
+              style={tiltStyle}
               onDoubleClick={() => setTargetView({ rx: view.rx, ry: view.ry, z: 1.0 })}
             >
               {/* Soft shadows */}
-              <div 
-                className="sb-cast ambient absolute inset-0 z-0 filter blur-[26px] bg-[radial-gradient(50%_50%_at_50%_58%,rgba(58,44,26,0.34)_0%,rgba(58,44,26,0.19)_40%,transparent_74%)]" 
-                style={{ opacity: (1 - Math.sin(Math.PI * (turn ? turn.t : 0)) * 0.42).toFixed(3) } as any}
-              />
-              <div 
-                className="sb-cast contact absolute inset-0 z-0 filter blur-[11px] bg-[radial-gradient(50%_44%_at_50%_42%,rgba(44,32,14,0.40)_0%,rgba(44,32,14,0.17)_48%,transparent_78%)]" 
-                style={{ opacity: (1 - Math.sin(Math.PI * (turn ? turn.t : 0)) * 0.50).toFixed(3) } as any}
-              />
+              <div className="sb-cast ambient absolute inset-0 z-0" />
+              <div className="sb-cast contact absolute inset-0 z-0" />
+              <div className="sb-cast hair absolute inset-0 z-0" />
               
               {/* Core Book element */}
               <div
@@ -922,25 +920,16 @@ export default function Showcase() {
                     onPointerMove={handleLoupeMove}
                     onPointerUp={handleLoupeUp}
                     onPointerCancel={handleLoupeUp}
-                    className="grip absolute left-1/2 top-1/2 w-[74%] h-[12.5%] rounded-full cursor-grab active:cursor-grabbing pointer-events-auto bg-gradient-to-b from-white/20 to-black/20 shadow-md"
-                    style={{
-                      transformOrigin: "0 50%",
-                      transform: `rotate(40deg) translate(${loupeR * 0.66}px, -50%)`,
-                      background: "linear-gradient(180deg, rgba(255,255,255,0.46) 0%, rgba(0,0,0,0.2) 100%), linear-gradient(90deg, #d4b476 0%, #b8995a 15%, #6a4f32 20%, #4a3420 85%, #6a4f32 100%)"
-                    }}
+                    className="grip absolute cursor-grab active:cursor-grabbing pointer-events-auto"
                   />
                   <span
                     onPointerDown={handleLoupeDown}
                     onPointerMove={handleLoupeMove}
                     onPointerUp={handleLoupeUp}
                     onPointerCancel={handleLoupeUp}
-                    className="ring absolute inset-0 rounded-full border-4 border-amber-800/10 cursor-grab active:cursor-grabbing pointer-events-auto shadow-2xl"
-                    style={{
-                      padding: `${bezel}px`,
-                      background: "linear-gradient(146deg, #fffcf4 0%, #ecdcb4 14%, #c7ab77 32%, #8e7850 50%, #dfcea0 66%, #fff6e0 80%, #a48e60 100%)"
-                    }}
+                    className="ring absolute rounded-full cursor-grab active:cursor-grabbing pointer-events-auto"
                   >
-                    <span className="lens relative block w-full h-full rounded-full overflow-hidden shadow-inner border border-amber-900/30">
+                    <span className="lens relative block w-full h-full rounded-full overflow-hidden">
                       {/* Zoomed portion mirroring background inside lens */}
                       <span
                         className="absolute inset-0 bg-[#f5ebd9] pointer-events-none rounded-full"
@@ -952,8 +941,6 @@ export default function Showcase() {
                           transform: magnifierMath.innerTransform,
                         }}
                       />
-                      <span className="absolute inset-0 z-10 pointer-events-none rounded-full bg-[radial-gradient(circle_at_50%_50%,transparent_54%,rgba(58,44,26,0.1)_76%,rgba(46,34,16,0.3)_100%)] shadow-[inset_0_4px_12px_rgba(40,30,14,0.3)]" />
-                      <span className="absolute inset-0 z-20 pointer-events-none rounded-full bg-[radial-gradient(36%_26%_at_29%_19%,rgba(255,255,255,0.3),transparent_76%)]" />
                     </span>
                   </span>
                 </div>
@@ -994,7 +981,7 @@ export default function Showcase() {
         </div>
 
         {/* Caption panel */}
-        <div className="sb-captions min-h-[48px] text-center flex flex-col justify-center">
+        <div className="sb-captions min-h-[48px] text-center flex flex-col justify-center animate-fade-in">
           <p className="sb-caption font-display font-medium text-xl md:text-2xl text-neutral-800 leading-tight">
             {turn ? (turn.t > 0.5 ? PAGES[turn.to].title : PAGES[turn.from].title) : PAGES[idx].title}
           </p>
@@ -1099,8 +1086,73 @@ export default function Showcase() {
           position: relative;
           transform-style: preserve-3d;
         }
+        
+        /* Shadows positioning and decay */
+        .sb-cast {
+          position: absolute;
+          pointer-events: none;
+          z-index: 0;
+        }
+        .sb-cast.ambient {
+          left: 5%;
+          right: 5%;
+          top: 27%;
+          bottom: 2%;
+          background: radial-gradient(50% 50% at 50% 58%, rgba(58,44,26,.34) 0%, rgba(58,44,26,.19) 40%, rgba(58,44,26,0) 74%);
+          filter: blur(26px);
+          opacity: calc(1 - var(--shade, 0) * 0.42);
+        }
+        .sb-cast.contact {
+          left: 9%;
+          right: 9%;
+          top: 62%;
+          bottom: 10%;
+          background: radial-gradient(50% 44% at 50% 42%, rgba(44,32,14,.40) 0%, rgba(44,32,14,.17) 48%, rgba(44,32,14,0) 78%);
+          filter: blur(11px);
+          opacity: calc(1 - var(--shade, 0) * 0.50);
+        }
+        .sb-cast.hair {
+          left: 12%;
+          right: 12%;
+          top: 70%;
+          bottom: 17%;
+          background: radial-gradient(50% 52% at 50% 40%, rgba(40,28,10,.34) 0%, rgba(40,28,10,0) 76%);
+          filter: blur(4px);
+          opacity: calc(1 - var(--shade, 0) * 0.62);
+        }
+        
+        .gutter-shade {
+          position: absolute;
+          top: 21.8%;
+          bottom: 21.8%;
+          width: 46%;
+          pointer-events: none;
+          opacity: calc(var(--shade, 0) * 0.62);
+          -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 5.2%, #000 94.8%, transparent 100%);
+          mask-image: linear-gradient(180deg, transparent 0, #000 5.2%, #000 94.8%, transparent 100%);
+        }
+        .gutter-shade.left {
+          right: 0;
+          background: linear-gradient(270deg, rgba(52,38,20,.30), rgba(52,38,20,0) 82%);
+        }
+        .gutter-shade.right {
+          left: 0;
+          background: linear-gradient(90deg, rgba(52,38,20,.24), rgba(52,38,20,0) 82%);
+        }
+
+        /* turning page curl and recursive nested strip bend */
         .curl {
           transform-style: preserve-3d;
+        }
+        .curl.next {
+          left: 50%;
+          transform-origin: left center;
+          transform: rotateY(calc(-1 * var(--tt, 0deg)));
+        }
+        .curl.prev {
+          right: 50%;
+          transform-origin: right center;
+          transform: rotateY(var(--tt, 0deg));
         }
         .strip {
           position: absolute;
@@ -1124,9 +1176,11 @@ export default function Showcase() {
         }
         .curl.next .strip .strip {
           left: 100%;
+          transform: rotateY(var(--td, 0deg));
         }
         .curl.prev .strip .strip {
           right: 100%;
+          transform: rotateY(calc(-1 * var(--td, 0deg)));
         }
         .face {
           position: absolute;
@@ -1138,38 +1192,159 @@ export default function Showcase() {
           -webkit-backface-visibility: hidden;
           background-repeat: no-repeat;
           background-size: var(--bw) auto;
-          border-radius: 1px;
         }
         .face.back {
           transform: rotateY(180deg);
         }
         .face .sh, .face .gl {
+          -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 5.2%, #000 94.8%, transparent 100%);
+          mask-image: linear-gradient(180deg, transparent 0, #000 5.2%, #000 94.8%, transparent 100%);
+        }
+        .strip.edge .face .sh, .strip.edge .face .gl {
+          -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 9%, #000 91%, transparent 100%), var(--hf);
+          mask-image: linear-gradient(180deg, transparent 0, #000 9%, #000 91%, transparent 100%), var(--hf);
+          mask-composite: intersect;
+          -webkit-mask-composite: source-in;
+        }
+        .curl.next .strip.edge .face.front, .curl.prev .strip.edge .face.back {
+          --hf: linear-gradient(90deg, #000 0% 22%, transparent 96%);
+        }
+        .curl.next .strip.edge .face.back, .curl.prev .strip.edge .face.front {
+          --hf: linear-gradient(270deg, #000 0% 22%, transparent 96%);
+        }
+        .face .sh {
           position: absolute;
           left: 0;
           right: 0;
           top: 21.8%;
           bottom: 21.8%;
           pointer-events: none;
-          mask-image: linear-gradient(180deg, transparent 0%, #000 5.2%, #000 94.8%, transparent 100%);
-          -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 5.2%, #000 94.8%, transparent 100%);
         }
-        .face .sh {
-          background: linear-gradient(90deg, rgba(58, 43, 20, var(--a1, 0.15)), rgba(58, 43, 20, var(--a2, 0)));
+        .curl.next .face.front .sh, .curl.prev .face.back .sh {
+          background: linear-gradient(90deg, rgba(58, 43, 20, var(--a1, 0)), rgba(58, 43, 20, var(--a2, 0)));
+        }
+        .curl.next .face.back .sh, .curl.prev .face.front .sh {
+          background: linear-gradient(90deg, rgba(58, 43, 20, var(--a2, 0)), rgba(58, 43, 20, var(--a1, 0)));
         }
         .face .gl {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 21.8%;
+          bottom: 21.8%;
+          pointer-events: none;
           background: #fffaf0;
+          opacity: calc(var(--shade, 0) * var(--lit, 1) * var(--lit, 1) * 0.20);
         }
-        .strip.edge .face.front {
-          --hf: linear-gradient(90deg, #000 0% 22%, transparent 96%);
+
+        /* Magnifier Loupe Styles */
+        .loupe {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: var(--lr, 270px);
+          height: var(--lr, 270px);
+          pointer-events: none;
+          z-index: 80;
+          opacity: 0;
+          transition: opacity 0.25s ease;
+          will-change: transform;
         }
-        .strip.edge .face.back {
-          --hf: linear-gradient(270deg, #000 0% 22%, transparent 96%);
+        .loupe.on {
+          opacity: 1;
         }
-        .strip.edge .face .sh, .strip.edge .face .gl {
-          mask-image: linear-gradient(180deg, transparent 0%, #000 9%, #000 91%, transparent 100%), var(--hf);
-          -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 9%, #000 91%, transparent 100%), var(--hf);
-          mask-composite: intersect;
-          -webkit-mask-composite: source-in;
+        .loupe.held .ring {
+          cursor: grabbing;
+        }
+        .loupe .ring {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          pointer-events: auto;
+          cursor: grab;
+          padding: calc(var(--lr, 270px) * 0.058);
+          box-shadow:
+            0 1px 2px rgba(58,44,26,0.30),
+            0 10px 18px rgba(58,44,26,0.24),
+            0 26px 40px rgba(58,44,26,0.20),
+            0 48px 66px rgba(58,44,26,0.13);
+        }
+        .loupe .ring:before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          pointer-events: none;
+          background: linear-gradient(146deg, #fdf7e9 0%, #e6d7b4 14%, #b69d70 32%, #7d6740 50%, #cdbb92 66%, #f4ead3 80%, #9b8459 100%);
+          box-shadow:
+            inset 0 1px 1px rgba(255,255,255,0.8),
+            inset 0 -2px 3px rgba(70,52,26,0.5);
+          -webkit-mask-image: radial-gradient(circle closest-side at 50% 50%, transparent 0 88.2%, #000 89.8% 100%);
+          mask-image: radial-gradient(circle closest-side at 50% 50%, transparent 0 88.2%, #000 89.8% 100%);
+        }
+        .loupe .grip {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: calc(var(--lr, 270px) * 0.74);
+          height: calc(var(--lr, 270px) * 0.125);
+          transform-origin: 0 50%;
+          transform: rotate(40deg) translate(calc(var(--lr, 270px) * 0.33), -50%);
+          border-radius: calc(var(--lr, 270px) * 0.06);
+          pointer-events: auto;
+          cursor: grab;
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.46) 0 13%, rgba(255,255,255,0) 44%, rgba(0,0,0,0.26) 100%),
+            linear-gradient(90deg, #d9bd82 0 14%, #a9884e 14% 20%, #6d4c2b 20% 62%, #5a3d22 62% 92%, #7a563180 92% 100%);
+          box-shadow: 0 8px 15px rgba(58,44,26,0.26), 0 18px 26px rgba(58,44,26,0.14);
+        }
+        .lens {
+          position: relative;
+          display: block;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background-repeat: no-repeat;
+          overflow: hidden;
+          box-shadow:
+            inset 0 0 0 1px rgba(52,40,22,0.55),
+            inset 0 4px 12px rgba(40,30,14,0.28),
+            inset 0 -7px 16px rgba(255,250,240,0.14);
+        }
+        .lens:before, .lens:after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          pointer-events: none;
+        }
+        .lens:before {
+          z-index: 1;
+          background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 54%, rgba(58,44,26,0.10) 76%, rgba(46,34,16,0.34) 100%);
+          box-shadow:
+            inset 0 0 0 2px rgba(130,162,196,0.26),
+            inset 0 0 0 4px rgba(206,158,112,0.15);
+        }
+        .lens:after {
+          z-index: 2;
+          background:
+            radial-gradient(36% 26% at 29% 19%, rgba(255,255,255,0.30), rgba(255,255,255,0) 76%),
+            radial-gradient(24% 16% at 74% 86%, rgba(255,255,255,0.12), rgba(255,255,255,0) 80%),
+            linear-gradient(150deg, rgba(255,255,255,0.06) 0 18%, rgba(255,255,255,0) 42%);
+        }
+        
+        .zoomwrap {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          pointer-events: none;
+          z-index: 2;
+          opacity: 0;
+        }
+        .zoominner {
+          position: absolute;
+          inset: 0;
+          transform-origin: 0 0;
         }
       ` }} />
     </section>
