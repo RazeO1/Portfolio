@@ -169,7 +169,7 @@ export default function Projects({ setActiveSection, setProjectsProgress }: Proj
                 {/* Force vectors */}
                 <path d="M 50 10 L 50 30" stroke="#de3421" strokeWidth="1.5" />
                 <polygon points="48,25 50,32 52,25" fill="#de3421" stroke="none" />
-                <text x="50" y="8" font-family="monospace" font-size="6" fill="#de3421" stroke="none" text-anchor="middle">LOAD = 9.8 kN</text>
+                <text x="50" y="8" fontFamily="monospace" fontSize="6" fill="#de3421" stroke="none" textAnchor="middle">LOAD = 9.8 kN</text>
                 
                 <circle cx="50" cy="50" r="18" stroke="#d5802a" strokeWidth="0.5" strokeDasharray="1,1" />
                 <circle cx="50" cy="50" r="3" fill="#de3421" />
