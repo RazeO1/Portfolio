@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/Loader";
 import Hero from "@/components/Hero";

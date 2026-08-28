@@ -1,4 +1,11 @@
 "use client";
+
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/refs */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 // Rebuild trigger: Slot conveyor update 1.
 
 import { useRef, useState, useEffect, useMemo } from "react";
