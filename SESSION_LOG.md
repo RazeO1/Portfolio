@@ -1,5 +1,31 @@
 # Session Log
 
+## [2026-08-28 19:35] Two-Way Seamless Infinite Scroll Overlay & Symmetrical Mouse-Tracking 3D Head
+- **Accomplishments**:
+  - Implemented a seamless two-way infinite scrolling loop by duplicating the About editorial content (Headline, Chapters 1-4, Endline) into two identical `.about-loop-group` wrappers inside [`About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx).
+  - Created snapping bounds in the Lenis `"scroll"` event listener: when the user reaches the bottom boundary of the wrapper, it instantly scrolls back by one loop group height; when they scroll up to the top boundary, it instantly snaps forward.
+  - Snapshot the initial scroll position of the About overlay on transition completion to `loopHeight` (the start of the second loop group). This shows the Headline immediately while allowing seamless scrolling up or down instantly.
+  - Reset all base pose rotations for sections 0 to 5 to `[0, 0, 0]` in `SECTION_POSES` inside [`About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx). This ensures the 3D head faces straight and follows the mouse cursor symmetrically throughout all scrolling sections.
+  - Removed the duplicate black Contact section from the bottom of the About overlay, making the About section a fully self-contained editorial flow.
+  - Integrated duplicate-aware class lookups inside the GSAP trigger loop via `gsap.utils.toArray` to monitor scroll progress across both loop groups.
+  - Verified static compilation: the Next.js production build checks passed with code 0.
+- **Key Files Modified**:
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Set up the two-way infinite loop bounds checking, initialization snap logic, and target safety fallbacks.
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Extracted editorial content into a single `renderContent` helper rendered twice, removed the Contact section container, and adapted ScrollTriggers to duplicate nodes.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Cleared rotations in `SECTION_POSES` for sections 0-5 to enable straight mouse-look tracking.
+
+## [2026-08-26 18:25] Custom Scroll Container Overlay, Parent-Bound ScrollTriggers & 3D Head Turning
+- **Accomplishments**:
+  - Returned the `About` layout to a fixed-overlay structure (`fixed top-0 left-0 w-full h-full`) that scrolls internally via `overflow-y-auto` while keeping the main window scroll locked, preventing any background shifts or page jitter.
+  - Linked GSAP ScrollTriggers to the custom scroll container: added `ScrollTrigger.defaults({ scroller: sectionRef.current?.parentElement })` inside [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx) to query the DOM wrapper parent reference directly.
+  - Enabled dynamic 3D head movement: as you scroll internally inside the overlay, ScrollTrigger correctly fires active section updates, and the 3D head turns smoothly to look at the left/right text columns.
+  - Handled overlay exit cleanup: when closing the overlay, the wrapper scroll position resets to `0` dynamically on transition end.
+  - Verified static compilation: production build completed with exit code 0.
+- **Key Files Modified**:
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Updated container elements to use `fixed` positioning and custom id `#about-scroll-container`, and streamlined open/close slide transitions.
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Configured ScrollTrigger to use the parent scroll element reference as its default scroller.
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Added base rotation lerping and set section poses to make the head turn toward the columns on scroll.
+
 ## [2026-08-19 21:30] Procedural WebGL Space Tunnel and Brand-Colored Starfield
 - **Accomplishments**:
   - Replaced the static background image (`galaxy_tunnel.png`) in `About.tsx` with a fully procedural, real-time GPU-rendered background shader inside `About3D.tsx` (`WarpTunnelBackdrop` component).

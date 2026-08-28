@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useMemo, Suspense } from "react";
+import React, { useRef, useEffect, useMemo, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, useAnimations, Environment, Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -58,9 +58,10 @@ interface AvatarModelProps {
   activeSection: number;
   tapData: { x: number; y: number; trigger: number };
   mouse: { x: number; y: number };
+  scrollProgressRef: React.MutableRefObject<number>;
 }
 
-function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
+function AvatarModel({ activeSection, tapData, mouse, scrollProgressRef }: AvatarModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const tapLightRef = useRef<THREE.PointLight>(null);
   const headMeshRef = useRef<THREE.Mesh | null>(null);
@@ -78,8 +79,11 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
   // Position, breathing, and wobble physics states
   const basePosition = useRef(new THREE.Vector3(0, 0, 0));
   const wobblePosition = useRef({ x: 0, y: 0, z: 0 });
-  const wobbleRotation = useRef({ x: 0, y: 0, z: 0 });
   const mouseLookRotation = useRef({ x: 0, y: 0 });
+  const wobbleRotation = useRef({ x: 0, y: 0, z: 0 });
+  const baseRotation = useRef(new THREE.Vector3(0, 0, 0));
+  // Smooth scroll-driven vertical parallax offset for the head
+  const scrollParallax = useRef(0);
 
   // 1. Traverse mesh to apply chrome materials, set corrective rotation, and play blinking animations on load
   useEffect(() => {
@@ -287,10 +291,14 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
       basePosition.current.z = THREE.MathUtils.lerp(basePosition.current.z, pose.position[2], 0.05);
     }
 
-    // Set actual position as a direct sum of base position and additive wobble translation
+    // Smooth scroll-driven vertical parallax: as user scrolls down (progress 0→1), head drifts up slightly
+    const targetScrollParallax = -scrollProgressRef.current * 0.15; // max ~0.15 units up
+    scrollParallax.current = THREE.MathUtils.lerp(scrollParallax.current, targetScrollParallax, 0.08);
+
+    // Set actual position as a direct sum of base position, scroll parallax, and additive wobble translation
     groupRef.current.position.copy(basePosition.current);
     groupRef.current.position.x += wobblePosition.current.x;
-    groupRef.current.position.y += wobblePosition.current.y;
+    groupRef.current.position.y += wobblePosition.current.y + scrollParallax.current;
     groupRef.current.position.z += wobblePosition.current.z;
 
     // Breathing-scale pulse
@@ -320,10 +328,15 @@ function AvatarModel({ activeSection, tapData, mouse }: AvatarModelProps) {
     mouseLookRotation.current.x = THREE.MathUtils.lerp(mouseLookRotation.current.x, targetLookX, 0.08);
     mouseLookRotation.current.y = THREE.MathUtils.lerp(mouseLookRotation.current.y, targetLookY, 0.08);
 
-    // Set actual rotation as a direct sum of base pose rotation, look-at tracking, and springy wobble rotation
-    groupRef.current.rotation.x = pose.rotation[0] + mouseLookRotation.current.x + wobbleRotation.current.x;
-    groupRef.current.rotation.y = pose.rotation[1] + mouseLookRotation.current.y + wobbleRotation.current.y;
-    groupRef.current.rotation.z = pose.rotation[2] + wobbleRotation.current.z;
+    // Interpolate base pose rotation smoothly
+    baseRotation.current.x = THREE.MathUtils.lerp(baseRotation.current.x, pose.rotation[0], 0.05);
+    baseRotation.current.y = THREE.MathUtils.lerp(baseRotation.current.y, pose.rotation[1], 0.05);
+    baseRotation.current.z = THREE.MathUtils.lerp(baseRotation.current.z, pose.rotation[2], 0.05);
+
+    // Set actual rotation as a direct sum of smoothed base pose rotation, look-at tracking, and springy wobble rotation
+    groupRef.current.rotation.x = baseRotation.current.x + mouseLookRotation.current.x + wobbleRotation.current.x;
+    groupRef.current.rotation.y = baseRotation.current.y + mouseLookRotation.current.y + wobbleRotation.current.y;
+    groupRef.current.rotation.z = baseRotation.current.z + wobbleRotation.current.z;
 
     // Reset light position back to default coordinates once tap finishes
     if (tapLightRef.current && !gsap.isTweening(tapLightRef.current.position)) {
@@ -812,9 +825,10 @@ interface About3DProps {
   projectsProgress: number;
   tapData: { x: number; y: number; trigger: number };
   mouse: { x: number; y: number };
+  scrollProgressRef: React.MutableRefObject<number>;
 }
 
-export default function About3D({ active, activeSection, projectsProgress, tapData, mouse }: About3DProps) {
+export default function About3D({ active, activeSection, projectsProgress, tapData, mouse, scrollProgressRef }: About3DProps) {
   if (!active) return null;
 
   return (
@@ -843,7 +857,7 @@ export default function About3D({ active, activeSection, projectsProgress, tapDa
         <Environment preset="studio" />
 
         <Suspense fallback={null}>
-          <AvatarModel activeSection={activeSection} tapData={tapData} mouse={mouse} />
+          <AvatarModel activeSection={activeSection} tapData={tapData} mouse={mouse} scrollProgressRef={scrollProgressRef} />
           <Starfield activeSection={activeSection} />
           <CameraPath activeSection={activeSection} projectsProgress={projectsProgress} />
           <ProjectCapsules activeSection={activeSection} />

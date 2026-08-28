@@ -36,6 +36,7 @@ export default function Projects({ activeSection, setActiveSection, setProjectsP
       });
 
       // 2. ScrollTrigger to track precise scroll progress through the runway
+      let isLooping = false;
       ScrollTrigger.create({
         trigger: sectionRef.current,
         start: "top top",
@@ -44,6 +45,24 @@ export default function Projects({ activeSection, setActiveSection, setProjectsP
         onUpdate: (self) => {
           if (setProjectsProgress) {
             setProjectsProgress(self.progress);
+          }
+          if (self.progress >= 0.995 && !isLooping) {
+            isLooping = true;
+            const lenis = (window as any).lenis;
+            const targetY = typeof window !== "undefined" ? window.innerHeight : 0;
+            if (lenis) {
+              lenis.scrollTo(targetY, {
+                duration: 2.5,
+                onComplete: () => {
+                  isLooping = false;
+                }
+              });
+            } else {
+              window.scrollTo({ top: targetY, behavior: "smooth" });
+              setTimeout(() => {
+                isLooping = false;
+              }, 1500);
+            }
           }
         },
       });

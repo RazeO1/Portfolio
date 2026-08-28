@@ -74,6 +74,10 @@
 }
 
 /* Base resets & document settings */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background-color: #fcf7f3;
   color: #000000;

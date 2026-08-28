@@ -53,3 +53,6 @@ Chrome.blend1
 
 *.playwright-mcp
 
+*.gemini
+
+graphify-out

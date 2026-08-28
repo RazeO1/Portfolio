@@ -10,9 +10,10 @@ gsap.registerPlugin(useGSAP);
 
 interface HeroProps {
   active: boolean;
+  onOpenAbout: (side: "left" | "right", target?: string) => void;
 }
 
-export default function Hero({ active }: HeroProps) {
+export default function Hero({ active, onOpenAbout }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -99,18 +100,30 @@ export default function Hero({ active }: HeroProps) {
           <nav className="flex justify-center gap-4 md:gap-8">
             <a
               href="#about"
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenAbout("left", "about");
+              }}
               className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
             >
               About
             </a>
             <a
               href="#showcase"
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenAbout("left", "about");
+              }}
               className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
             >
               Showcase
             </a>
             <a
               href="#projects"
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenAbout("left", "about");
+              }}
               className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
             >
               Projects
@@ -119,6 +132,10 @@ export default function Hero({ active }: HeroProps) {
           <div className="flex justify-end">
             <a
               href="#contact"
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenAbout("left", "contact");
+              }}
               className="hover:line-through font-bold pointer-events-auto"
             >
               Contact
@@ -131,7 +148,10 @@ export default function Hero({ active }: HeroProps) {
           <div className="flex items-center justify-center w-full max-w-[95vw] px-4 gap-x-2 select-none">
             {/* Left Name part (Yash) - Layered behind (Z-0) */}
             <div className="char-left relative z-0 inline-block">
-              <span className="inline-block font-display font-black text-[11.5vw] md:text-[13.8vw] tracking-tighter text-black uppercase leading-none select-none transition-transform duration-500 ease-out hover:-translate-x-8 sm:hover:-translate-x-12 md:hover:-translate-x-16 lg:hover:-translate-x-20 cursor-pointer">
+              <span
+                onClick={() => onOpenAbout("left")}
+                className="inline-block font-display font-black text-[11.5vw] md:text-[13.8vw] tracking-tighter text-black uppercase leading-none select-none transition-transform duration-500 ease-out hover:-translate-x-8 sm:hover:-translate-x-12 md:hover:-translate-x-16 lg:hover:-translate-x-20 cursor-pointer pointer-events-auto"
+              >
                 Yash
               </span>
             </div>
@@ -146,7 +166,10 @@ export default function Hero({ active }: HeroProps) {
 
             {/* Right Name part (Raj) - Layered behind (Z-0) */}
             <div className="char-right relative z-0 inline-block">
-              <span className="inline-block font-display font-black text-[11.5vw] md:text-[13.8vw] tracking-tighter text-black uppercase leading-none select-none transition-transform duration-500 ease-out hover:translate-x-8 sm:hover:translate-x-12 md:hover:translate-x-16 lg:hover:translate-x-20 cursor-pointer">
+              <span
+                onClick={() => onOpenAbout("right")}
+                className="inline-block font-display font-black text-[11.5vw] md:text-[13.8vw] tracking-tighter text-black uppercase leading-none select-none transition-transform duration-500 ease-out hover:translate-x-8 sm:hover:translate-x-12 md:hover:translate-x-16 lg:hover:translate-x-20 cursor-pointer pointer-events-auto"
+              >
                 Raj
               </span>
             </div>
