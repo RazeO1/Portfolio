@@ -1,17 +1,21 @@
 # Session Log
 
-## [2026-08-28 19:35] Two-Way Seamless Infinite Scroll Overlay & Symmetrical Mouse-Tracking 3D Head
+## [2026-08-28 20:40] Refactored Scroll Target to Ref (No Double-Render), Viewport-Fixed Close Button & Symmetrical Loop Snapping
 - **Accomplishments**:
+  - Replaced the `scrollTarget` state with a `scrollTargetRef` in [`page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx). This fixes the bug where clicking "About" opened the overlay twice, caused by updating the target state inside the transition's `onComplete` callback, which re-triggered the slide-in `useEffect` hook.
+  - Moved the Close Button from [`About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx) to [`page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx) outside the translated container. This resolves the issue where scrolling inside the overlay caused the button to move out of view (due to CSS transforms establishing a new container viewport coordinate space).
+  - Integrated `ScrollTrigger.refresh()` at the end of the slide-in transition's `onComplete` callback in [`page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx). This forces GSAP to recalculate viewport offsets only after the container is stationary in the viewport, fixing the bug where the 3D head got stuck on Chapter 1 (caused by cached trigger values computed while translated off-screen).
   - Implemented a seamless two-way infinite scrolling loop by duplicating the About editorial content (Headline, Chapters 1-4, Endline) into two identical `.about-loop-group` wrappers inside [`About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx).
-  - Created snapping bounds in the Lenis `"scroll"` event listener: when the user reaches the bottom boundary of the wrapper, it instantly scrolls back by one loop group height; when they scroll up to the top boundary, it instantly snaps forward.
+  - Engineered a symmetrical spacing layout: removed `pt-[20vh]` and `pb-20` from the parent scrollable container and applied them inside each `.about-loop-group` wrapper (top padding `pt-[20vh]` and bottom padding `pb-[20vh]` on the Endline). This guarantees that the height of each loop group (`loopHeight`) is the exact repeating period of the layout.
+  - Shifted snapping trigger ranges to the middle of the scroll area (snapping when `scroll >= loopHeight + 100` and `scroll <= 100`). This ensures the scroll position never hits the browser's absolute top (0) or bottom limits, completely eliminating elastic bounce halts, jitters, or scroll freezes.
   - Snapshot the initial scroll position of the About overlay on transition completion to `loopHeight` (the start of the second loop group). This shows the Headline immediately while allowing seamless scrolling up or down instantly.
   - Reset all base pose rotations for sections 0 to 5 to `[0, 0, 0]` in `SECTION_POSES` inside [`About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx). This ensures the 3D head faces straight and follows the mouse cursor symmetrically throughout all scrolling sections.
   - Removed the duplicate black Contact section from the bottom of the About overlay, making the About section a fully self-contained editorial flow.
   - Integrated duplicate-aware class lookups inside the GSAP trigger loop via `gsap.utils.toArray` to monitor scroll progress across both loop groups.
   - Verified static compilation: the Next.js production build checks passed with code 0.
 - **Key Files Modified**:
-  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Set up the two-way infinite loop bounds checking, initialization snap logic, and target safety fallbacks.
-  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Extracted editorial content into a single `renderContent` helper rendered twice, removed the Contact section container, and adapted ScrollTriggers to duplicate nodes.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Replaced the `scrollTarget` state with a React Ref, rendered the close button outside the transform containing block, set up mid-range scroll snapping, and called `ScrollTrigger.refresh()` on animation completion.
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Removed close button markup, extracted editorial content into a single `renderContent` helper rendered twice, restructured paddings inside the helper for layout symmetry, removed the Contact section container, and adapted ScrollTriggers to duplicate nodes.
   - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Cleared rotations in `SECTION_POSES` for sections 0-5 to enable straight mouse-look tracking.
 
 ## [2026-08-26 18:25] Custom Scroll Container Overlay, Parent-Bound ScrollTriggers & 3D Head Turning

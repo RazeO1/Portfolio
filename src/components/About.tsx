@@ -276,7 +276,7 @@ export default function About({ active, onClose }: AboutProps) {
 
   // Render a single copy of the About editorial content
   const renderContent = () => (
-    <div className="about-loop-group w-full flex flex-col items-center">
+    <div className="about-loop-group w-full flex flex-col items-center pt-[20vh]">
       {/* Headline */}
       <div className="headline-trigger w-full max-w-[1000px] text-center mt-0 mb-24 md:mb-32">
         <h2 className="text-[28px] sm:text-[40px] md:text-[54px] font-medium tracking-tight leading-[1.15] text-[#111111]">
@@ -409,7 +409,7 @@ export default function About({ active, onClose }: AboutProps) {
       </div>
 
       {/* Endline */}
-      <div className="endline-trigger w-full max-w-[840px] text-center pt-24 pb-36 border-t border-[#e2e2e0]">
+      <div className="endline-trigger w-full max-w-[840px] text-center pt-24 pb-[20vh] border-t border-[#e2e2e0]">
         <p className="text-[22px] sm:text-[28px] md:text-[34px] text-[#111111] leading-relaxed font-medium tracking-tight">
           That&apos;s how I like to build. Curious enough to explore. Technical enough to ship. And obsessive enough to keep going until the whole thing feels like it couldn&apos;t have been built any other way.
         </p>
@@ -493,27 +493,6 @@ export default function About({ active, onClose }: AboutProps) {
 
   return (
     <section ref={sectionRef} id="about" className="relative w-full bg-[#FAF8F5] select-none z-20">
-      {onClose && (
-        <button
-          onClick={onClose}
-          className="fixed top-6 right-6 md:top-8 md:right-8 z-[100] w-10 h-10 rounded-full border border-white/20 bg-black/10 backdrop-blur-sm flex items-center justify-center hover:bg-white hover:text-black transition-all duration-300 pointer-events-auto text-white mix-blend-difference cursor-pointer"
-          aria-label="Close About Section"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            stroke="currentColor"
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      )}
       {/* Sticky 3D Canvas Wrapper (Absolute to not push content down) */}
       <div className="absolute inset-0 pointer-events-none z-[35]">
         <div className="sticky top-0 left-0 w-full h-screen flex items-center justify-center">
@@ -534,7 +513,7 @@ export default function About({ active, onClose }: AboutProps) {
       </div>
 
       {/* Scrollable Content */}
-      <div className="relative z-10 w-full flex flex-col items-center pt-[20vh] pb-20 px-6 md:px-12 pointer-events-none">
+      <div className="relative z-10 w-full flex flex-col items-center pt-0 pb-0 px-6 md:px-12 pointer-events-none">
         {renderContent()}
         {renderContent()}
       </div>

@@ -15,7 +15,7 @@ export default function Home() {
   const [showLoader, setShowLoader] = useState(true);
   const [aboutOpen, setAboutOpen] = useState<"left" | "right" | null>(null);
   const [lastOpenedSide, setLastOpenedSide] = useState<"left" | "right">("left");
-  const [scrollTarget, setScrollTarget] = useState<string | null>(null);
+  const scrollTargetRef = useRef<string | null>(null);
   const aboutContainerRef = useRef<HTMLDivElement>(null);
 
   // Sync scroll locking on body during loader and when About section is open
@@ -54,16 +54,16 @@ export default function Home() {
     };
     lenis.on("scroll", handleScroll);
 
-    // Two-way infinite scroll loop check
+    // Two-way infinite scroll loop check (snaps in the middle of the scroll range to avoid limits)
     lenis.on("scroll", (e: any) => {
       const loopGroup = container.querySelector(".about-loop-group") as HTMLElement | null;
       if (loopGroup) {
         const loopHeight = loopGroup.offsetHeight;
-        if (e.scroll >= e.limit - 5) {
-          // Reached the bottom: snap scroll back by loopHeight
+        if (e.scroll >= loopHeight + 100) {
+          // Snaps back into the first loop group
           lenis.scrollTo(e.scroll - loopHeight, { immediate: true });
-        } else if (e.scroll <= 5) {
-          // Reached the top: snap scroll forward by loopHeight
+        } else if (e.scroll <= 100) {
+          // Snaps forward into the second loop group
           lenis.scrollTo(e.scroll + loopHeight, { immediate: true });
         }
       }
@@ -121,11 +121,11 @@ export default function Home() {
           }
 
           // If a scroll target is set (e.g. "contact"), scroll to it smoothly
-          if (scrollTarget) {
-            const targetEl = document.getElementById(scrollTarget);
+          if (scrollTargetRef.current) {
+            const targetEl = document.getElementById(scrollTargetRef.current);
             if (targetEl) {
               if (lenis) {
-                lenis.scrollTo(`#${scrollTarget}`, { duration: 1.0 });
+                lenis.scrollTo(`#${scrollTargetRef.current}`, { duration: 1.0 });
               } else {
                 targetEl.scrollIntoView({ behavior: "smooth" });
               }
@@ -137,7 +137,7 @@ export default function Home() {
                 el.scrollTo(0, initialScroll);
               }
             }
-            setScrollTarget(null); // Clear the target
+            scrollTargetRef.current = null; // Clear the target
           } else {
             // Otherwise, instantly snap to initialScroll so we start at Headline but can scroll up/down
             if (lenis && initialScroll > 0) {
@@ -146,16 +146,19 @@ export default function Home() {
               el.scrollTo(0, initialScroll);
             }
           }
+
+          // Recalculate ScrollTrigger offsets now that the overlay is stationary and in the viewport
+          ScrollTrigger.refresh();
         }
       });
     }
-  }, [aboutOpen, isLoaded, scrollTarget]);
+  }, [aboutOpen, isLoaded]);
 
   const handleOpenAbout = (side: "left" | "right", target?: string) => {
     setLastOpenedSide(side);
     setAboutOpen(side);
     if (target) {
-      setScrollTarget(target);
+      scrollTargetRef.current = target;
     }
   };
 
@@ -178,7 +181,7 @@ export default function Home() {
         // Reset container scroll back to 0
         el.scrollTo(0, 0);
         setAboutOpen(null);
-        setScrollTarget(null);
+        scrollTargetRef.current = null;
       }
     });
   };
@@ -210,6 +213,29 @@ export default function Home() {
       >
         <About active={aboutOpen !== null} onClose={handleCloseAbout} />
       </div>
+
+      {/* Fixed Close Button for About Overlay */}
+      {aboutOpen !== null && (
+        <button
+          onClick={handleCloseAbout}
+          className="fixed top-6 right-6 md:top-8 md:right-8 z-[100] w-10 h-10 rounded-full border border-white/20 bg-black/10 backdrop-blur-sm flex items-center justify-center hover:bg-white hover:text-black transition-all duration-300 pointer-events-auto text-white mix-blend-difference cursor-pointer"
+          aria-label="Close About Section"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      )}
     </main>
   );
 }
