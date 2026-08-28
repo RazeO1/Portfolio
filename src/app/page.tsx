@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/Loader";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
+import Showcase from "@/components/Showcase";
+import Projects from "@/components/Projects";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -91,6 +93,48 @@ export default function Home() {
     };
   }, [aboutOpen, isLoaded]);
 
+  // Initialize Lenis globally for the main page when About section is closed
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (aboutOpen !== null) return;
+
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
+      smoothWheel: true,
+    });
+
+    if (typeof window !== "undefined") {
+      (window as any).lenis = lenis;
+    }
+
+    const handleScroll = () => {
+      ScrollTrigger.update();
+    };
+    lenis.on("scroll", handleScroll);
+
+    let rafId: number;
+    function raf(time: number) {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+    rafId = requestAnimationFrame(raf);
+
+    // Refresh ScrollTrigger calculations
+    setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 100);
+
+    return () => {
+      lenis.off("scroll", handleScroll);
+      lenis.destroy();
+      cancelAnimationFrame(rafId);
+      if (typeof window !== "undefined") {
+        (window as any).lenis = null;
+      }
+    };
+  }, [isLoaded, aboutOpen]);
+
   // Handles GSAP slide transitions for About Section Overlay (Open)
   useEffect(() => {
     if (!isLoaded) return;
@@ -162,6 +206,16 @@ export default function Home() {
     }
   };
 
+  const handleScrollToSection = (target: string) => {
+    const lenis = (window as any).lenis;
+    if (lenis) {
+      lenis.scrollTo(`#${target}`, { duration: 1.5 });
+    } else {
+      const el = document.getElementById(target);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const handleCloseAbout = () => {
     const el = aboutContainerRef.current;
     if (!el) {
@@ -202,16 +256,62 @@ export default function Home() {
 
       {/* Hero section pinned stickily to top: 0, z-index: 1 */}
       <div className="sticky top-0 w-full h-screen z-10 overflow-hidden">
-        <Hero active={isLoaded} onOpenAbout={handleOpenAbout} />
+        <Hero active={isLoaded} onOpenAbout={handleOpenAbout} onScrollToSection={handleScrollToSection} />
       </div>
 
-      {/* Sliding About Section Overlay */}
+      {/* Sliding About Section Overlay (z-30 to slide over Showcase/Projects) */}
       <div
         id="about-scroll-container"
         ref={aboutContainerRef}
-        className="fixed top-0 left-0 w-full h-full z-20 translate-x-[100%] overflow-y-auto bg-[#FAF8F5]"
+        className="fixed top-0 left-0 w-full h-full z-30 translate-x-[100%] overflow-y-auto bg-[#FAF8F5]"
       >
         <About active={aboutOpen !== null} onClose={handleCloseAbout} />
+      </div>
+
+      {/* Main Page Scrollable Content (relative z-20 covers the sticky Hero as we scroll) */}
+      <div className="relative z-20 w-full bg-[#fcf7f3]">
+        {/* Showcase Section (3D Page-turning Sketchbook) */}
+        <Showcase />
+
+        {/* Projects Section (Runway Timeline Slideshow) */}
+        <Projects />
+
+        {/* Contact Section */}
+        <section
+          id="contact"
+          className="relative w-full min-h-screen bg-[#0A0A0A] text-white flex flex-col justify-center px-6 md:px-12 lg:px-24 py-20 select-none border-t border-white/5"
+        >
+          <div className="max-w-4xl space-y-8">
+            <span className="font-mono text-xs md:text-sm uppercase tracking-widest text-[#d5802a] font-bold">
+              Section 04 / Get in Touch
+            </span>
+            <h2 className="font-display font-medium text-4xl md:text-6xl text-white tracking-tight">
+              Let&apos;s build something.
+            </h2>
+            <p className="font-sans text-neutral-400 text-sm md:text-base leading-relaxed max-w-xl">
+              I&apos;m always interested in hearing about new projects, creative collaborations, or opportunities to design and engineer premium digital experiences.
+            </p>
+            
+            <div className="flex flex-col gap-4 font-mono text-xs md:text-sm uppercase tracking-wider pt-4">
+              <div>
+                <span className="text-neutral-500 mr-4">Write to me:</span>
+                <a href="mailto:hiiam@yashraj.dev" className="text-white hover:line-through transition-all">hiiam@yashraj.dev</a>
+              </div>
+              <div className="flex gap-6 mt-4">
+                <a href="https://github.com/yraze" target="_blank" rel="noreferrer" className="text-neutral-400 hover:text-white hover:line-through transition-all">GitHub</a>
+                <a href="https://www.linkedin.com/in/yraze" target="_blank" rel="noreferrer" className="text-neutral-400 hover:text-white hover:line-through transition-all">LinkedIn</a>
+                <a href="https://www.instagram.com/i_leo07" target="_blank" rel="noreferrer" className="text-neutral-400 hover:text-white hover:line-through transition-all">Instagram</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="w-full py-8 text-center bg-[#0A0A0A] border-t border-white/5">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-600 font-bold">
+            YASH RAJ © 2026 • PORTFOLIO
+          </p>
+        </footer>
       </div>
 
       {/* Fixed Close Button for About Overlay */}

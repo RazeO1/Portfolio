@@ -1,5 +1,21 @@
 # Session Log
 
+## [2026-08-28 21:40] Integrated Interactive 3D Sketchbook Showcase, Runway Project Slide and Main Page Scrolling
+- **Accomplishments**:
+  - Implemented the interactive **Showcase Section** (`Showcase.tsx`) containing a 3D page-flipping book inspired by `MengTo/sketchbook`. Integrated customizable vector project drawings represented as responsive inline SVG data URLs (Cover, Aether-Net, Khepri Engine, Nox Spatial, Chronos Swiss, and Apex Pavilion).
+  - Wired page-turning physics and compass-based pointer-lean tilting in `Showcase.tsx` using GSAP. Replicated the draggable brass magnifier glass overlay and zoomed canvas lens, enabling details inspection on hover.
+  - Refactored the **Projects Section** (`Projects.tsx`) into an immersive HTML project presentation. Visualized the projects in a fullscreen sticky slideshow that scrubs card opacity transitions and controls links pointer-events based on scroll runway progress.
+  - Configured the main landing page (`page.tsx`) to support vertical scrolling, letting the Showcase, Projects, and Contact sections scroll over the sticky Hero centerpiece in a parallax transition flow (Hero -> Showcase -> Projects -> Contact).
+  - Maintained the sliding About overlay behavior: clicking "YASH RAJ" or the "About" menu button smoothly slides in the About overlay from the sides while locking the body scroll.
+  - Configured dual Lenis scroll instances: created a global Lenis instance on the `window` when the About overlay is closed to enable smooth scrolling on the main page, and gracefully swapped scroll focus to the About-specific Lenis container when the overlay is open.
+  - Re-routed Hero header navigation links: clicking "Showcase", "Projects", and "Contact" scrolls the main window smoothly to their respective anchors rather than opening the About overlay.
+  - Verified static compilation: the Next.js production build succeeded with zero errors.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Created the component with 3D recursive nested strip geometry, magnifier lens calculation, and SVG blueprints.
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Updated to render interactive slides, trigger card opacities, and remove the snapping loop.
+  - [`src/components/Hero.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Hero.tsx): Added `onScrollToSection` prop, linked menu items to trigger scroll targets on the main page.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Added global Lenis scroll effect, rendered Showcase, Projects, and Contact sections inside a z-index relative container.
+
 ## [2026-08-28 20:40] Refactored Scroll Target to Ref (No Double-Render), Viewport-Fixed Close Button & Symmetrical Loop Snapping
 - **Accomplishments**:
   - Replaced the `scrollTarget` state with a `scrollTargetRef` in [`page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx). This fixes the bug where clicking "About" opened the overlay twice, caused by updating the target state inside the transition's `onComplete` callback, which re-triggered the slide-in `useEffect` hook.

@@ -11,9 +11,10 @@ gsap.registerPlugin(useGSAP);
 interface HeroProps {
   active: boolean;
   onOpenAbout: (side: "left" | "right", target?: string) => void;
+  onScrollToSection: (target: string) => void;
 }
 
-export default function Hero({ active, onOpenAbout }: HeroProps) {
+export default function Hero({ active, onOpenAbout, onScrollToSection }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -102,7 +103,7 @@ export default function Hero({ active, onOpenAbout }: HeroProps) {
               href="#about"
               onClick={(e) => {
                 e.preventDefault();
-                onOpenAbout("left", "about");
+                onOpenAbout("left");
               }}
               className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
             >
@@ -112,7 +113,7 @@ export default function Hero({ active, onOpenAbout }: HeroProps) {
               href="#showcase"
               onClick={(e) => {
                 e.preventDefault();
-                onOpenAbout("left", "about");
+                onScrollToSection("showcase");
               }}
               className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
             >
@@ -122,7 +123,7 @@ export default function Hero({ active, onOpenAbout }: HeroProps) {
               href="#projects"
               onClick={(e) => {
                 e.preventDefault();
-                onOpenAbout("left", "about");
+                onScrollToSection("projects");
               }}
               className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
             >
@@ -134,7 +135,7 @@ export default function Hero({ active, onOpenAbout }: HeroProps) {
               href="#contact"
               onClick={(e) => {
                 e.preventDefault();
-                onOpenAbout("left", "contact");
+                onScrollToSection("contact");
               }}
               className="hover:line-through font-bold pointer-events-auto"
             >
