@@ -1,5 +1,14 @@
 # Session Log
 
+## [2026-08-31 23:53] Converted Hover Page Descriptions to Floating Tooltips
+- **Accomplishments**:
+  - **Implemented Cursor-Following Tooltip**: Shifted the page description display from a static text block under the caption to a high-performance, cursor-following tooltip overlay.
+  - **Decoupled Hover Detection**: Monitored the pointer's local coordinates relative to the `.sb-book` bounding client rect inside `handleWindowPointerMove`. Automatically positions the tooltip above the cursor (`translate(-50%, -125%)`) and toggles its opacity (`0` or `1`) dynamically via DOM style manipulation, avoiding React render lag on mouse move.
+  - **Cleaned Caption Panel**: Reverted the static caption panel height and layout to just display the page title and place index.
+  - **Verified Build**: Production compile passes successfully.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Implemented floating mouse-follow tooltips and cleaned up static caption panel.
+
 ## [2026-08-31 23:49] Updated Sketchbook Titles and Added Hover Descriptions
 - **Accomplishments**:
   - **Renamed Pages**: Updated the `PAGES` definition array in [`Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx) to use the new personalized labels: 1. Hometown, 2. Birth-Day, 3. School, 4. Hobbies (kid), 5. Hobbies (Teen), 6. Unforgettable Trip, and 7. School's end.
