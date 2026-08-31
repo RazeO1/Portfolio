@@ -1,5 +1,14 @@
 # Session Log
 
+## [2026-08-31 23:17] Ported Page Interaction Features (Tilt & Key Navigation) from index.html
+- **Accomplishments**:
+  - **Exposed Keyboard Navigation**: Added global keydown listener to track `ArrowLeft` and `ArrowRight` inputs. Triggers smooth page flips using `handleArrowClick`, bypassing input forms and content-editable segments.
+  - **Window-Level Mouse Tilt**: Replaced local pointer tracking boundaries with window-wide listener tracking. Allows the book's 3D tilt (`--rx`, `--ry`) to lean dynamically toward the cursor anywhere on the page, keeping the book steady during page-turns and page-drag states.
+  - **Reset Tilt on Blur & Pointerout**: Integrated pointerout and blur events to gracefully restore the sketchbook's flat 3D orientation when the cursor exits the browser window or focus is lost.
+  - **Verified Build**: Production compile passes successfully.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Integrated keyboard and window-level tilt listeners, removed local listener wrappers.
+
 ## [2026-08-31 23:01] Refined Book Aspect Ratio/Scale and Implemented Tap/Click to Flip
 - **Accomplishments**:
   - **Refined Dimensions & Scale**: Scaled up the `.sb-3d` container `max-width` from `760px` to `900px` (matching the original sketchbook-main layout bounds). Updated `.sb-book` aspect-ratio to `1890 / 832` (roughly `2.27` aspect ratio), which perfectly represents the average dimensions of our cropped double-page PNG assets.

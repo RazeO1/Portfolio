@@ -355,6 +355,84 @@ export default function Showcase() {
     }
   }, [width, isIntro]);
 
+  // Keyboard navigation support (ArrowLeft / ArrowRight)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      
+      const activeEl = document.activeElement;
+      if (activeEl && (
+        activeEl.tagName === "INPUT" || 
+        activeEl.tagName === "TEXTAREA" || 
+        (activeEl as HTMLElement).isContentEditable
+      )) {
+        return;
+      }
+      
+      e.preventDefault();
+      if (e.key === "ArrowRight") {
+        handleArrowClick("next");
+      } else {
+        handleArrowClick("prev");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isIntro]);
+
+  // Window-level mouse tilt tracking, pointerout, and blur handlers
+  useEffect(() => {
+    const handleWindowPointerMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch" || turnRef.current || dragRef.current.active) return;
+      if (!bookRef.current || width === 0) return;
+      
+      const rect = bookRef.current.getBoundingClientRect();
+      const nx = Math.max(-1, Math.min(1, (e.clientX - (rect.left + rect.width / 2)) / (rect.width * 0.62)));
+      const ny = Math.max(-1, Math.min(1, (e.clientY - (rect.top + rect.height / 2)) / (rect.height * 0.9)));
+      
+      targetViewRef.current = {
+        rx: -ny * 4.5,
+        ry: nx * 7.0,
+        z: targetViewRef.current.z
+      };
+      kick();
+    };
+
+    const handleWindowPointerOut = (e: PointerEvent) => {
+      if (!e.relatedTarget) {
+        targetViewRef.current = {
+          ...targetViewRef.current,
+          rx: 0,
+          ry: 0
+        };
+        kick();
+      }
+    };
+
+    const handleWindowBlur = () => {
+      targetViewRef.current = {
+        ...targetViewRef.current,
+        rx: 0,
+        ry: 0
+      };
+      kick();
+    };
+
+    window.addEventListener("pointermove", handleWindowPointerMove, { passive: true });
+    window.addEventListener("pointerout", handleWindowPointerOut);
+    window.addEventListener("blur", handleWindowBlur);
+
+    return () => {
+      window.removeEventListener("pointermove", handleWindowPointerMove);
+      window.removeEventListener("pointerout", handleWindowPointerOut);
+      window.removeEventListener("blur", handleWindowBlur);
+    };
+  }, [width]);
+
   const handleBookPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 || isIntro || turnRef.current) return;
     
@@ -434,30 +512,7 @@ export default function Showcase() {
     commit();
   };
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (e.pointerType === "touch" || turnRef.current || dragRef.current.active) return;
-    if (!bookRef.current || width === 0) return;
-    
-    const rect = bookRef.current.getBoundingClientRect();
-    const nx = Math.max(-1, Math.min(1, (e.clientX - (rect.left + rect.width / 2)) / (rect.width * 0.62)));
-    const ny = Math.max(-1, Math.min(1, (e.clientY - (rect.top + rect.height / 2)) / (rect.height * 0.9)));
-    
-    targetViewRef.current = {
-      rx: -ny * 4.5,
-      ry: nx * 7.0,
-      z: targetViewRef.current.z
-    };
-    kick();
-  };
 
-  const handlePointerOut = () => {
-    targetViewRef.current = {
-      ...targetViewRef.current,
-      rx: 0,
-      ry: 0
-    };
-    kick();
-  };
 
   const handleDoubleClick = () => {
     targetViewRef.current = {
@@ -587,11 +642,7 @@ export default function Showcase() {
 
       {/* Sketchbook Stage */}
       <div className={`sb-wrap w-full max-w-[1080px] px-6 md:px-12 flex flex-col items-center gap-6 ${introClass}`}>
-        <div
-          className="sb-stage relative w-full flex items-center justify-center"
-          onPointerMove={handlePointerMove}
-          onPointerOut={handlePointerOut}
-        >
+        <div className="sb-stage relative w-full flex items-center justify-center">
           {/* Navigation arrow left */}
           <button
             onClick={() => handleArrowClick("prev")}
