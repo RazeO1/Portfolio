@@ -1,5 +1,13 @@
 # Session Log
 
+## [2026-08-31 23:49] Updated Sketchbook Titles and Added Hover Descriptions
+- **Accomplishments**:
+  - **Renamed Pages**: Updated the `PAGES` definition array in [`Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx) to use the new personalized labels: 1. Hometown, 2. Birth-Day, 3. School, 4. Hobbies (kid), 5. Hobbies (Teen), 6. Unforgettable Trip, and 7. School's end.
+  - **Hover Descriptions**: Added a new `description` property to each page block. Introduced an `isHovered` React state that triggers on mouse hover over the `.sb-3d` book container. When active, it displays a detailed descriptive tooltip that smoothly slides and fades in beneath the page title and place index.
+  - **Verified Build**: Production compile passes successfully.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Updated page titles and implemented hover descriptions.
+
 ## [2026-08-31 23:27] Unified Showcase Page Asset Dimensions and Centering
 - **Accomplishments**:
   - **Identical Asset Alignment**: Wrote a Pillow-based image processing script that dynamically crops the non-transparent bounding box from each showcase PNG spread (`1.png` to `7.png` in `public/showcase/`), resizes the active book content to a standard layout size of `1800x775` pixels, and centers the scaled book content perfectly on matching transparent canvases of size `1890x832` pixels. Re-ran the process to ensure all pages (including `5.png` and `7.png`) are exactly `1890x832` with identical centering.

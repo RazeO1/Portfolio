@@ -12,13 +12,13 @@ const SPAN = 0.449;  // Gutter to outer page edge span fraction
 const BETA = 0.60;   // Peak curl arc angle in radians
 
 const PAGES = [
-  { title: "Schematics Cover", place: "Index" },
-  { title: "Aether-Net Neural Shader", place: "AI Graphics" },
-  { title: "Khepri Vector Physics", place: "Rust Wasm" },
-  { title: "Nox Spatial Audio", place: "Web Audio" },
-  { title: "Chronos Swiss Timepiece", place: "Simulation" },
-  { title: "Apex Generative Pavilion", place: "3D Parametric" },
-  { title: "Vortex Fluid Dynamics", place: "Physics Solvers" },
+  { title: "Hometown", place: "Index", description: "A glimpse into where my journey began—cherished childhood lanes, local landmarks, and early memories." },
+  { title: "Birth-Day", place: "AI Graphics", description: "Capturing early celebrations and warm family milestones that shaped my early years." },
+  { title: "School", place: "Rust Wasm", description: "The laughter-filled classrooms, sports fields, and lifelong friendships formed in the early years." },
+  { title: "Hobbies (kid)", place: "Web Audio", description: "Doodling, building blocks, and exploring nature—the foundations of early creative curiosity." },
+  { title: "Hobbies (Teen)", place: "Simulation", description: "Stepping into digital art, learning musical instruments, and writing my first lines of code." },
+  { title: "Unforgettable Trip", place: "3D Parametric", description: "A memorable journey across new landscapes that broadened my perspective on the world." },
+  { title: "School's end", place: "Physics Solvers", description: "Standing on the threshold of new beginnings, completing school and looking forward to the future." },
 ];
 
 export default function Showcase() {
@@ -79,6 +79,7 @@ export default function Showcase() {
   const [turn, setTurn] = useState<{ dir: "next" | "prev"; from: number; to: number } | null>(null);
   const [isIntro, setIsIntro] = useState(true);
   const [introClass, setIntroClass] = useState("");
+  const [isHovered, setIsHovered] = useState(false);
 
 
 
@@ -656,7 +657,11 @@ export default function Showcase() {
           </button>
 
           {/* 3D Transform Frame */}
-          <div className="sb-3d relative w-full">
+          <div 
+            className="sb-3d relative w-full"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
             <div
               className="sb-tilt w-full h-full relative"
               style={{
@@ -712,7 +717,7 @@ export default function Showcase() {
         </div>
 
         {/* Caption panel */}
-        <div className="sb-captions min-h-[48px] text-center flex flex-col justify-center relative w-full select-none">
+        <div className="sb-captions min-h-[72px] text-center flex flex-col justify-center relative w-full select-none">
           {!turn ? (
             <div className="animate-fade-in">
               <p className="sb-caption font-display font-medium text-xl md:text-2xl text-neutral-800 leading-tight">
@@ -720,6 +725,9 @@ export default function Showcase() {
               </p>
               <p className="text-xs font-mono uppercase tracking-widest text-[#d5802a] font-bold mt-1">
                 {PAGES[idx].place}
+              </p>
+              <p className={`text-xs text-neutral-500 mt-2 transition-all duration-300 max-w-md mx-auto ${isHovered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 h-0 overflow-hidden"}`}>
+                {(PAGES[idx] as any).description}
               </p>
             </div>
           ) : (
