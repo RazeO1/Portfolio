@@ -521,10 +521,6 @@ export default function Showcase() {
       } else {
         cancel();
       }
-    } else {
-      // Tap/click: start and immediately commit the turn to flip the page!
-      startTurn(drag.dir, 0);
-      commit();
     }
   };
 
@@ -533,6 +529,16 @@ export default function Showcase() {
     startTurn(dir, 0);
     dragRef.current.vel = 0;
     commit();
+  };
+
+  const handleZoneClick = (dir: "next" | "prev") => {
+    if (turnRef.current || isIntro) return;
+    // Only flip page on click if we didn't drag the page
+    if (dragRef.current.moved < 6) {
+      startTurn(dir, 0);
+      dragRef.current.vel = 0;
+      commit();
+    }
   };
 
 
@@ -712,10 +718,12 @@ export default function Showcase() {
                 <div
                   className="sb-zone sb-prev absolute top-0 bottom-0 left-0 w-1/2 z-40 cursor-grab active:cursor-grabbing"
                   title="Previous Page"
+                  onClick={() => handleZoneClick("prev")}
                 />
                 <div
                   className="sb-zone sb-next absolute top-0 bottom-0 right-0 w-1/2 z-40 cursor-grab active:cursor-grabbing"
                   title="Next Page"
+                  onClick={() => handleZoneClick("next")}
                 />
               </div>
             </div>
@@ -1040,7 +1048,7 @@ export default function Showcase() {
       {!isIntro && (
         <div
           ref={tooltipRef}
-          className="pointer-events-none fixed z-[999] px-3.5 py-2.5 bg-neutral-900/95 backdrop-blur-md text-white text-[11px] rounded-xl shadow-xl max-w-[220px] text-center border border-white/10 transition-opacity duration-200 opacity-0 font-sans leading-relaxed"
+          className="pointer-events-none fixed z-[999] px-4 py-2.5 bg-[#fbf8f3] text-[#2b2721] rounded-xl shadow-[0_12px_28px_-4px_rgba(58,44,26,0.16),0_8px_16px_-6px_rgba(58,44,26,0.12)] max-w-[240px] text-center border border-[#2b2721]/15 transition-opacity duration-200 opacity-0 font-display italic text-[14px] leading-relaxed"
           style={{
             left: 0,
             top: 0,

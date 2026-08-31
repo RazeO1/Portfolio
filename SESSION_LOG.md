@@ -1,5 +1,13 @@
 # Session Log
 
+## [2026-09-01 00:07] Refined Sketchbook Tooltip Aesthetic and Page Clicks
+- **Accomplishments**:
+  - **Refined Tooltip Design**: Replaced the modern black tooltip container with a warm, textured ivory paper style (`bg-[#fbf8f3]`), deep charcoal ink text (`text-[#2b2721]`), a subtle hairline border (`border-[#2b2721]/15`), and elegant display serif italics (`font-display italic text-[14px]`). This matches the classic analog paper-and-ink aesthetic of the sketchbook.
+  - **Implemented Page Clicks**: Added dedicated `onClick` handlers (`handleZoneClick`) to the left and right sketchbook page hotspots. Tapping or clicking anywhere on the left or right page spreads now smoothly triggers a complete, animated page flip, resolving any touch/drag gesture collision issues.
+  - **Verified Build**: Production compile passes successfully.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Refined floating page tooltip style and implemented zone-level click handlers.
+
 ## [2026-08-31 23:56] Enabled Smooth Mobile Touch Dragging
 - **Accomplishments**:
   - **Touch Action Settings**: Added `touch-action: none;` in the CSS styling for `.sb-book` and `.sb-zone`, and `touch-action: pan-y;` on `.sb-stage`. This disables the browser's default touch scrolling and swipe gestures on the book canvas, enabling seamless touch-dragging controls on mobile and tablet devices.
