@@ -1,5 +1,13 @@
 # Session Log
 
+## [2026-09-01 00:25] Removed Floating Tooltip and Grounded Sketchbook with Desk Shadow
+- **Accomplishments**:
+  - **Removed Tooltip**: Removed the floating, cursor-following tooltip JSX element, its ref (`tooltipRef`), and all coordinate calculations inside `handleWindowPointerMove` and window events.
+  - **Grounded Sketchbook Shadow**: Added a soft, blurred 2D ground shadow beneath the `.sb-stage` (using a CSS radial-gradient effect on a scaled oval `div` with `filter blur-xl`). This anchors the sketchbook realistically on the flat desktop without tilting along with the 3D book cover, providing an immersive, high-quality material effect.
+  - **Verified Build**: Production compile passes successfully.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Removed floating page tooltip and added a flat ground shadow below the book stage.
+
 ## [2026-09-01 00:07] Refined Sketchbook Tooltip Aesthetic and Page Clicks
 - **Accomplishments**:
   - **Refined Tooltip Design**: Replaced the modern black tooltip container with a warm, textured ivory paper style (`bg-[#fbf8f3]`), deep charcoal ink text (`text-[#2b2721]`), a subtle hairline border (`border-[#2b2721]/15`), and elegant display serif italics (`font-display italic text-[14px]`). This matches the classic analog paper-and-ink aesthetic of the sketchbook.

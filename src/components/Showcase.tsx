@@ -25,7 +25,6 @@ export default function Showcase() {
   const bookRef = useRef<HTMLDivElement>(null);
   const capOutRef = useRef<HTMLDivElement>(null);
   const capInRef = useRef<HTMLDivElement>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
 
 
 
@@ -385,33 +384,13 @@ export default function Showcase() {
     };
   }, [isIntro]);
 
-  // Window-level mouse tilt tracking, pointerout, blur, and custom tooltip handler
+  // Window-level mouse tilt tracking, pointerout, and blur handlers
   useEffect(() => {
     const handleWindowPointerMove = (e: PointerEvent) => {
-      if (e.pointerType === "touch" || turnRef.current || dragRef.current.active) {
-        if (tooltipRef.current) tooltipRef.current.style.opacity = "0";
-        return;
-      }
+      if (e.pointerType === "touch" || turnRef.current || dragRef.current.active) return;
       if (!bookRef.current || width === 0) return;
       
       const rect = bookRef.current.getBoundingClientRect();
-      
-      // Determine if cursor is hovering over the sketchbook container
-      const isInside = 
-        e.clientX >= rect.left && 
-        e.clientX <= rect.right && 
-        e.clientY >= rect.top && 
-        e.clientY <= rect.bottom;
-      
-      if (isInside && !isIntro && !turnRef.current) {
-        if (tooltipRef.current) {
-          tooltipRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -125%)`;
-          tooltipRef.current.style.opacity = "1";
-        }
-      } else {
-        if (tooltipRef.current) tooltipRef.current.style.opacity = "0";
-      }
-
       const nx = Math.max(-1, Math.min(1, (e.clientX - (rect.left + rect.width / 2)) / (rect.width * 0.62)));
       const ny = Math.max(-1, Math.min(1, (e.clientY - (rect.top + rect.height / 2)) / (rect.height * 0.9)));
       
@@ -424,7 +403,6 @@ export default function Showcase() {
     };
 
     const handleWindowPointerOut = (e: PointerEvent) => {
-      if (tooltipRef.current) tooltipRef.current.style.opacity = "0";
       if (!e.relatedTarget) {
         targetViewRef.current = {
           ...targetViewRef.current,
@@ -436,7 +414,6 @@ export default function Showcase() {
     };
 
     const handleWindowBlur = () => {
-      if (tooltipRef.current) tooltipRef.current.style.opacity = "0";
       targetViewRef.current = {
         ...targetViewRef.current,
         rx: 0,
@@ -454,7 +431,7 @@ export default function Showcase() {
       window.removeEventListener("pointerout", handleWindowPointerOut);
       window.removeEventListener("blur", handleWindowBlur);
     };
-  }, [width, isIntro]);
+  }, [width]);
 
   const handleBookPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 || isIntro || turnRef.current) return;
@@ -741,6 +718,9 @@ export default function Showcase() {
             </svg>
           </button>
         </div>
+
+        {/* Ground shadow beneath the sketchbook stage */}
+        <div className="w-[82%] h-4 bg-neutral-800/10 rounded-[50%] filter blur-xl -mt-4 mb-2 pointer-events-none" />
 
         {/* Caption panel */}
         <div className="sb-captions min-h-[48px] text-center flex flex-col justify-center relative w-full select-none">
@@ -1044,21 +1024,7 @@ export default function Showcase() {
         }
       ` }} />
 
-      {/* Floating Cursor-Following Page Tooltip */}
-      {!isIntro && (
-        <div
-          ref={tooltipRef}
-          className="pointer-events-none fixed z-[999] px-4 py-2.5 bg-[#fbf8f3] text-[#2b2721] rounded-xl shadow-[0_12px_28px_-4px_rgba(58,44,26,0.16),0_8px_16px_-6px_rgba(58,44,26,0.12)] max-w-[240px] text-center border border-[#2b2721]/15 transition-opacity duration-200 opacity-0 font-display italic text-[14px] leading-relaxed"
-          style={{
-            left: 0,
-            top: 0,
-            transform: "translate(-50%, -125%)",
-            willChange: "transform, opacity",
-          }}
-        >
-          {PAGES[idx].description}
-        </div>
-      )}
+
 
       {/* SVG Motion Blur Filters */}
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
