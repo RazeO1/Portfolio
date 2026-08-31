@@ -1,5 +1,13 @@
 # Session Log
 
+## [2026-08-31 23:01] Refined Book Aspect Ratio/Scale and Implemented Tap/Click to Flip
+- **Accomplishments**:
+  - **Refined Dimensions & Scale**: Scaled up the `.sb-3d` container `max-width` from `760px` to `900px` (matching the original sketchbook-main layout bounds). Updated `.sb-book` aspect-ratio to `1890 / 832` (roughly `2.27` aspect ratio), which perfectly represents the average dimensions of our cropped double-page PNG assets.
+  - **Implemented Tap/Click to Flip**: Resolved the pointer-capture loss bug where the sudden React DOM-swap from `.sb-full` (static page) to `.sb-half`/`.curl` (turning page) during a pointer-down event aborted the browser's pointer capture. We decoupled the state change: pointer-down now only sets up tracking coordinates, pointer-move starts the page bend once the drag crosses a `6px` threshold, and pointer-up handles clean taps/clicks by programmatically calling `startTurn` and `commit` to execute a smooth, animated page flip.
+  - **Verified Build**: Re-ran the Next.js static build checks and TypeScript tests with zero errors.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Refined pointer-down, move, and up handlers, and updated the CSS layout variables for aspect ratio and max-width.
+
 ## [2026-08-31 22:52] Refined Sketchbook Dimensions, Fixed Page Flips, and Removed Magnifier
 - **Accomplishments**:
   - **Fixed Book Dimensions & Jitter**: Set a consistent aspect ratio of `1916 / 821` (matching the dimensions of the showcase PNG spreads) directly on the `.sb-book` container. Forced page images to fill the container height using `h-full object-fill` (for static/half-pages) and `var(--bw) 100%` background sizing (for page-turn strips), eliminating all vertical layout shifts and size changes between turns.

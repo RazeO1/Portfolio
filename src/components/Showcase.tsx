@@ -365,7 +365,6 @@ export default function Showcase() {
 
     e.preventDefault();
     const dir = isNextZone ? "next" : "prev";
-    startTurn(dir, 0);
 
     dragRef.current = {
       active: true,
@@ -381,11 +380,20 @@ export default function Showcase() {
   };
 
   const handleBookPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current.active || !turnRef.current) return;
+    if (!dragRef.current.active) return;
 
     const drag = dragRef.current;
     const dx = e.clientX - drag.x0;
     drag.moved = Math.max(drag.moved, Math.abs(dx));
+
+    // Start turn only after crossing the drag threshold to prevent DOM-swap pointer capture loss
+    if (!turnRef.current) {
+      if (drag.moved >= 6) {
+        startTurn(drag.dir, 0);
+      } else {
+        return;
+      }
+    }
 
     const raw = (drag.dir === "next" ? -dx : dx) / (drag.w * 0.62);
     const t = Math.max(0, Math.min(1, raw));
@@ -405,18 +413,17 @@ export default function Showcase() {
     drag.active = false;
     e.currentTarget.releasePointerCapture(e.pointerId);
 
-    if (!turnRef.current) return;
-
-    if (drag.moved < 6) {
-      commit();
-      return;
-    }
-
-    const go = turnT.current > 0.42 || drag.vel > 1.1;
-    if (go) {
-      commit();
+    if (turnRef.current) {
+      const go = turnT.current > 0.42 || drag.vel > 1.1;
+      if (go) {
+        commit();
+      } else {
+        cancel();
+      }
     } else {
-      cancel();
+      // Tap/click: start and immediately commit the turn to flip the page!
+      startTurn(drag.dir, 0);
+      commit();
     }
   };
 
@@ -738,7 +745,7 @@ export default function Showcase() {
           perspective: 1750px;
           perspective-origin: 50% 46%;
           transform-style: preserve-3d;
-          max-width: 760px;
+          max-width: 900px;
           width: 100%;
           margin: 0 auto;
         }
@@ -751,7 +758,7 @@ export default function Showcase() {
         .sb-book {
           position: relative;
           width: 100%;
-          aspect-ratio: 1916 / 821;
+          aspect-ratio: 1890 / 832;
           transform-style: preserve-3d;
           z-index: 1;
           --pg: 3%;
