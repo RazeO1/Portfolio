@@ -1,5 +1,23 @@
 # Session Log
 
+## [2026-08-31 22:52] Refined Sketchbook Dimensions, Fixed Page Flips, and Removed Magnifier
+- **Accomplishments**:
+  - **Fixed Book Dimensions & Jitter**: Set a consistent aspect ratio of `1916 / 821` (matching the dimensions of the showcase PNG spreads) directly on the `.sb-book` container. Forced page images to fill the container height using `h-full object-fill` (for static/half-pages) and `var(--bw) 100%` background sizing (for page-turn strips), eliminating all vertical layout shifts and size changes between turns.
+  - **Corrected Page Shading Bounds**: Set `--pg: 3%` in the CSS styles and updated the gradient masks to `linear-gradient(180deg, transparent 0, #000 3%, #000 97%, transparent 100%)` to perfectly cover the book borders in our cropped assets (which only have about 3% vertical margins).
+  - **Fixed Page Flip interaction (Intro Riffle)**: Introduced `idxRef` and `updateIdx` to bypass React state closure lag during the fast synchronous page turns of the intro riffle. Added `introStartedRef` to prevent layout reflow width changes from restarting the intro loop from page 0. This enables the intro to complete successfully and releases the flip handlers (re-enabling click-to-flip and drag-to-flip controls).
+  - **Removed Magnifier (Loupe)**: Fully removed the draggable brass magnifier glass, including all state hooks, pointer event handlers, helper methods, cloned layers (`.zoomwrap`), tool button toggle, and CSS rules.
+  - **Verified Compilation**: Confirmed the Next.js static build checks and TypeScript tests pass successfully.
+
+## [2026-08-31 21:29] Refined Sketchbook Layout & Integrated Interactive Magnifier Glass (Loupe)
+- **Accomplishments**:
+  - Replaced the large procedural SVG-generating `pageUrls` `useMemo` block in [`Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx) with a clean, static array referencing the 7 PNG image assets (`1.png` to `7.png`) located in the `public/showcase/` directory.
+  - Expanded the `PAGES` definition array to 7 elements, adding a 7th slide representation ("Vortex Fluid Dynamics", "Physics Solvers") to map precisely to the 7 available image files.
+  - Updated the aspect ratio of the 3D book container (`.sb-3d`) in [`Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx) from `aspect-[1760/1240]` (the SVG aspect ratio) to `aspect-[3/2]` to perfectly match the `1536x1024` dimensions of the PNG images, eliminating any potential stretching or distortion.
+  - Successfully ran `graphify update .` to keep the code relationship graph in sync.
+  - Verified static production build and TypeScript checks pass cleanly.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Swapped dynamic SVGs for static PNG references, added a 7th page entry, and adjusted container aspect ratio to 3:2.
+
 ## [2026-08-28 21:40] Integrated Interactive 3D Sketchbook Showcase, Runway Project Slide and Main Page Scrolling
 - **Accomplishments**:
   - Implemented the interactive **Showcase Section** (`Showcase.tsx`) containing a 3D page-flipping book inspired by `MengTo/sketchbook`. Integrated customizable vector project drawings represented as responsive inline SVG data URLs (Cover, Aether-Net, Khepri Engine, Nox Spatial, Chronos Swiss, and Apex Pavilion).
