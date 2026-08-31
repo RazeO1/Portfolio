@@ -1,5 +1,13 @@
 # Session Log
 
+## [2026-08-31 23:56] Enabled Smooth Mobile Touch Dragging
+- **Accomplishments**:
+  - **Touch Action Settings**: Added `touch-action: none;` in the CSS styling for `.sb-book` and `.sb-zone`, and `touch-action: pan-y;` on `.sb-stage`. This disables the browser's default touch scrolling and swipe gestures on the book canvas, enabling seamless touch-dragging controls on mobile and tablet devices.
+  - **Division Safety**: Added a safe fallback for the division denominator `(drag.w || width || 900)` in `handleBookPointerMove` to prevent divide-by-zero or `NaN` values during rapid pointer dragging.
+  - **Verified Build**: Production compile passes successfully.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Added touch-action CSS rules and implemented pointer division safety fallback.
+
 ## [2026-08-31 23:53] Converted Hover Page Descriptions to Floating Tooltips
 - **Accomplishments**:
   - **Implemented Cursor-Following Tooltip**: Shifted the page description display from a static text block under the caption to a high-performance, cursor-following tooltip overlay.

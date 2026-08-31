@@ -496,7 +496,7 @@ export default function Showcase() {
       }
     }
 
-    const raw = (drag.dir === "next" ? -dx : dx) / (drag.w * 0.62);
+    const raw = (drag.dir === "next" ? -dx : dx) / ((drag.w || width || 900) * 0.62);
     const t = Math.max(0, Math.min(1, raw));
 
     const now = performance.now();
@@ -829,6 +829,9 @@ export default function Showcase() {
           transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--zoom, 1));
           will-change: transform;
         }
+        .sb-stage {
+          touch-action: pan-y;
+        }
         .sb-book {
           position: relative;
           width: 100%;
@@ -836,6 +839,10 @@ export default function Showcase() {
           transform-style: preserve-3d;
           z-index: 1;
           --pg: 3%;
+          touch-action: none;
+        }
+        .sb-zone {
+          touch-action: none;
         }
         
         /* Shadows positioning and decay */
