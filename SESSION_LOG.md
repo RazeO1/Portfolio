@@ -1,5 +1,11 @@
 # Session Log
 
+## [2026-08-31 23:27] Unified Showcase Page Asset Dimensions and Centering
+- **Accomplishments**:
+  - **Identical Asset Alignment**: Wrote a Pillow-based image processing script that dynamically crops the non-transparent bounding box from each showcase PNG spread (`1.png` to `7.png` in `public/showcase/`), resizes the active book content to a standard layout size of `1800x775` pixels, and centers the scaled book content perfectly on matching transparent canvases of size `1890x832` pixels.
+  - **Resolved Transition Jitter**: This aligns the book margins, center spines, shadows, and pages pixel-for-pixel across all pages, ensuring that when pages are flipped, the physical book outline remains 100% stationary and jitter-free.
+  - **Ignored Status**: Confirmed that `public/` is ignored by `.gitignore`, so these local assets do not require git commits.
+
 ## [2026-08-31 23:17] Ported Page Interaction Features (Tilt & Key Navigation) from index.html
 - **Accomplishments**:
   - **Exposed Keyboard Navigation**: Added global keydown listener to track `ArrowLeft` and `ArrowRight` inputs. Triggers smooth page flips using `handleArrowClick`, bypassing input forms and content-editable segments.
