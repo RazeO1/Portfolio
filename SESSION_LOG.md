@@ -1,5 +1,14 @@
 # Session Log
 
+## [2026-09-01 20:50] Integrated 3D Zoom-Reactive Shadows, Fixed 90%-104% Dragging, and Capped Zoom to 127%
+- **Accomplishments**:
+  - **3D Zoom-Reactive Dynamic Shadows**: Shifted the cast shadow system completely into `.sb-tilt` using `transform: translateZ(-2px)` and realistic bottom projection (`bottom: -24%` ambient, `-14%` contact, `-7%` hairline). The shadow now dynamically scales and tilts with 3D perspective as the sketchbook zooms from 90% to 127% or tilts with mouse movements, while smoothly decaying with `--shade` during page curl turns. Removed the detached static container div.
+  - **Stage-Level Pointer Capture (Fixed 90%-104% Zoom Dragging)**: Attached pointer down/move/up and pointer capture handlers to `stageRef` on `.sb-stage`. By capturing events on the 2D stage surface rather than the 3D transformed book container, drag gestures never suffer coordinate distortion or dropped events across any zoom level (including 90% to 104%).
+  - **Fixed Zoom Cap at 127%**: Set `ZOOM_MAX = 1.27` (127%) and `ZOOM_MIN = 0.90` (90%), updating toolbar zoom buttons, slider boundaries, and percentage readout.
+  - **Verified Build**: Production compile passes with 0 errors.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Integrated 3D dynamic shadows, stage-level pointer capture, and fixed 127% zoom cap.
+
 ## [2026-09-01 20:45] Removed 2.png, Added Visible Ground Shadow, Full-Sized Page Dragging & 130% Zoom Cap
 - **Accomplishments**:
   - **Removed Page 2 (`2.png`)**: Removed `/showcase/2.png` and the corresponding `Birth-Day` entry from `pageUrls` and `PAGES` arrays, bringing the total page spreads to 6 (Hometown, School, Hobbies (kid), Hobbies (Teen), Unforgettable Trip, School's end).

@@ -11,7 +11,7 @@ const N = 18;        // Number of strips for smooth curving
 const SPAN = 0.449;  // Gutter to outer page edge span fraction
 const BETA = 0.60;   // Peak curl arc angle in radians
 const ZOOM_MIN = 0.9;
-const ZOOM_MAX = 1.3; // Capped to 130%
+const ZOOM_MAX = 1.27; // Capped to 127%
 
 const PAGES = [
   { title: "Hometown", place: "Index", description: "A glimpse into where my journey began—cherished childhood lanes, local landmarks, and early memories." },
@@ -23,6 +23,7 @@ const PAGES = [
 ];
 
 export default function Showcase() {
+  const stageRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<HTMLDivElement>(null);
   const capOutRef = useRef<HTMLDivElement>(null);
   const capInRef = useRef<HTMLDivElement>(null);
@@ -433,13 +434,23 @@ export default function Showcase() {
     };
   }, [width]);
 
-  const handleBookPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handleStagePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 || isIntro || turnRef.current) return;
     if (!bookRef.current) return;
 
+    // Ignore if clicking on arrow navigation buttons
+    const target = e.target as HTMLElement;
+    if (target.closest(".sb-arrow")) return;
+
     const rect = bookRef.current.getBoundingClientRect();
-    const onBook = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
-    if (!onBook && !e.currentTarget.contains(e.target as Node)) return;
+    const padding = 24;
+    const onBook = 
+      e.clientX >= rect.left - padding && 
+      e.clientX <= rect.right + padding && 
+      e.clientY >= rect.top - padding && 
+      e.clientY <= rect.bottom + padding;
+
+    if (!onBook) return;
 
     e.preventDefault();
     const initialDir: "next" | "prev" = (e.clientX - rect.left) / rect.width > 0.5 ? "next" : "prev";
@@ -461,7 +472,7 @@ export default function Showcase() {
     }
   };
 
-  const handleBookPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handleStagePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragRef.current.active) return;
 
     const drag = dragRef.current;
@@ -470,6 +481,7 @@ export default function Showcase() {
 
     // Determine turn direction from user's drag gesture once movement threshold is crossed
     // Drag left (dx < 0) => NEXT page, Drag right (dx > 0) => PREV page
+    // Works reliably across all zoom levels (90% to 127%) and when dragging from the middle of the page
     if (!turnRef.current) {
       if (drag.moved >= 4) {
         const moveDir: "next" | "prev" = dx < 0 ? "next" : "prev";
@@ -480,7 +492,6 @@ export default function Showcase() {
       }
     }
 
-    // Dynamic width from getBoundingClientRect to ensure smooth dragging across all zoom sizes & window widths
     const currentW = bookRef.current ? bookRef.current.getBoundingClientRect().width : (drag.w || width || 900);
     const raw = (drag.dir === "next" ? -dx : dx) / (currentW * 0.55);
     const t = Math.max(0, Math.min(1, raw));
@@ -494,7 +505,7 @@ export default function Showcase() {
     applyTurn(t);
   };
 
-  const handleBookPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handleStagePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragRef.current.active) return;
     const drag = dragRef.current;
     drag.active = false;
@@ -512,7 +523,7 @@ export default function Showcase() {
         cancel();
       }
     } else {
-      // Quick tap without drag movement: turn based on clicked side
+      // Tap / click without dragging: turn based on clicked side
       if (bookRef.current) {
         const rect = bookRef.current.getBoundingClientRect();
         const clickDir: "next" | "prev" = (e.clientX - rect.left) / rect.width > 0.5 ? "next" : "prev";
@@ -528,18 +539,6 @@ export default function Showcase() {
     dragRef.current.vel = 0;
     commit();
   };
-
-  const handleZoneClick = (dir: "next" | "prev") => {
-    if (turnRef.current || isIntro) return;
-    // Only flip page on click if we didn't drag the page
-    if (dragRef.current.moved < 6) {
-      startTurn(dir, 0);
-      dragRef.current.vel = 0;
-      commit();
-    }
-  };
-
-
 
   const handleDoubleClick = () => {
     targetViewRef.current = {
@@ -669,7 +668,14 @@ export default function Showcase() {
 
       {/* Sketchbook Stage */}
       <div className={`sb-wrap w-full max-w-[1080px] px-6 md:px-12 flex flex-col items-center gap-6 ${introClass}`}>
-        <div className="sb-stage relative w-full flex items-center justify-center">
+        <div 
+          ref={stageRef}
+          className="sb-stage relative w-full flex items-center justify-center select-none"
+          onPointerDown={handleStagePointerDown}
+          onPointerMove={handleStagePointerMove}
+          onPointerUp={handleStagePointerUp}
+          onPointerCancel={handleStagePointerUp}
+        >
           {/* Navigation arrow left */}
           <button
             onClick={() => handleArrowClick("prev")}
@@ -694,7 +700,7 @@ export default function Showcase() {
               } as any}
               onDoubleClick={handleDoubleClick}
             >
-              {/* Soft shadows */}
+              {/* 3D dynamic integrated cast shadows - scale and tilt with the book */}
               <div className="sb-cast ambient absolute inset-0 z-0" />
               <div className="sb-cast contact absolute inset-0 z-0" />
               <div className="sb-cast hair absolute inset-0 z-0" />
@@ -704,10 +710,6 @@ export default function Showcase() {
                 ref={bookRef}
                 className="sb-book w-full h-full relative"
                 style={{ transformStyle: "preserve-3d" }}
-                onPointerDown={handleBookPointerDown}
-                onPointerMove={handleBookPointerMove}
-                onPointerUp={handleBookPointerUp}
-                onPointerCancel={handleBookPointerUp}
               >
                 {/* Render the double-page spreads */}
                 {renderBookContent()}
@@ -716,12 +718,10 @@ export default function Showcase() {
                 <div
                   className="sb-zone sb-prev absolute top-0 bottom-0 left-0 w-1/2 z-40 cursor-grab active:cursor-grabbing"
                   title="Previous Page"
-                  onClick={() => handleZoneClick("prev")}
                 />
                 <div
                   className="sb-zone sb-next absolute top-0 bottom-0 right-0 w-1/2 z-40 cursor-grab active:cursor-grabbing"
                   title="Next Page"
-                  onClick={() => handleZoneClick("next")}
                 />
               </div>
             </div>
@@ -738,16 +738,6 @@ export default function Showcase() {
               <polyline points="3,3 11,22 3,41" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-        </div>
-
-        {/* Realistic ground shadow beneath the sketchbook stage */}
-        <div className="relative w-full max-w-[880px] h-9 -mt-6 mb-4 flex items-center justify-center pointer-events-none z-0">
-          {/* Ambient soft glow */}
-          <div className="absolute w-[94%] h-8 rounded-[100%] bg-[radial-gradient(ellipse_at_center,rgba(50,35,15,0.24)_0%,rgba(50,35,15,0.10)_48%,transparent_75%)] blur-xl" />
-          {/* Contact shadow */}
-          <div className="absolute w-[86%] h-4.5 rounded-[100%] bg-[radial-gradient(ellipse_at_center,rgba(40,26,10,0.40)_0%,rgba(40,26,10,0.16)_52%,transparent_75%)] blur-md" />
-          {/* Crisp baseline hairline shadow */}
-          <div className="absolute w-[74%] h-1.5 rounded-[100%] bg-stone-900/40 blur-[2px]" />
         </div>
 
         {/* Caption panel */}
@@ -861,38 +851,40 @@ export default function Showcase() {
           touch-action: none;
         }
         
-        /* Shadows positioning and decay */
+        /* 3D Integrated Shadows that scale with zoom and tilt with perspective */
         .sb-cast {
           position: absolute;
           pointer-events: none;
           z-index: 0;
+          transform: translateZ(-2px);
+          will-change: transform, opacity;
         }
         .sb-cast.ambient {
-          left: 5%;
-          right: 5%;
-          top: 27%;
-          bottom: 2%;
-          background: radial-gradient(50% 50% at 50% 58%, rgba(58,44,26,.34) 0%, rgba(58,44,26,.19) 40%, rgba(58,44,26,0) 74%);
-          filter: blur(26px);
-          opacity: calc(1 - var(--shade, 0) * 0.42);
+          left: 2%;
+          right: 2%;
+          top: 48%;
+          bottom: -24%;
+          background: radial-gradient(50% 50% at 50% 50%, rgba(46, 32, 16, 0.44) 0%, rgba(46, 32, 16, 0.20) 45%, transparent 75%);
+          filter: blur(28px);
+          opacity: calc(1 - var(--shade, 0) * 0.35);
         }
         .sb-cast.contact {
-          left: 9%;
-          right: 9%;
-          top: 62%;
-          bottom: 10%;
-          background: radial-gradient(50% 44% at 50% 42%, rgba(44,32,14,.40) 0%, rgba(44,32,14,.17) 48%, rgba(44,32,14,0) 78%);
-          filter: blur(11px);
-          opacity: calc(1 - var(--shade, 0) * 0.50);
+          left: 5%;
+          right: 5%;
+          top: 70%;
+          bottom: -14%;
+          background: radial-gradient(50% 45% at 50% 45%, rgba(36, 24, 10, 0.58) 0%, rgba(36, 24, 10, 0.26) 50%, transparent 78%);
+          filter: blur(12px);
+          opacity: calc(1 - var(--shade, 0) * 0.55);
         }
         .sb-cast.hair {
-          left: 12%;
-          right: 12%;
-          top: 70%;
-          bottom: 17%;
-          background: radial-gradient(50% 52% at 50% 40%, rgba(40,28,10,.34) 0%, rgba(40,28,10,0) 76%);
+          left: 8%;
+          right: 8%;
+          top: 84%;
+          bottom: -7%;
+          background: radial-gradient(50% 50% at 50% 40%, rgba(28, 16, 6, 0.72) 0%, rgba(28, 16, 6, 0.24) 60%, transparent 80%);
           filter: blur(4px);
-          opacity: calc(1 - var(--shade, 0) * 0.62);
+          opacity: calc(1 - var(--shade, 0) * 0.75);
         }
         
         .gutter-shade {
