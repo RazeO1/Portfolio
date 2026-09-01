@@ -44,7 +44,9 @@ New Folder
 
 *.agents
 
-public
+!public/
+!public/showcase/
+!public/showcase/**
 
 Chrome.blend
 Chrome.blend1
