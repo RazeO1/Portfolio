@@ -1,5 +1,12 @@
 # Session Log
 
+## [2026-09-02 00:08] Cleaned Repository & Removed Obsolete Screenshot Artifacts
+- **Accomplishments**:
+  - **Repository Cleanup**: Removed 12 obsolete Playwright screenshot image files (`conveyor_*.png` and `showcase_*.png`) from git tracking.
+  - **Clean State**: Pushed all clean commits to GitHub `origin/main`.
+- **Key Files Modified**:
+  - Root directory screenshot PNGs deleted from git index.
+
 ## [2026-09-01 23:56] Disabled Sketchbook Hovering Levitation Animation
 - **Accomplishments**:
   - **Static Grounding**: Removed the vertical hovering levitation loop (`@keyframes sb-float`) and shadow breathing animation (`@keyframes sb-shadow-breathe`) from `.sb-book` and `.sb-shadow-rig`.
