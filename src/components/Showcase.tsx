@@ -20,6 +20,7 @@ const PAGES = [
   { title: "Hobbies (Teen)", place: "Simulation", description: "Stepping into digital art, learning musical instruments, and writing my first lines of code." },
   { title: "Unforgettable Trip", place: "3D Parametric", description: "A memorable journey across new landscapes that broadened my perspective on the world." },
   { title: "School's end", place: "Physics Solvers", description: "Standing on the threshold of new beginnings, completing school and looking forward to the future." },
+  { title: "New Chapter", place: "Creative Coding", description: "Embarking on higher horizons, embracing design systems, web animation, and future frontiers." },
 ];
 
 export default function Showcase() {
@@ -92,6 +93,7 @@ export default function Showcase() {
     "/showcase/5.png",
     "/showcase/6.png",
     "/showcase/7.png",
+    "/showcase/8.png",
   ], []);
 
   const M = pageUrls.length;

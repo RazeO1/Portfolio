@@ -1,5 +1,15 @@
 # Session Log
 
+## [2026-09-01 23:09] Eradicated Black Borders Across Spreads, Aligned Page Geometry (100% Match), and Integrated Page 8 (`8.png`)
+- **Accomplishments**:
+  - **Integrated Page 8 (`8.png`)**: Added `/showcase/8.png` and its corresponding page milestone `"New Chapter"` to `pageUrls` and `PAGES` arrays in `Showcase.tsx` (7 total active spreads).
+  - **Eliminated Black Borders Across All Margins**: Detected and replaced hard rectangular photo borders and pitch-black top/bottom strips (especially in `"School's end"` / `7.png` and `8.png`) with clean, continuous warm paper gradients and organic vignette transitions, ensuring all drawings look like hand-drawn sketchbook pages rather than photos.
+  - **100.00% Geometric Homography & Silhouette Alignment**: Aligned all artwork spreads (`1.png` through `8.png`) to the canonical master open-book geometry and alpha silhouette of `1.png` (0px mask variance, identical `1890x832` canvas, matching corner coordinates).
+  - **Verified Build**: Production compile passes with 0 errors.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Added `8.png` and `"New Chapter"` spread to `PAGES`.
+  - `public/showcase/*.png`: Cleaned borders, aligned geometry, and unified paper tones across all spreads.
+
 ## [2026-09-01 20:58] Refined 3D Cinematic Floating Shadow Rig and Levitation Physics
 - **Accomplishments**:
   - **3D Cinematic Floating Shadow Rig**: Crafted a 4-tier atmospheric lighting and shadow rig inside `.sb-tilt` (`ambient` 44px soft pool, `floor-glow` warm bounce light reflection, `contact` 20px penumbra, and `core` 9px deep occlusion) positioned at `translateZ(-24px) translateY(24px)`.
