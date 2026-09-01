@@ -14,13 +14,13 @@ const ZOOM_MIN = 0.9;
 const ZOOM_MAX = 1.27; // Capped to 127%
 
 const PAGES = [
-  { title: "Hometown", place: "Index", description: "A glimpse into where my journey began—cherished childhood lanes, local landmarks, and early memories." },
-  { title: "School", place: "Rust Wasm", description: "The laughter-filled classrooms, sports fields, and lifelong friendships formed in the early years." },
-  { title: "Hobbies (kid)", place: "Web Audio", description: "Doodling, building blocks, and exploring nature—the foundations of early creative curiosity." },
-  { title: "Hobbies (Teen)", place: "Simulation", description: "Stepping into digital art, learning musical instruments, and writing my first lines of code." },
-  { title: "Unforgettable Trip", place: "3D Parametric", description: "A memorable journey across new landscapes that broadened my perspective on the world." },
-  { title: "School's end", place: "Physics Solvers", description: "Standing on the threshold of new beginnings, completing school and looking forward to the future." },
-  { title: "New Chapter", place: "Creative Coding", description: "Embarking on higher horizons, embracing design systems, web animation, and future frontiers." },
+  { title: "Hometown", place: "A glimpse into where my journey began—cherished childhood lanes, local landmarks, and early memories." },
+  { title: "School", place: "The laughter-filled classrooms, sports fields, and lifelong friendships formed in the early years." },
+  { title: "Hobbies (kid)", place: "Doodling, building blocks, and exploring nature—the foundations of early creative curiosity." },
+  { title: "Hobbies (Teen)", place: "Stepping into digital art, learning musical instruments, and writing my first lines of code." },
+  { title: "Creative Coding", place: "Embarking on higher horizons, embracing design systems, web animation, and future frontiers." },
+  { title: "School's end", place: "Standing on the threshold of new beginnings, completing school and looking forward to the future." },
+  { title: "New Chapter", place: "A memorable journey across new landscapes that broadened my perspective on the world." },
 ];
 
 export default function Showcase() {
@@ -852,16 +852,14 @@ export default function Showcase() {
           z-index: 1;
           --pg: 3%;
           touch-action: none;
-          animation: sb-float 6s ease-in-out infinite;
           will-change: transform;
         }
         .sb-zone {
           touch-action: none;
         }
         
-        /* 3D Cinematic Floating Shadow Rig */
+        /* 3D Cinematic Static Grounding Shadow Rig */
         .sb-shadow-rig {
-          animation: sb-shadow-breathe 6s ease-in-out infinite;
           transform: translateZ(-24px) translateY(24px);
           will-change: transform, opacity;
         }
@@ -907,37 +905,6 @@ export default function Showcase() {
           background: radial-gradient(50% 42% at 50% 42%, rgba(28, 15, 5, 0.68) 0%, rgba(28, 15, 5, 0.25) 48%, transparent 78%);
           filter: blur(9px);
           opacity: calc(1 - var(--shade, 0) * 0.75);
-        }
-
-        @keyframes sb-float {
-          0%, 100% {
-            transform: translateZ(18px) translateY(0px) rotateZ(0deg);
-          }
-          50% {
-            transform: translateZ(24px) translateY(-7px) rotateZ(0.12deg);
-          }
-        }
-
-        @keyframes sb-shadow-breathe {
-          0%, 100% {
-            transform: translateZ(-24px) translateY(24px) scale(1);
-            opacity: 1;
-          }
-          50% {
-            transform: translateZ(-24px) translateY(32px) scale(0.94);
-            opacity: 0.82;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .sb-book {
-            animation: none !important;
-            transform: translateZ(18px) !important;
-          }
-          .sb-shadow-rig {
-            animation: none !important;
-            transform: translateZ(-24px) translateY(24px) !important;
-          }
         }
         
         .gutter-shade {

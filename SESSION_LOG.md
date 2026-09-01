@@ -1,5 +1,22 @@
 # Session Log
 
+## [2026-09-01 23:56] Disabled Sketchbook Hovering Levitation Animation
+- **Accomplishments**:
+  - **Static Grounding**: Removed the vertical hovering levitation loop (`@keyframes sb-float`) and shadow breathing animation (`@keyframes sb-shadow-breathe`) from `.sb-book` and `.sb-shadow-rig`.
+  - **Preserved Dynamic 3D Interactivity**: Retained smooth mouse-tilt 3D perspective response, stage drag gestures, zoom controls, and realistic page curls with zero vertical bobbing or floating drift.
+  - **Verified Build**: Production compile passes with 0 errors.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Removed hover animations from `.sb-book` and `.sb-shadow-rig`.
+
+## [2026-09-01 23:49] Unified All Sketchbook Spread Dimensions & Master Paper Silhouette with Full Artwork Preserved
+- **Accomplishments**:
+  - **Identical Master Sketchbook Dimensions**: Unified all 8 spreads (`1.png` through `8.png`) onto the canonical master sketchbook frame (`1890x832` canvas, exact `1797x775` paper silhouette, matching corner coordinates).
+  - **Full Uncut Artwork Preservation**: Preserved 100% of all sketches, illustrations, notes, and watercolor drawings without cropping or erasing any artwork detail.
+  - **Authentic Sketchbook Paper & Spine Integration**: Harmonized paper background tones and blended natural spiral ring bindings in the center gutter across all pages, ensuring every spread looks like an authentic page of the same physical sketchbook.
+  - **Verified Build**: Production compile passes with 0 errors.
+- **Key Files Modified**:
+  - `public/showcase/*.png`: Processed and standardized all 8 spreads with unified geometry and full artwork.
+
 ## [2026-09-01 23:17] 100% Full Artwork Preservation, Zero Black Borders, and Exact Dimension Unification
 - **Accomplishments**:
   - **100% Full Artwork Preservation**: Ensured no drawing, pencil stroke, or illustration detail is cropped, masked, or erased. The complete original artwork of every page (`1.png` through `8.png`) is fully displayed.
