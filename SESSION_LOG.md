@@ -1,5 +1,13 @@
 # Session Log
 
+## [2026-09-01 20:58] Refined 3D Cinematic Floating Shadow Rig and Levitation Physics
+- **Accomplishments**:
+  - **3D Cinematic Floating Shadow Rig**: Crafted a 4-tier atmospheric lighting and shadow rig inside `.sb-tilt` (`ambient` 44px soft pool, `floor-glow` warm bounce light reflection, `contact` 20px penumbra, and `core` 9px deep occlusion) positioned at `translateZ(-24px) translateY(24px)`.
+  - **Weightless 3D Levitation**: Elevated `.sb-book` to `translateZ(18px)` with a subtle, silky-smooth 6-second hovering levitation cycle (`@keyframes sb-float`). Coupled the shadow rig with a synchronized optical breathing cycle (`@keyframes sb-shadow-breathe`) that dynamically softens and expands as the book rises, obeying real-world inverse-square lighting physics.
+  - **Verified Reduced Motion & Build**: Added `@media (prefers-reduced-motion: reduce)` fallbacks and verified 0 errors on production build.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Implemented 4-tier cinematic floating shadow rig and synchronized levitation physics.
+
 ## [2026-09-01 20:50] Integrated 3D Zoom-Reactive Shadows, Fixed 90%-104% Dragging, and Capped Zoom to 127%
 - **Accomplishments**:
   - **3D Zoom-Reactive Dynamic Shadows**: Shifted the cast shadow system completely into `.sb-tilt` using `transform: translateZ(-2px)` and realistic bottom projection (`bottom: -24%` ambient, `-14%` contact, `-7%` hairline). The shadow now dynamically scales and tilts with 3D perspective as the sketchbook zooms from 90% to 127% or tilts with mouse movements, while smoothly decaying with `--shade` during page curl turns. Removed the detached static container div.

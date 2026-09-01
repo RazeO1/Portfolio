@@ -700,12 +700,15 @@ export default function Showcase() {
               } as any}
               onDoubleClick={handleDoubleClick}
             >
-              {/* 3D dynamic integrated cast shadows - scale and tilt with the book */}
-              <div className="sb-cast ambient absolute inset-0 z-0" />
-              <div className="sb-cast contact absolute inset-0 z-0" />
-              <div className="sb-cast hair absolute inset-0 z-0" />
+              {/* 3D dynamic cinematic shadow rig - scales, tilts, and breathes with floating levitation */}
+              <div className="sb-shadow-rig absolute inset-0 pointer-events-none" style={{ transformStyle: "preserve-3d" }}>
+                <div className="sb-cast ambient absolute inset-0 z-0" />
+                <div className="sb-cast floor-glow absolute inset-0 z-0" />
+                <div className="sb-cast contact absolute inset-0 z-0" />
+                <div className="sb-cast core absolute inset-0 z-0" />
+              </div>
               
-              {/* Core Book element */}
+              {/* Core Book element with 3D elevation */}
               <div
                 ref={bookRef}
                 className="sb-book w-full h-full relative"
@@ -843,48 +846,96 @@ export default function Showcase() {
           width: 100%;
           aspect-ratio: 1890 / 832;
           transform-style: preserve-3d;
+          transform: translateZ(18px);
           z-index: 1;
           --pg: 3%;
           touch-action: none;
+          animation: sb-float 6s ease-in-out infinite;
+          will-change: transform;
         }
         .sb-zone {
           touch-action: none;
         }
         
-        /* 3D Integrated Shadows that scale with zoom and tilt with perspective */
+        /* 3D Cinematic Floating Shadow Rig */
+        .sb-shadow-rig {
+          animation: sb-shadow-breathe 6s ease-in-out infinite;
+          transform: translateZ(-24px) translateY(24px);
+          will-change: transform, opacity;
+        }
+
         .sb-cast {
           position: absolute;
           pointer-events: none;
           z-index: 0;
-          transform: translateZ(-2px);
           will-change: transform, opacity;
         }
         .sb-cast.ambient {
+          left: -2%;
+          right: -2%;
+          top: 35%;
+          bottom: -40%;
+          background: radial-gradient(50% 55% at 50% 55%, rgba(55, 36, 18, 0.35) 0%, rgba(55, 36, 18, 0.14) 52%, transparent 80%);
+          filter: blur(44px);
+          opacity: calc(1 - var(--shade, 0) * 0.30);
+        }
+        .sb-cast.floor-glow {
           left: 2%;
           right: 2%;
-          top: 48%;
-          bottom: -24%;
-          background: radial-gradient(50% 50% at 50% 50%, rgba(46, 32, 16, 0.44) 0%, rgba(46, 32, 16, 0.20) 45%, transparent 75%);
-          filter: blur(28px);
-          opacity: calc(1 - var(--shade, 0) * 0.35);
+          top: 45%;
+          bottom: -30%;
+          background: radial-gradient(50% 50% at 50% 50%, rgba(185, 142, 96, 0.14) 0%, rgba(185, 142, 96, 0.04) 45%, transparent 75%);
+          filter: blur(32px);
+          opacity: calc(1 - var(--shade, 0) * 0.20);
         }
         .sb-cast.contact {
-          left: 5%;
-          right: 5%;
-          top: 70%;
-          bottom: -14%;
-          background: radial-gradient(50% 45% at 50% 45%, rgba(36, 24, 10, 0.58) 0%, rgba(36, 24, 10, 0.26) 50%, transparent 78%);
-          filter: blur(12px);
-          opacity: calc(1 - var(--shade, 0) * 0.55);
+          left: 4%;
+          right: 4%;
+          top: 60%;
+          bottom: -20%;
+          background: radial-gradient(50% 48% at 50% 48%, rgba(42, 26, 10, 0.52) 0%, rgba(42, 26, 10, 0.22) 50%, transparent 78%);
+          filter: blur(20px);
+          opacity: calc(1 - var(--shade, 0) * 0.50);
         }
-        .sb-cast.hair {
-          left: 8%;
-          right: 8%;
-          top: 84%;
-          bottom: -7%;
-          background: radial-gradient(50% 50% at 50% 40%, rgba(28, 16, 6, 0.72) 0%, rgba(28, 16, 6, 0.24) 60%, transparent 80%);
-          filter: blur(4px);
+        .sb-cast.core {
+          left: 10%;
+          right: 10%;
+          top: 78%;
+          bottom: -8%;
+          background: radial-gradient(50% 42% at 50% 42%, rgba(28, 15, 5, 0.68) 0%, rgba(28, 15, 5, 0.25) 48%, transparent 78%);
+          filter: blur(9px);
           opacity: calc(1 - var(--shade, 0) * 0.75);
+        }
+
+        @keyframes sb-float {
+          0%, 100% {
+            transform: translateZ(18px) translateY(0px) rotateZ(0deg);
+          }
+          50% {
+            transform: translateZ(24px) translateY(-7px) rotateZ(0.12deg);
+          }
+        }
+
+        @keyframes sb-shadow-breathe {
+          0%, 100% {
+            transform: translateZ(-24px) translateY(24px) scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: translateZ(-24px) translateY(32px) scale(0.94);
+            opacity: 0.82;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .sb-book {
+            animation: none !important;
+            transform: translateZ(18px) !important;
+          }
+          .sb-shadow-rig {
+            animation: none !important;
+            transform: translateZ(-24px) translateY(24px) !important;
+          }
         }
         
         .gutter-shade {
