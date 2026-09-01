@@ -1,5 +1,15 @@
 # Session Log
 
+## [2026-09-01 20:45] Removed 2.png, Added Visible Ground Shadow, Full-Sized Page Dragging & 130% Zoom Cap
+- **Accomplishments**:
+  - **Removed Page 2 (`2.png`)**: Removed `/showcase/2.png` and the corresponding `Birth-Day` entry from `pageUrls` and `PAGES` arrays, bringing the total page spreads to 6 (Hometown, School, Hobbies (kid), Hobbies (Teen), Unforgettable Trip, School's end).
+  - **Enhanced Ground Shadow**: Designed and integrated a multi-layered desk ground shadow beneath the `.sb-stage` containing an ambient diffuse glow, contact shadow, and crisp baseline hairline shadow to realistically ground the sketchbook.
+  - **Universal Drag-to-Flip & Middle Page Dragging**: Updated pointer down/move/up tracking to use dynamic `getBoundingClientRect()` width calculations, ensuring dragging works smoothly across all zoom levels and screen sizes. Configured drag direction to dynamically resolve based on drag displacement (`dx < 0` => turn next, `dx > 0` => turn prev), allowing seamless page flips when dragging from the middle or any location on the spread.
+  - **Capped Zoom to 130%**: Defined `ZOOM_MAX = 1.3` (130%) and `ZOOM_MIN = 0.9` (90%), updating toolbar zoom buttons, slider limits, and button disabled states accordingly.
+  - **Verified Build**: Production compile passes with 0 errors.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Removed 2.png, upgraded ground shadow, implemented full-size/middle-page drag logic, and capped zoom at 130%.
+
 ## [2026-09-01 00:25] Removed Floating Tooltip and Grounded Sketchbook with Desk Shadow
 - **Accomplishments**:
   - **Removed Tooltip**: Removed the floating, cursor-following tooltip JSX element, its ref (`tooltipRef`), and all coordinate calculations inside `handleWindowPointerMove` and window events.

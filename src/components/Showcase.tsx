@@ -10,10 +10,11 @@ import { useRef, useState, useEffect, useMemo } from "react";
 const N = 18;        // Number of strips for smooth curving
 const SPAN = 0.449;  // Gutter to outer page edge span fraction
 const BETA = 0.60;   // Peak curl arc angle in radians
+const ZOOM_MIN = 0.9;
+const ZOOM_MAX = 1.3; // Capped to 130%
 
 const PAGES = [
   { title: "Hometown", place: "Index", description: "A glimpse into where my journey began—cherished childhood lanes, local landmarks, and early memories." },
-  { title: "Birth-Day", place: "AI Graphics", description: "Capturing early celebrations and warm family milestones that shaped my early years." },
   { title: "School", place: "Rust Wasm", description: "The laughter-filled classrooms, sports fields, and lifelong friendships formed in the early years." },
   { title: "Hobbies (kid)", place: "Web Audio", description: "Doodling, building blocks, and exploring nature—the foundations of early creative curiosity." },
   { title: "Hobbies (Teen)", place: "Simulation", description: "Stepping into digital art, learning musical instruments, and writing my first lines of code." },
@@ -85,7 +86,6 @@ export default function Showcase() {
   // Showcase images from public/showcase
   const pageUrls = useMemo(() => [
     "/showcase/1.png",
-    "/showcase/2.png",
     "/showcase/3.png",
     "/showcase/4.png",
     "/showcase/5.png",
@@ -165,8 +165,8 @@ export default function Showcase() {
     }
     const zOutBtn = document.getElementById('zOut') as HTMLButtonElement;
     const zInBtn = document.getElementById('zIn') as HTMLButtonElement;
-    if (zOutBtn) zOutBtn.disabled = viewRef.current.z <= 0.901;
-    if (zInBtn) zInBtn.disabled = viewRef.current.z >= 1.499;
+    if (zOutBtn) zOutBtn.disabled = viewRef.current.z <= ZOOM_MIN + 0.005;
+    if (zInBtn) zInBtn.disabled = viewRef.current.z >= ZOOM_MAX - 0.005;
   };
 
   const fadeCaption = (t: number) => {
@@ -435,26 +435,30 @@ export default function Showcase() {
 
   const handleBookPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 || isIntro || turnRef.current) return;
-    
-    const target = e.target as HTMLElement;
-    const isPrevZone = target.closest(".sb-prev");
-    const isNextZone = target.closest(".sb-next");
-    if (!isPrevZone && !isNextZone) return;
+    if (!bookRef.current) return;
+
+    const rect = bookRef.current.getBoundingClientRect();
+    const onBook = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+    if (!onBook && !e.currentTarget.contains(e.target as Node)) return;
 
     e.preventDefault();
-    const dir = isNextZone ? "next" : "prev";
+    const initialDir: "next" | "prev" = (e.clientX - rect.left) / rect.width > 0.5 ? "next" : "prev";
 
     dragRef.current = {
       active: true,
-      dir,
+      dir: initialDir,
       x0: e.clientX,
-      w: width,
+      w: rect.width || width || 900,
       moved: 0,
       vel: 0,
       tPrev: performance.now(),
     };
 
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
   };
 
   const handleBookPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -464,16 +468,21 @@ export default function Showcase() {
     const dx = e.clientX - drag.x0;
     drag.moved = Math.max(drag.moved, Math.abs(dx));
 
-    // Start turn only after crossing the drag threshold to prevent DOM-swap pointer capture loss
+    // Determine turn direction from user's drag gesture once movement threshold is crossed
+    // Drag left (dx < 0) => NEXT page, Drag right (dx > 0) => PREV page
     if (!turnRef.current) {
-      if (drag.moved >= 6) {
-        startTurn(drag.dir, 0);
+      if (drag.moved >= 4) {
+        const moveDir: "next" | "prev" = dx < 0 ? "next" : "prev";
+        drag.dir = moveDir;
+        startTurn(moveDir, 0);
       } else {
         return;
       }
     }
 
-    const raw = (drag.dir === "next" ? -dx : dx) / ((drag.w || width || 900) * 0.62);
+    // Dynamic width from getBoundingClientRect to ensure smooth dragging across all zoom sizes & window widths
+    const currentW = bookRef.current ? bookRef.current.getBoundingClientRect().width : (drag.w || width || 900);
+    const raw = (drag.dir === "next" ? -dx : dx) / (currentW * 0.55);
     const t = Math.max(0, Math.min(1, raw));
 
     const now = performance.now();
@@ -489,14 +498,26 @@ export default function Showcase() {
     if (!dragRef.current.active) return;
     const drag = dragRef.current;
     drag.active = false;
-    e.currentTarget.releasePointerCapture(e.pointerId);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
 
     if (turnRef.current) {
-      const go = turnT.current > 0.42 || drag.vel > 1.1;
+      const go = turnT.current > 0.35 || drag.vel > 0.8;
       if (go) {
         commit();
       } else {
         cancel();
+      }
+    } else {
+      // Quick tap without drag movement: turn based on clicked side
+      if (bookRef.current) {
+        const rect = bookRef.current.getBoundingClientRect();
+        const clickDir: "next" | "prev" = (e.clientX - rect.left) / rect.width > 0.5 ? "next" : "prev";
+        startTurn(clickDir, 0);
+        commit();
       }
     }
   };
@@ -719,8 +740,15 @@ export default function Showcase() {
           </button>
         </div>
 
-        {/* Ground shadow beneath the sketchbook stage */}
-        <div className="w-[82%] h-4 bg-neutral-800/10 rounded-[50%] filter blur-xl -mt-4 mb-2 pointer-events-none" />
+        {/* Realistic ground shadow beneath the sketchbook stage */}
+        <div className="relative w-full max-w-[880px] h-9 -mt-6 mb-4 flex items-center justify-center pointer-events-none z-0">
+          {/* Ambient soft glow */}
+          <div className="absolute w-[94%] h-8 rounded-[100%] bg-[radial-gradient(ellipse_at_center,rgba(50,35,15,0.24)_0%,rgba(50,35,15,0.10)_48%,transparent_75%)] blur-xl" />
+          {/* Contact shadow */}
+          <div className="absolute w-[86%] h-4.5 rounded-[100%] bg-[radial-gradient(ellipse_at_center,rgba(40,26,10,0.40)_0%,rgba(40,26,10,0.16)_52%,transparent_75%)] blur-md" />
+          {/* Crisp baseline hairline shadow */}
+          <div className="absolute w-[74%] h-1.5 rounded-[100%] bg-stone-900/40 blur-[2px]" />
+        </div>
 
         {/* Caption panel */}
         <div className="sb-captions min-h-[48px] text-center flex flex-col justify-center relative w-full select-none">
@@ -761,7 +789,7 @@ export default function Showcase() {
           <button
             id="zOut"
             onClick={() => {
-              targetViewRef.current.z = Math.max(0.9, targetViewRef.current.z / 1.16);
+              targetViewRef.current.z = Math.max(ZOOM_MIN, targetViewRef.current.z / 1.16);
               kick();
             }}
             className="tool w-7 h-7 rounded-full flex items-center justify-center text-neutral-500 hover:bg-neutral-200/50 hover:text-black disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
@@ -782,7 +810,7 @@ export default function Showcase() {
           <button
             id="zIn"
             onClick={() => {
-              targetViewRef.current.z = Math.min(1.5, targetViewRef.current.z * 1.16);
+              targetViewRef.current.z = Math.min(ZOOM_MAX, targetViewRef.current.z * 1.16);
               kick();
             }}
             className="tool w-7 h-7 rounded-full flex items-center justify-center text-neutral-500 hover:bg-neutral-200/50 hover:text-black disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
