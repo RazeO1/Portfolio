@@ -7,6 +7,7 @@ import Loader from "@/components/Loader";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Showcase from "@/components/Showcase";
+import Skills from "@/components/Skills";
 import Projects from "@/components/Projects";
 import Lenis from "lenis";
 import gsap from "gsap";
@@ -243,7 +244,7 @@ export default function Home() {
   };
 
   return (
-    <main className="relative w-full min-h-screen bg-[#FAF8F5] overflow-x-hidden">
+    <main className="relative w-full min-h-screen bg-[#fcf7f3] overflow-x-clip">
       {showLoader && (
         <Loader
           onComplete={() => {
@@ -256,8 +257,8 @@ export default function Home() {
         />
       )}
 
-      {/* Hero section pinned stickily to top: 0, z-index: 1 */}
-      <div className="sticky top-0 w-full h-screen z-10 overflow-hidden">
+      {/* Hero section */}
+      <div className="relative w-full z-10">
         <Hero active={isLoaded} onOpenAbout={handleOpenAbout} onScrollToSection={handleScrollToSection} />
       </div>
 
@@ -275,6 +276,9 @@ export default function Home() {
         {/* Showcase Section (3D Page-turning Sketchbook) */}
         <Showcase />
 
+        {/* Skills Section (Paul Kalkbrenner Architectural Grid) */}
+        <Skills />
+
         {/* Projects Section (Runway Timeline Slideshow) */}
         <Projects />
 
@@ -285,7 +289,7 @@ export default function Home() {
         >
           <div className="max-w-4xl space-y-8">
             <span className="font-mono text-xs md:text-sm uppercase tracking-widest text-[#d5802a] font-bold">
-              Section 04 / Get in Touch
+              Section 05 / Get in Touch
             </span>
             <h2 className="font-display font-medium text-4xl md:text-6xl text-white tracking-tight">
               Let&apos;s build something.

@@ -657,7 +657,7 @@ export default function Showcase() {
   };
 
   return (
-    <section id="showcase" className="relative w-full py-24 select-none bg-[#fcf7f3] border-t border-black/5 flex flex-col items-center">
+    <section id="showcase" className="relative w-full py-24 select-none bg-[#fcf7f3] flex flex-col items-center">
       {/* Decorative label */}
       <div className="mb-4">
         <span className="font-mono text-xs uppercase tracking-widest text-[#de3421] font-bold">

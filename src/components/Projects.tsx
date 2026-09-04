@@ -92,7 +92,7 @@ export default function Projects({ setActiveSection, setProjectsProgress }: Proj
 
         {/* Section title header */}
         <div className="absolute top-8 left-6 md:left-12 font-mono text-[9px] uppercase tracking-widest text-[#d5802a] font-bold z-30">
-          Section 03 / Selected Works
+          Section 04 / Selected Works
         </div>
 
         {/* Project Slides Container */}

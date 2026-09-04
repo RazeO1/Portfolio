@@ -1,6 +1,54 @@
 # Session Log
 
-## [2026-09-04 00:45] Skills Section Research, Awwwards Benchmarking & CV Extraction
+## [2026-09-04 21:40] Restored Hero Card Border & Natural Scroll Flow into Sketchbook
+- **Accomplishments**:
+  - **Restored Hero Frame**: Restored the complete iconic Hero card frame, rounded corners (`rounded-xl`), black outline (`border border-black`), and drop shadow in [`src/components/Hero.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Hero.tsx).
+  - **Removed Sticky Slide-Over Transition**: Removed `sticky top-0 w-full h-screen z-10 overflow-hidden` from Hero in [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx). When scrolling down, Hero naturally scrolls upward and `<Showcase />` follows directly beneath it in normal document flow, eliminating the layered curtain effect where Sketchbook slid on top of Hero.
+  - **Seamless Canvas Harmonization**: Removed the top border (`border-t border-black/5`) from `<Showcase />` in [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx) and unified the background palette to `#fcf7f3`.
+  - **Verified Build & Live State**: Verified via Playwright screenshots that Hero retains its full border styling, and confirmed with a 0-error `next build`.
+- **Key Files Modified**:
+  - [`src/components/Hero.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Hero.tsx): Reinstated original card frame and borders; preserved Skills nav link.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Changed Hero container from sticky to relative flow.
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Removed top divider border.
+
+## [2026-09-04 21:28] Refined Skills Scale, Canvas Generative Harmonics, & Pinned Horizontal Scroll
+- **Accomplishments**:
+  - **Aesthetic Scale Harmonization**: Scaled down the musical grid stage to match the refined aesthetic of Yash Raj's portfolio:
+    - Reduced row height from 160px to 86px (total 4-string grid height: 344px), fitting comfortably within any laptop or desktop screen.
+    - Scaled skill typography from giant 175px to crisp, monumental `clamp(32px, 3.8vw, 52px)` with tight grotesque tracking.
+    - Scaled icon discs from oversized 136px to elegant 52px solid ink discs with 24px crisp SVG icons.
+    - Scaled column width to 320px and cover masthead to 150px.
+  - **Canvas 2D Generative Harmonics Layer (`canvas-generative`)**: Built a dedicated, high-performance Canvas 2D background (`GenerativeStaffCanvas`) that renders DPR-sharp sinusoidal soundwave frequencies and a pre-allocated pool of 72 particles drifting along the 4 staff strings in vermilion `#de3421`, ochre `#d5802a`, and ink `#0A0A0A`, complete with delicate inter-node frequency filaments and hover resonance.
+  - **Fixed Pinned Horizontal Scroll Mechanism**:
+    - Identified that `overflow-x: hidden` on `<main>` was breaking standard CSS sticky and pin contexts, causing the section to scroll out of view vertically before horizontal movement could complete.
+    - Replaced `overflow-x: hidden` with modern `overflow-x: clip` on `<main>` in [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx), preserving horizontal overflow containment without breaking sticky/pin containers.
+    - Calibrated the runway's dynamic vertical scroll distance (`scrollRange = maxHorizontal + 400px`) so that the horizontal scrub completes 100% across all 21 skills before the section releases and allows the page to scroll down into Section 04 (`#projects`).
+    - Added an explicit "Repertoire Complete // Proceed to Projects ↓" end card and a "Skip to Projects ↓" quick jump button.
+    - Fixed bottom jump filter link target calculations using `getBoundingClientRect().top + window.scrollY`.
+  - **Verification**: Verified live via Playwright across multiple scroll positions; production build (`next build`) compiled cleanly with 0 TypeScript/ESLint errors; AST graph updated via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx): Refactored dimensions, added GenerativeStaffCanvas, and calibrated scroll range.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Changed `overflow-x-hidden` to `overflow-x-clip` on `<main>`.
+
+## [2026-09-04 20:55] Production Integration of Paul Kalkbrenner Architectural Skills Section
+- **Accomplishments**:
+  - **Paul Kalkbrenner Architectural Grid**: Created [`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx) mirroring the geometric ratios of `paulkalkbrenner.net` (560px column stripes, 160px row height, 136px solid note discs, 280px cover column).
+  - **Portfolio Design System Harmonization**: Harmonized the component with the portfolio's palette (warm paper `#fcf7f3`, deep ink `#0A0A0A`, brand vermilion `#de3421`, ochre `#d5802a`, `Inter Tight` for monumental display, and `JetBrains Mono` for technical metadata).
+  - **Section Placement**: Mounted `<Skills />` as **Section 03** in [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx) directly following `<Showcase />` (Sketchbook) and preceding `<Projects />`.
+  - **Navigation & Numbering Synchronized**:
+    - Added `Skills` anchor link in [`src/components/Hero.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Hero.tsx) navigation bar.
+    - Updated [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx) to `Section 04 / Selected Works`.
+    - Updated Contact in [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx) to `Section 05 / Get in Touch`.
+  - **Kinetic GSAP ScrollTrigger Integration**: Configured pinned horizontal runway scrub with `useGSAP`, momentum parallax word drift (`.h-d-text`), real-time progress indicator, and interactive bottom jump filters.
+  - **Mandated Sequence & Non-Colliding Musical Score**: Guaranteed `Python`, `React`, `Next.js`, `TypeScript`, `C++`, and `SQL` appear first with 0 row collisions across 17 columns and 21 skills.
+  - **Verified Build & Graph**: `next build` passed with 0 TypeScript/ESLint errors; `graphify update .` updated AST graph.
+- **Key Files Modified**:
+  - [`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx): New production component.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Mounted `<Skills />` and updated section numbering.
+  - [`src/components/Hero.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Hero.tsx): Added Skills nav link.
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Updated to Section 04.
+  - [`src/app/globals.css`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/globals.css): Imported `Inter Tight` and `JetBrains Mono`.
+
 - **Accomplishments**:
   - **Reference Video Analysis**: Decoded screen recording clip (`00:00:00 - 00:00:04`) featuring a pinned kinetic typography galaxy stream, horizontal optical datum line, and central focal nexus.
   - **Awwwards Research & Benchmarking**: Researched and benchmarked 10 award-winning websites (Grigoletti, Studio Merge, Grafik, TWKS, Little Plains, Paul Kalkbrenner, Signal-A, Mad Monkey, Maria Vasilyeva, NexStudio) for high-end skills and services presentations.
