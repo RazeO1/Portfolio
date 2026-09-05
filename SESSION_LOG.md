@@ -1,5 +1,16 @@
 # Session Log
 
+## [2026-09-05 20:30] Pinned "Archive of Selected Works" & Alternating Floating Square Tiles (Nudot Studio Inspiration)
+- **Accomplishments**:
+  - **Decoded Reference Video (`00:00:16 - 00:00:25`)**: Extracted and analyzed frames from user's screen recording of `nudot.com.tw` demonstrating a pinned architectural headline in the center with floating project cards scrolling vertically across the viewport in an alternating trajectory (Left &rarr; Right &rarr; Left &rarr; Right &rarr; Center finale).
+  - **Pinned Monumental Headline Background**: Implemented the pinned backdrop in [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx) using `sticky top-0 h-screen` containing `(REDEFINING THE VISUAL & INTELLIGENT THINKING OF SYSTEMS)`, monumental grotesque typography `ARCHIVE OF / THE SELECTED WORKS / BY YASH RAJ`, and atmospheric spotlight vignetting on deep obsidian `#0A0A0A`.
+  - **Choreographed Alternating Square Tiles**: Integrated Yash Raj's 5 authentic projects from his resumes (*PlantVision AI, LAMTT 6G Edge AI, AIoT Smart Parking, GestureSpeak, FarmWing Precision UAV*) into 100% opaque, solid architectural square cards with unique procedural technical schematics, metrics, tags, and direct repository/paper/demo links.
+  - **Silky Smooth GSAP Scrubbed Trajectory**: Wired a scrubbed GSAP timeline with `ScrollTrigger` driving each card from `window.innerHeight * 1.15` to `-window.innerHeight * 1.15` in an overlapping, non-colliding rhythm matching the exact timing of Nudot Studio.
+  - **Interactive Floating "VIEW" Cursor Disc**: Created a DOM-driven magnetic liquid glass disc that tracks the mouse cursor with zero React re-renders, displaying a crisp `"VIEW"` badge on card hover.
+  - **Verified Build & Live State**: Verified static compilation with `next build` (0 TypeScript / Turbopack errors) and confirmed visual layout, occlusion, and cursor interactions via Playwright screenshots. AST knowledge graph updated via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Complete revamp with pinned background, choreographed floating square tiles, and "VIEW" magnetic cursor.
+
 ## [2026-09-04 21:40] Restored Hero Card Border & Natural Scroll Flow into Sketchbook
 - **Accomplishments**:
   - **Restored Hero Frame**: Restored the complete iconic Hero card frame, rounded corners (`rounded-xl`), black outline (`border border-black`), and drop shadow in [`src/components/Hero.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Hero.tsx).
