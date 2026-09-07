@@ -7,7 +7,6 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ExternalLink, FileText, ArrowUpRight } from "lucide-react";
-import SectionNavbar from "@/components/SectionNavbar";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -423,9 +422,6 @@ export default function Projects({
         ref={pinnedStageRef}
         className="sticky top-0 left-0 w-full h-screen overflow-hidden flex items-center justify-center select-none"
       >
-        {/* Section Adaptive Navbar (Pause || -> Cross X) */}
-        <SectionNavbar theme="dark" onOpenAbout={onOpenAbout} sectionName="Projects" />
-
         {/* Atmospheric vignette & soft left-side spotlight */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
         <div className="absolute -left-32 top-1/2 -translate-y-1/2 w-[720px] h-[720px] bg-white/[0.045] rounded-full blur-[150px] pointer-events-none" />

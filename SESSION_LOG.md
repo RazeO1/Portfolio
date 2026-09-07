@@ -1,7 +1,35 @@
 # Session Log
 
-## [2026-09-07 21:55] High-Fashion Liquid Mercury Emergence for Chrome Head (Gionatan Wiese Inspiration)
+## [2026-09-07 22:35] Single Fixed Section-Adaptive Navbar with Dynamic Vertical Alignment
 - **Accomplishments**:
+  - **Single Global Fixed Navbar**:
+    - Consolidated all per-section navbar instances into a single global `<SectionNavbar>` mounted in [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx).
+    - Removed duplicate mounts from [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx), [`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx), [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx), and `#contact`.
+  - **Hero & About Exclusion**:
+    - Excluded from the **Hero** section: strictly hidden (`opacity-0 pointer-events-none`) while above the Sketchbook section (`showcaseRect.top > 140`).
+    - Excluded during the initial page loader (`isLoaded && !showLoader`).
+    - Excluded while the **About** section drawer is open (`isAboutOpen = true`).
+  - **Sketchbook Alignment & Dynamic Vertical Scroll Motion**:
+    - In the Sketchbook section, the navbar button aligns pixel-perfectly with `"Interactive Sketchbook"` (`top: 116px`, center `140px`).
+    - Moves strictly vertically with the user's scroll: as the user scrolls down, the button glides with the page until it reaches `top: 32px` (`top-8`, or `24px` on mobile), where it docks cleanly in the viewport.
+    - Stays fixed and accompanies the user through Skills, Projects, and Contact sections along the right margin (`right-6 md:right-12`).
+    - Scrolling back up returns the button seamlessly to the level of `"Interactive Sketchbook"`.
+  - **Dynamic Theme Palette Switching**:
+    - Automatically detects the active section in view:
+      - **Showcase / Skills**: Dynamic light mode (warm paper `#fcf7f3` background, dark border and bars).
+      - **Projects / Contact**: Dynamic dark mode (obsidian `#0A0A0A` background, white border and bars).
+  - **Animatic Kinetic Curtain Overlay (Variant C)**:
+    - Vertical clip-path shutter wipe (`[clip-path:inset(0%_0%_100%_0%)]` &rarr; `[clip-path:inset(0%_0%_0%_0%)]`) over 500ms `cubic-bezier(0.16, 1, 0.3, 1)`.
+    - Masked typographic rise from `translate-y-[130%] rotate-[1.5deg]` with 45ms per-item stagger.
+    - Ambient spotlight dimming of sibling items to `opacity-25 blur-[0.4px]` on hover.
+    - Morphing pause (`||`) to cross (`×`) with tactile click feedback.
+  - **Verified Build & Live State**: Production build (`npm run build`) succeeded with code 0 (zero errors). Tested on live `http://localhost:3001` via Playwright and verified pixel-perfect vertical alignment and dynamic scroll tracking. AST knowledge graph updated via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/SectionNavbar.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/SectionNavbar.tsx): Dynamic vertical scroll tracking, alignment with Interactive Sketchbook, docking at `top-8`, dynamic palette, Variant C kinetic curtain.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Mounted single global SectionNavbar, passed `isAboutOpen` and `isLoaded`.
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Removed local SectionNavbar instance.
+  - [`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx): Removed local SectionNavbar instance.
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Removed local SectionNavbar instance.
   - **Replaced Sci-Fi Laser with Organic Liquid Emergence ([`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx))**:
     - Extracted and analyzed frame-by-frame reference from user's screen recording of `gionatanwiese.com/about` (`C:\Users\hiiam\Videos\Screen Recordings\Screen Recording 2026-09-07 210529.mp4`).
     - Stripped out the generic sci-fi laser artifacts: discarded the cyan geometric ring meshes, flat additive discs, and horizontal laser plane.

@@ -288,13 +288,6 @@ export default function Home() {
           id="contact"
           className="relative w-full min-h-screen bg-[#0A0A0A] text-white flex flex-col justify-center px-6 md:px-12 lg:px-24 py-20 select-none border-t border-white/5"
         >
-          {/* Section Adaptive Navbar (Pause || -> Cross X) */}
-          <SectionNavbar
-            theme="dark"
-            onOpenAbout={() => handleOpenAbout("right")}
-            sectionName="Contact"
-          />
-
           <div className="max-w-4xl space-y-8">
             <span className="font-mono text-xs md:text-sm uppercase tracking-widest text-[#d5802a] font-bold">
               Section 05 / Get in Touch
@@ -327,6 +320,13 @@ export default function Home() {
           </p>
         </footer>
       </div>
+
+      {/* Single Fixed Section-Adaptive Navbar (active from Sketchbook downwards, dynamic palette) */}
+      <SectionNavbar
+        onOpenAbout={() => handleOpenAbout("right")}
+        isAboutOpen={aboutOpen !== null}
+        isLoaded={isLoaded && !showLoader}
+      />
 
       {/* Fixed Close Button for About Overlay */}
       {aboutOpen !== null && (

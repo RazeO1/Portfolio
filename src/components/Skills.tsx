@@ -6,7 +6,6 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import SectionNavbar from "@/components/SectionNavbar";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -340,10 +339,6 @@ export default function Skills({ onOpenAbout }: { onOpenAbout?: () => void } = {
     >
       {/* Sticky Viewport Stage: Pinned cleanly in viewport while scrolling horizontally */}
       <div className="sticky top-0 left-0 w-full h-screen overflow-hidden flex flex-col justify-between bg-[#fcf7f3] text-[#0A0A0A]">
-        
-        {/* Section Adaptive Navbar (Pause || -> Cross X) */}
-        <SectionNavbar theme="light" onOpenAbout={onOpenAbout} sectionName="Skills" />
-
         {/* =============================================================
             MAIN 4-ROW ARCHITECTURAL GRID STAGE
             Scaled to 344px (86px/row) so it sits centered with high elegance
