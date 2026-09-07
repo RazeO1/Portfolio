@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useRef, useEffect, useMemo, Suspense } from "react";
+import React, { useRef, useState, useEffect, useMemo, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, useAnimations, Environment, Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -64,12 +64,40 @@ interface AvatarModelProps {
   tapData: { x: number; y: number; trigger: number };
   mouse: { x: number; y: number };
   scrollProgressRef: React.MutableRefObject<number>;
+  isGenerating?: boolean;
+  onGenerationProgress?: (progress: number) => void;
+  onGenerationComplete?: () => void;
 }
 
-function AvatarModel({ activeSection, tapData, mouse, scrollProgressRef }: AvatarModelProps) {
+function AvatarModel({
+  activeSection,
+  tapData,
+  mouse,
+  scrollProgressRef,
+  isGenerating = false,
+  onGenerationProgress,
+  onGenerationComplete,
+}: AvatarModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const tapLightRef = useRef<THREE.PointLight>(null);
   const headMeshRef = useRef<THREE.Mesh | null>(null);
+
+  // Liquid Emergence States
+  const [laserY, setLaserY] = useState<number>(-10);
+  const [isLaserActive, setIsLaserActive] = useState<boolean>(false);
+
+  // Dedicated liquid emergence uniforms referenced in GLSL shader
+  const liquidUniforms = useMemo(
+    () => ({
+      uScanY: { value: -10.0 },
+      uLiquidActive: { value: 0.0 },
+      uTime: { value: 0.0 },
+      uRimColor: { value: new THREE.Color("#1438f2") }, // Deep cobalt / royal blue
+      uCrestColor: { value: new THREE.Color("#60a5fa") }, // Electric sapphire highlight
+      uRimWidth: { value: 0.085 },
+    }),
+    []
+  );
 
   // Expose activeSection to ref to prevent R3F stale closures
   const activeSectionRef = useRef(activeSection);
@@ -90,18 +118,91 @@ function AvatarModel({ activeSection, tapData, mouse, scrollProgressRef }: Avata
   // Smooth scroll-driven vertical parallax offset for the head
   const scrollParallax = useRef(0);
 
-  // 1. Traverse mesh to apply chrome materials, set corrective rotation, and play blinking animations on load
+  // 1. Traverse mesh to apply chrome materials with liquid emergence shader, set corrective rotation, and play blinking animations on load
   useEffect(() => {
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
-        mesh.material = new THREE.MeshPhysicalMaterial({
+        const chromeMaterial = new THREE.MeshPhysicalMaterial({
           metalness: 1.0,
-          roughness: 0.1,
+          roughness: 0.08,
           clearcoat: 1.0,
-          clearcoatRoughness: 0.05,
+          clearcoatRoughness: 0.04,
           color: new THREE.Color("#f3f3f3"),
+          side: THREE.DoubleSide,
         });
+
+        // Inject high-end liquid mercury emergence shader
+        chromeMaterial.onBeforeCompile = (shader) => {
+          shader.uniforms.uScanY = liquidUniforms.uScanY;
+          shader.uniforms.uLiquidActive = liquidUniforms.uLiquidActive;
+          shader.uniforms.uTime = liquidUniforms.uTime;
+          shader.uniforms.uRimColor = liquidUniforms.uRimColor;
+          shader.uniforms.uCrestColor = liquidUniforms.uCrestColor;
+          shader.uniforms.uRimWidth = liquidUniforms.uRimWidth;
+
+          shader.vertexShader = `
+            varying vec3 vLiquidWorldPos;
+            ${shader.vertexShader}
+          `.replace(
+            `#include <worldpos_vertex>`,
+            `#include <worldpos_vertex>
+            vLiquidWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+            `
+          );
+
+          shader.fragmentShader = `
+            uniform float uScanY;
+            uniform float uLiquidActive;
+            uniform float uTime;
+            uniform vec3 uRimColor;
+            uniform vec3 uCrestColor;
+            uniform float uRimWidth;
+            varying vec3 vLiquidWorldPos;
+
+            // Organic multiscale liquid wave along the meniscus
+            float calcLiquidWave(vec3 pos, float time) {
+              float w1 = sin(pos.x * 14.0 + time * 3.6) * cos(pos.z * 12.0 + time * 2.8) * 0.026;
+              float w2 = sin((pos.x * 1.8 + pos.z * 1.3) * 16.0 - time * 4.0) * 0.016;
+              float w3 = cos(length(pos.xz) * 20.0 - time * 5.0) * 0.010;
+              return w1 + w2 + w3;
+            }
+
+            ${shader.fragmentShader}
+          `.replace(
+            `#include <dithering_fragment>`,
+            `#include <dithering_fragment>
+            if (uLiquidActive > 0.5) {
+              float wave = calcLiquidWave(vLiquidWorldPos, uTime);
+              float effY = vLiquidWorldPos.y - wave;
+
+              if (effY > uScanY) {
+                discard;
+              }
+
+              float dist = uScanY - effY;
+              if (dist < uRimWidth && dist >= 0.0) {
+                float rimFactor = 1.0 - (dist / uRimWidth);
+                float crestGlow = pow(rimFactor, 2.0);
+
+                if (!gl_FrontFacing) {
+                  // Deep sapphire blue interior meniscus (liquid bowl effect)
+                  gl_FragColor.rgb = mix(vec3(0.01, 0.04, 0.25), uRimColor, crestGlow) * (1.6 + crestGlow * 2.4);
+                } else {
+                  // Molten cobalt blue reflection fading into mirror chrome
+                  vec3 rimCol = mix(uRimColor, uCrestColor, pow(rimFactor, 3.2));
+                  gl_FragColor.rgb = mix(gl_FragColor.rgb, rimCol * 3.4, crestGlow * 0.94);
+                }
+              } else if (!gl_FrontFacing) {
+                // Subtle interior shadow inside hollow rising mesh
+                gl_FragColor.rgb *= 0.25;
+              }
+            }
+            `
+          );
+        };
+
+        mesh.material = chromeMaterial;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
 
@@ -115,13 +216,83 @@ function AvatarModel({ activeSection, tapData, mouse, scrollProgressRef }: Avata
     // Pitch: 0.4 rad (tilts face down to look straight at screen), Yaw: -0.85 rad (aligns face forward)
     scene.rotation.set(0.4, -0.85, 0);
 
-    // Play shape key blink action loop
+    // Play shape key blink action loop only when not in initial generation
     const blinkAction = actions["white_mesh (1)Action.004"];
-    if (blinkAction) {
+    if (blinkAction && !isGenerating) {
       blinkAction.reset().fadeIn(0.5).play();
       blinkAction.setLoop(THREE.LoopRepeat, Infinity);
     }
-  }, [actions, scene]);
+  }, [actions, scene, liquidUniforms, isGenerating]);
+
+  // 2. Cinematic Liquid Emergence Sequence
+  useEffect(() => {
+    if (!isGenerating || !scene) return;
+
+    // Refresh world matrix
+    groupRef.current?.updateMatrixWorld(true);
+    const bbox = new THREE.Box3().setFromObject(groupRef.current || scene);
+    // Expand bounds by 5% margin to ensure liquid cleanly sweeps past chin and crown
+    const startY = bbox.min.y - 0.05;
+    const endY = bbox.max.y + 0.06;
+
+    // Arm liquid uniforms
+    liquidUniforms.uScanY.value = startY;
+    liquidUniforms.uLiquidActive.value = 1.0;
+    setLaserY(startY);
+    setIsLaserActive(true);
+
+    // Keep eyes shut during liquid creation
+    const blinkAction = actions["white_mesh (1)Action.004"];
+    if (blinkAction) blinkAction.stop();
+    if (headMeshRef.current?.morphTargetInfluences) {
+      headMeshRef.current.morphTargetInfluences[0] = 1.0;
+    }
+
+    // Cinematic liquid sweep upwards (2.6 seconds)
+    const anim = { progress: 0 };
+    const tween = gsap.to(anim, {
+      progress: 1,
+      duration: 2.6,
+      delay: 0.1,
+      ease: "power1.inOut",
+      onUpdate: () => {
+        const currentY = THREE.MathUtils.lerp(startY, endY, anim.progress);
+        liquidUniforms.uScanY.value = currentY;
+        setLaserY(currentY);
+        if (onGenerationProgress) {
+          onGenerationProgress(anim.progress);
+        }
+      },
+      onComplete: () => {
+        // Deactivate liquid slicing
+        liquidUniforms.uLiquidActive.value = 0.0;
+        liquidUniforms.uScanY.value = 999.0;
+        setIsLaserActive(false);
+
+        // Wake up avatar: open eyes smoothly over 0.7s
+        if (headMeshRef.current?.morphTargetInfluences) {
+          gsap.to(headMeshRef.current.morphTargetInfluences, {
+            0: 0.0,
+            duration: 0.7,
+            ease: "power2.out",
+            onComplete: () => {
+              if (blinkAction) {
+                blinkAction.reset().fadeIn(0.5).play();
+              }
+            },
+          });
+        }
+
+        if (onGenerationComplete) {
+          onGenerationComplete();
+        }
+      },
+    });
+
+    return () => {
+      tween.kill();
+    };
+  }, [isGenerating, scene, actions, liquidUniforms, onGenerationProgress, onGenerationComplete]);
 
   // 2. Click Tap interactive GSAP recoil and eye-shut triggers
   const lastTapTrigger = useRef(tapData.trigger);
@@ -326,12 +497,20 @@ function AvatarModel({ activeSection, tapData, mouse, scrollProgressRef }: Avata
       groupRef.current.scale.z = THREE.MathUtils.lerp(groupRef.current.scale.z, baseScaleZ * breathingScale, 0.05);
     }
 
-    // Mouse Look-At Tracking: Guide look-at rotation smoothly in the background
-    const targetLookX = -(mouse.y * Math.PI) / 8; // vertical tilt (up/down)
-    const targetLookY = (mouse.x * Math.PI) / 6;  // horizontal rotation (left/right)
+    // Update liquid undulating wave time uniform
+    liquidUniforms.uTime.value = time;
 
-    mouseLookRotation.current.x = THREE.MathUtils.lerp(mouseLookRotation.current.x, targetLookX, 0.08);
-    mouseLookRotation.current.y = THREE.MathUtils.lerp(mouseLookRotation.current.y, targetLookY, 0.08);
+    // Mouse Look-At Tracking: Guide look-at rotation smoothly in the background
+    if (isLaserActive) {
+      // Keep steady centered forward gaze while emerging
+      mouseLookRotation.current.x = THREE.MathUtils.lerp(mouseLookRotation.current.x, 0, 0.1);
+      mouseLookRotation.current.y = THREE.MathUtils.lerp(mouseLookRotation.current.y, 0, 0.1);
+    } else {
+      const targetLookX = -(mouse.y * Math.PI) / 8; // vertical tilt (up/down)
+      const targetLookY = (mouse.x * Math.PI) / 6;  // horizontal rotation (left/right)
+      mouseLookRotation.current.x = THREE.MathUtils.lerp(mouseLookRotation.current.x, targetLookX, 0.08);
+      mouseLookRotation.current.y = THREE.MathUtils.lerp(mouseLookRotation.current.y, targetLookY, 0.08);
+    }
 
     // Interpolate base pose rotation smoothly
     baseRotation.current.x = THREE.MathUtils.lerp(baseRotation.current.x, pose.rotation[0], 0.05);
@@ -350,21 +529,33 @@ function AvatarModel({ activeSection, tapData, mouse, scrollProgressRef }: Avata
   });
 
   return (
-    <group ref={groupRef} dispose={null} scale={[0.576, 0.576, 0.576]} position={[0, 0, 0]}>
-      {/* Front key light to illuminate the chrome face during tunnel travel */}
-      <directionalLight position={[1, 1, 3]} intensity={1.5} color="#ffffff" />
-      <directionalLight position={[-1, 1.5, 2.5]} intensity={0.5} color="#ffffff" />
+    <>
+      <group ref={groupRef} dispose={null} scale={[0.576, 0.576, 0.576]} position={[0, 0, 0]}>
+        {/* Front key light to illuminate the chrome face during tunnel travel */}
+        <directionalLight position={[1, 1, 3]} intensity={1.5} color="#ffffff" />
+        <directionalLight position={[-1, 1.5, 2.5]} intensity={0.5} color="#ffffff" />
 
-      {/* Front PointLight for blue emissive click glow effect */}
-      <pointLight
-        ref={tapLightRef}
-        color="#0066ff"
-        intensity={0}
-        distance={2.0}
-        position={[0, 0.3, 1.5]}
-      />
-      <primitive object={scene} />
-    </group>
+        {/* Front PointLight for blue emissive click glow effect */}
+        <pointLight
+          ref={tapLightRef}
+          color="#0066ff"
+          intensity={0}
+          distance={2.0}
+          position={[0, 0.3, 1.5]}
+        />
+        <primitive object={scene} />
+      </group>
+
+      {/* Deep Cobalt / Royal Blue Meniscus Light following the rising crest */}
+      {isLaserActive && (
+        <pointLight
+          color="#1d4ed8"
+          intensity={4.5}
+          distance={2.5}
+          position={[0, laserY + 0.08, 0.45]}
+        />
+      )}
+    </>
   );
 }
 
@@ -831,9 +1022,22 @@ interface About3DProps {
   tapData: { x: number; y: number; trigger: number };
   mouse: { x: number; y: number };
   scrollProgressRef: React.MutableRefObject<number>;
+  isGenerating?: boolean;
+  onGenerationProgress?: (progress: number) => void;
+  onGenerationComplete?: () => void;
 }
 
-export default function About3D({ active, activeSection, projectsProgress, tapData, mouse, scrollProgressRef }: About3DProps) {
+export default function About3D({
+  active,
+  activeSection,
+  projectsProgress,
+  tapData,
+  mouse,
+  scrollProgressRef,
+  isGenerating,
+  onGenerationProgress,
+  onGenerationComplete,
+}: About3DProps) {
   if (!active) return null;
 
   return (
@@ -862,7 +1066,15 @@ export default function About3D({ active, activeSection, projectsProgress, tapDa
         <Environment preset="studio" />
 
         <Suspense fallback={null}>
-          <AvatarModel activeSection={activeSection} tapData={tapData} mouse={mouse} scrollProgressRef={scrollProgressRef} />
+          <AvatarModel
+            activeSection={activeSection}
+            tapData={tapData}
+            mouse={mouse}
+            scrollProgressRef={scrollProgressRef}
+            isGenerating={isGenerating}
+            onGenerationProgress={onGenerationProgress}
+            onGenerationComplete={onGenerationComplete}
+          />
           <Starfield activeSection={activeSection} />
           <CameraPath activeSection={activeSection} projectsProgress={projectsProgress} />
           <ProjectCapsules activeSection={activeSection} />

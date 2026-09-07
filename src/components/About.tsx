@@ -8,7 +8,7 @@
 
 // Rebuild trigger: Slot conveyor update 1.
 
-import { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -256,11 +256,44 @@ export default function About({ active, onClose }: AboutProps) {
   const [device, setDevice] = useState<"mobile" | "desktop">("desktop");
   const [activeCard, setActiveCard] = useState(0);
 
+  // Cinematic 3D Liquid Emergence & Screen Lock States
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Trigger liquid emergence on the first time About is opened
   useEffect(() => {
-    if (isAboutInView) {
-      setHasBeenVisible(true);
+    if (active && !hasGenerated && !isGenerating) {
+      // Allow sliding drawer 350ms to settle into the viewport before starting emergence
+      const timer = setTimeout(() => {
+        setIsGenerating(true);
+        const lenis = (window as any).lenis;
+        if (lenis) lenis.stop();
+      }, 350);
+      return () => clearTimeout(timer);
     }
-  }, [isAboutInView]);
+  }, [active, hasGenerated, isGenerating]);
+
+  // Lock physical wheel and touch scrolling during generation
+  useEffect(() => {
+    if (!isGenerating) return;
+    const preventScroll = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    window.addEventListener("wheel", preventScroll, { passive: false });
+    window.addEventListener("touchmove", preventScroll, { passive: false });
+    return () => {
+      window.removeEventListener("wheel", preventScroll);
+      window.removeEventListener("touchmove", preventScroll);
+    };
+  }, [isGenerating]);
+
+  const handleGenerationComplete = useCallback(() => {
+    setIsGenerating(false);
+    setHasGenerated(true);
+    const lenis = (window as any).lenis;
+    if (lenis) lenis.start();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -510,6 +543,8 @@ export default function About({ active, onClose }: AboutProps) {
             tapData={tapData}
             mouse={mouse}
             scrollProgressRef={scrollProgressRef}
+            isGenerating={isGenerating}
+            onGenerationComplete={handleGenerationComplete}
           />
           <div
             onClick={handleTapHead}
@@ -519,7 +554,7 @@ export default function About({ active, onClose }: AboutProps) {
         </div>
       </div>
 
-      {/* Scrollable Content */}
+      {/* Editorial Scrollable Content (Crisp, undisturbed, high-fashion layout) */}
       <div className="relative z-10 w-full flex flex-col items-center pt-0 pb-0 px-6 md:px-12 pointer-events-none">
         {renderContent()}
         {renderContent()}
