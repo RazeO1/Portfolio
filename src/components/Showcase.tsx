@@ -5,6 +5,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { useRef, useState, useEffect, useMemo } from "react";
+import SectionNavbar from "@/components/SectionNavbar";
 
 // Constants matching the sketchbook mechanics
 const N = 18;        // Number of strips for smooth curving
@@ -23,7 +24,7 @@ const PAGES = [
   { title: "New Chapter", place: "A memorable journey across new landscapes that broadened my perspective on the world." },
 ];
 
-export default function Showcase() {
+export default function Showcase({ onOpenAbout }: { onOpenAbout?: () => void } = {}) {
   const stageRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<HTMLDivElement>(null);
   const capOutRef = useRef<HTMLDivElement>(null);
@@ -658,6 +659,9 @@ export default function Showcase() {
 
   return (
     <section id="showcase" className="relative w-full py-24 select-none bg-[#fcf7f3] flex flex-col items-center">
+      {/* Section Adaptive Navbar (Pause || -> Cross X) */}
+      <SectionNavbar theme="light" onOpenAbout={onOpenAbout} sectionName="Sketchbook" />
+
       {/* Decorative label */}
       <div className="mb-4">
         <span className="font-mono text-xs uppercase tracking-widest text-[#de3421] font-bold">

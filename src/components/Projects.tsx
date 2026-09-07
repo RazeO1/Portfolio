@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ExternalLink, FileText, ArrowUpRight } from "lucide-react";
+import SectionNavbar from "@/components/SectionNavbar";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -31,6 +32,7 @@ function GithubIcon({ className = "w-3 h-3" }: { className?: string }) {
 interface ProjectsProps {
   setActiveSection?: (section: number) => void;
   setProjectsProgress?: (progress: number) => void;
+  onOpenAbout?: () => void;
 }
 
 interface ProjectData {
@@ -51,7 +53,11 @@ interface ProjectData {
   renderGraphic: () => React.ReactNode;
 }
 
-export default function Projects({ setActiveSection, setProjectsProgress }: ProjectsProps = {}) {
+export default function Projects({
+  setActiveSection,
+  setProjectsProgress,
+  onOpenAbout,
+}: ProjectsProps = {}) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const pinnedStageRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -417,21 +423,17 @@ export default function Projects({ setActiveSection, setProjectsProgress }: Proj
         ref={pinnedStageRef}
         className="sticky top-0 left-0 w-full h-screen overflow-hidden flex items-center justify-center select-none"
       >
+        {/* Section Adaptive Navbar (Pause || -> Cross X) */}
+        <SectionNavbar theme="dark" onOpenAbout={onOpenAbout} sectionName="Projects" />
+
         {/* Atmospheric vignette & soft left-side spotlight */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
         <div className="absolute -left-32 top-1/2 -translate-y-1/2 w-[720px] h-[720px] bg-white/[0.045] rounded-full blur-[150px] pointer-events-none" />
 
         {/* Top Pinned Metadata Bar */}
-        <header className="absolute top-6 md:top-8 left-6 md:left-12 right-6 md:right-12 flex items-center justify-between font-mono text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-neutral-500 z-0 pointer-events-none">
-          <div className="flex items-center gap-2.5 font-bold text-[#d5802a]">
-            <span className="w-2 h-2 rounded-full bg-[#de3421] animate-pulse" />
-            SEC 04 // ARCHIVE OF SELECTED WORKS
-          </div>
-          <div className="hidden sm:block text-neutral-400 font-semibold">
+        <header className="absolute top-6 md:top-8 left-6 md:left-12 right-6 md:right-12 flex items-center justify-center font-mono text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-neutral-500 z-0 pointer-events-none">
+          <div className="text-neutral-400 font-semibold">
             ENGINEERED SYSTEMS &bull; YASH RAJ
-          </div>
-          <div className="text-white font-bold">
-            [05 WORKS]
           </div>
         </header>
 
@@ -472,12 +474,7 @@ export default function Projects({ setActiveSection, setProjectsProgress }: Proj
         </div>
 
         {/* Bottom Pinned Status Bar */}
-        <footer className="absolute bottom-6 md:bottom-8 left-6 md:left-12 right-6 md:right-12 flex items-center justify-between font-mono text-[9px] md:text-[10px] uppercase tracking-widest text-neutral-500 z-0 pointer-events-none">
-          <div>
-            <span className="text-[#de3421] font-bold">CHENNAI, IN</span>
-            <span className="hidden sm:inline text-neutral-600 mx-2">|</span>
-            <span className="hidden sm:inline text-neutral-400">VEL TECH R&amp;D INSTITUTE</span>
-          </div>
+        <footer className="absolute bottom-6 md:bottom-8 left-6 md:left-12 right-6 md:right-12 flex items-center justify-end font-mono text-[9px] md:text-[10px] uppercase tracking-widest text-neutral-500 z-0 pointer-events-none">
           <div className="flex items-center gap-3">
             <span className="text-neutral-400">SCROLL DOWN TO EXPLORE</span>
             <span className="text-white font-bold">&darr;</span>

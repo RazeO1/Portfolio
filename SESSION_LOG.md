@@ -1,5 +1,51 @@
 # Session Log
 
+## [2026-09-07 20:30] Integrated Section-Adaptive Pause-to-Cross Navbar (Variant C)
+- **Accomplishments**:
+  - **Engineered Morphing `SectionNavbar` Component ([`src/components/SectionNavbar.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/SectionNavbar.tsx))**:
+    - **Trigger Button**: Anchored at `absolute top-6 right-6 md:top-8 md:right-12 z-40`, featuring GPU-accelerated 240ms `cubic-bezier(0.16, 1, 0.3, 1)` spring transforms that smoothly morph a dual-pillar pause symbol (`||`) into a cross (`×`).
+    - **Color Harmonization**: Automatically adapts to section background tokens (`theme="light"` for `#fcf7f3` paper canvas; `theme="dark"` for `#0A0A0A` obsidian backdrop) with signature vermilion `#de3421` hover states.
+    - **Variant C Kinetic Editorial Curtain**: Expands a full-viewport translucent backdrop-blur portal revealing 6 monumental section links with staggered micro-delays, numbered badges, descriptive metadata, and a colophon with direct social links (`GitHub`, `LinkedIn`, `hiiam@yashraj.dev`).
+    - **Smooth Navigation Integration**: Connects with Lenis smooth-scrolling for all page sections (`home`, `showcase`, `skills`, `projects`, `contact`) and dynamically triggers the 3D sliding About drawer for `about`.
+    - **Accessibility & Controls**: Bound to `Escape` key dismiss, backdrop dismissal, `aria-expanded` and `aria-label` screen reader attributes.
+  - **Mounted Across Requested Sections**:
+    - Mounted in **Showcase** ([`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx)) with `theme="light"`.
+    - Mounted inside **Skills** pinned viewport ([`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx)) with `theme="light"` (stays pinned while scrolling horizontally).
+    - Mounted inside **Projects** pinned stage ([`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx)) with `theme="dark"` (stays pinned while square project cards scroll past).
+    - Mounted in **Contact** section ([`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx)) with `theme="dark"`.
+    - Excluded from **Hero** and **About** per explicit specification.
+  - **Verified Build & Live State**: Production build (`npm run build`) succeeded with code 0 (zero TypeScript / Turbopack errors). AST knowledge graph updated via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/SectionNavbar.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/SectionNavbar.tsx): [NEW] Component implementing the pause-to-cross button and Variant C curtain.
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Mounted SectionNavbar (light theme).
+  - [`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx): Mounted SectionNavbar (light theme) inside sticky container.
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Mounted SectionNavbar (dark theme) inside pinned stage.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Mounted SectionNavbar (dark theme) in Contact and wired `onOpenAbout` triggers.
+
+## [2026-09-07 20:16] Cleaned Top Header Bar from Skills Section
+- **Accomplishments**:
+  - **Removed Circled Header Element from Section 03 ([`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx))**:
+    - Removed entire `<header>` element containing equalizer wave animation, `Section 03 / Core Stack - Technical Repertoire`, center descriptor note, and `Scroll ↓ → / Skip to Projects ↓` controls.
+    - Removed `border-t border-black/10` from section boundary for seamless blending from the Sketchbook canvas.
+  - **Layout Harmonization**:
+    - The 4-row musical staff grid stage now centers vertically across the full viewport, giving generous open breathing room to the column indices and generative soundwaves.
+  - **Verified Build**: Production build (`npm run build`) succeeded with code 0 (zero TypeScript / Turbopack errors). AST knowledge graph updated via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx): Removed `<header>` bar and top border line.
+
+## [2026-09-07 20:05] Cleaned Pinned Headline Overlays in Projects Section
+- **Accomplishments**:
+  - **Removed Circled UI Elements from Section 04 ([`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx))**:
+    - Removed `● SEC 04 // ARCHIVE OF SELECTED WORKS` from top-left.
+    - Removed `[05 WORKS]` count badge from top-right.
+    - Removed `CHENNAI, IN | VEL TECH R&D INSTITUTE` location metadata from bottom-left.
+  - **Layout Refinement**:
+    - Top header now neatly centers `ENGINEERED SYSTEMS • YASH RAJ`.
+    - Bottom status bar cleanly aligns `SCROLL DOWN TO EXPLORE ↓` to the right corner.
+  - **Verified Build**: Production build (`npm run build`) succeeded with code 0 (zero TypeScript / Turbopack errors). AST knowledge graph updated via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Cleaned pinned backdrop header and footer markup.
+
 ## [2026-09-05 20:30] Pinned "Archive of Selected Works" & Alternating Floating Square Tiles (Nudot Studio Inspiration)
 - **Accomplishments**:
   - **Decoded Reference Video (`00:00:16 - 00:00:25`)**: Extracted and analyzed frames from user's screen recording of `nudot.com.tw` demonstrating a pinned architectural headline in the center with floating project cards scrolling vertically across the viewport in an alternating trajectory (Left &rarr; Right &rarr; Left &rarr; Right &rarr; Center finale).

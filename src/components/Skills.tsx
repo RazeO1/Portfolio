@@ -6,6 +6,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import SectionNavbar from "@/components/SectionNavbar";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -217,7 +218,7 @@ function GenerativeStaffCanvas({ activeHoverId }: { activeHoverId: string | null
   );
 }
 
-export default function Skills() {
+export default function Skills({ onOpenAbout }: { onOpenAbout?: () => void } = {}) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const runwayRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -335,49 +336,13 @@ export default function Skills() {
       ref={sectionRef}
       id="skills"
       style={{ height: `calc(100vh + ${scrollRange}px)` }}
-      className="relative w-full bg-[#fcf7f3] select-none z-20 border-t border-black/10"
+      className="relative w-full bg-[#fcf7f3] select-none z-20"
     >
       {/* Sticky Viewport Stage: Pinned cleanly in viewport while scrolling horizontally */}
       <div className="sticky top-0 left-0 w-full h-screen overflow-hidden flex flex-col justify-between bg-[#fcf7f3] text-[#0A0A0A]">
         
-        {/* =============================================================
-            TOP STATUS BAR (Refined Architectural Header)
-            ============================================================= */}
-        <header className="w-full h-[58px] px-6 md:px-12 flex items-center justify-between z-30 border-b border-black/10 bg-[#fcf7f3]/95 backdrop-blur-sm">
-          <div className="flex items-center gap-3">
-            {/* Animated Equalizer Wave Bars in brand red #de3421 */}
-            <div className="flex items-end gap-[2px] h-3.5" title="Harmonic Resonance">
-              <span className="w-[2px] h-1.5 bg-[#de3421] rounded-[1px] animate-[pulse_1s_infinite_alternate]" />
-              <span className="w-[2px] h-3.5 bg-[#de3421] rounded-[1px] animate-[pulse_1.2s_infinite_alternate_0.2s]" />
-              <span className="w-[2px] h-2 bg-[#de3421] rounded-[1px] animate-[pulse_0.9s_infinite_alternate_0.1s]" />
-              <span className="w-[2px] h-3 bg-[#de3421] rounded-[1px] animate-[pulse_1.3s_infinite_alternate_0.3s]" />
-            </div>
-            <div>
-              <span className="font-mono text-[9.5px] uppercase tracking-widest text-[#de3421] font-bold block leading-none">
-                Section 03 / Core Stack
-              </span>
-              <span className="font-sans font-bold text-[12.5px] text-[#0A0A0A] leading-tight block mt-0.5">
-                Technical Repertoire
-              </span>
-            </div>
-          </div>
-
-          <div className="hidden lg:block max-w-lg text-center font-sans text-[11.5px] font-medium text-neutral-600 leading-snug">
-            Interactive horizontal score &mdash; 4 harmonic staff strings detailing production engineering systems.
-          </div>
-
-          <div className="flex items-center gap-4">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-neutral-500 font-bold hidden sm:inline-block">
-              Scroll &darr; &rarr;
-            </span>
-            <button
-              onClick={handleSkipToProjects}
-              className="font-mono text-[10px] uppercase tracking-wider text-[#de3421] hover:underline font-bold cursor-pointer"
-            >
-              Skip to Projects &darr;
-            </button>
-          </div>
-        </header>
+        {/* Section Adaptive Navbar (Pause || -> Cross X) */}
+        <SectionNavbar theme="light" onOpenAbout={onOpenAbout} sectionName="Skills" />
 
         {/* =============================================================
             MAIN 4-ROW ARCHITECTURAL GRID STAGE

@@ -9,6 +9,7 @@ import About from "@/components/About";
 import Showcase from "@/components/Showcase";
 import Skills from "@/components/Skills";
 import Projects from "@/components/Projects";
+import SectionNavbar from "@/components/SectionNavbar";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -274,19 +275,26 @@ export default function Home() {
       {/* Main Page Scrollable Content (relative z-20 covers the sticky Hero as we scroll) */}
       <div className="relative z-20 w-full bg-[#fcf7f3]">
         {/* Showcase Section (3D Page-turning Sketchbook) */}
-        <Showcase />
+        <Showcase onOpenAbout={() => handleOpenAbout("right")} />
 
         {/* Skills Section (Paul Kalkbrenner Architectural Grid) */}
-        <Skills />
+        <Skills onOpenAbout={() => handleOpenAbout("right")} />
 
         {/* Projects Section (Runway Timeline Slideshow) */}
-        <Projects />
+        <Projects onOpenAbout={() => handleOpenAbout("right")} />
 
         {/* Contact Section */}
         <section
           id="contact"
           className="relative w-full min-h-screen bg-[#0A0A0A] text-white flex flex-col justify-center px-6 md:px-12 lg:px-24 py-20 select-none border-t border-white/5"
         >
+          {/* Section Adaptive Navbar (Pause || -> Cross X) */}
+          <SectionNavbar
+            theme="dark"
+            onOpenAbout={() => handleOpenAbout("right")}
+            sectionName="Contact"
+          />
+
           <div className="max-w-4xl space-y-8">
             <span className="font-mono text-xs md:text-sm uppercase tracking-widest text-[#d5802a] font-bold">
               Section 05 / Get in Touch
