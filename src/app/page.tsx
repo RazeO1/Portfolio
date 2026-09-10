@@ -8,6 +8,7 @@ import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Showcase from "@/components/Showcase";
 import Skills from "@/components/Skills";
+import Experience from "@/components/Experience";
 import Projects from "@/components/Projects";
 import SectionNavbar from "@/components/SectionNavbar";
 import Lenis from "lenis";
@@ -280,6 +281,9 @@ export default function Home() {
         {/* Skills Section (Paul Kalkbrenner Architectural Grid) */}
         <Skills onOpenAbout={() => handleOpenAbout("right")} />
 
+        {/* Experience Section (Universiti Malaysia Perlis 6G AI & Rotating Showcase Cube) */}
+        <Experience onOpenAbout={() => handleOpenAbout("right")} />
+
         {/* Projects Section (Runway Timeline Slideshow) */}
         <Projects onOpenAbout={() => handleOpenAbout("right")} />
 
@@ -290,7 +294,7 @@ export default function Home() {
         >
           <div className="max-w-4xl space-y-8">
             <span className="font-mono text-xs md:text-sm uppercase tracking-widest text-[#d5802a] font-bold">
-              Section 05 / Get in Touch
+              Section 06 / Get in Touch
             </span>
             <h2 className="font-display font-medium text-4xl md:text-6xl text-white tracking-tight">
               Let&apos;s build something.

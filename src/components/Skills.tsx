@@ -318,15 +318,15 @@ export default function Skills({ onOpenAbout }: { onOpenAbout?: () => void } = {
     }
   };
 
-  // Jump to Projects section immediately
-  const handleSkipToProjects = () => {
-    const projects = document.getElementById("projects");
-    if (!projects) return;
+  // Jump to Experience section immediately
+  const handleSkipToExperience = () => {
+    const experience = document.getElementById("experience");
+    if (!experience) return;
     const lenis = (window as any).lenis;
     if (lenis) {
-      lenis.scrollTo(projects, { duration: 1.2 });
+      lenis.scrollTo(experience, { duration: 1.2 });
     } else {
-      projects.scrollIntoView({ behavior: "smooth" });
+      experience.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -577,13 +577,13 @@ export default function Skills({ onOpenAbout }: { onOpenAbout?: () => void } = {
                     <span>Repertoire Complete</span>
                   </div>
                   <p className="font-sans text-xs font-semibold text-[#0A0A0A] leading-snug">
-                    Continue scrolling down to explore selected production works.
+                    Continue scrolling down to explore research & industry experience.
                   </p>
                   <button
-                    onClick={handleSkipToProjects}
+                    onClick={handleSkipToExperience}
                     className="mt-2 inline-flex items-center gap-2 font-mono text-[10px] uppercase font-bold text-[#0A0A0A] hover:text-[#de3421] transition-colors cursor-pointer"
                   >
-                    <span>Proceed to Projects</span>
+                    <span>Proceed to Experience</span>
                     <span>&darr;</span>
                   </button>
                 </div>
@@ -635,10 +635,10 @@ export default function Skills({ onOpenAbout }: { onOpenAbout?: () => void } = {
 
           <div className="flex items-center gap-3 shrink-0 ml-4">
             <button
-              onClick={handleSkipToProjects}
+              onClick={handleSkipToExperience}
               className="font-mono text-[10px] uppercase tracking-wider text-neutral-500 hover:text-[#0A0A0A] transition-colors cursor-pointer hidden sm:inline-block"
             >
-              Projects &darr;
+              Experience &darr;
             </button>
           </div>
 

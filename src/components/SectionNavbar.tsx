@@ -40,6 +40,7 @@ export default function SectionNavbar({
 
       const showcaseEl = document.getElementById("showcase");
       const skillsEl = document.getElementById("skills");
+      const experienceEl = document.getElementById("experience");
       const projectsEl = document.getElementById("projects");
       const contactEl = document.getElementById("contact");
 
@@ -47,6 +48,7 @@ export default function SectionNavbar({
 
       const showcaseRect = showcaseEl.getBoundingClientRect();
       const skillsRect = skillsEl ? skillsEl.getBoundingClientRect() : null;
+      const experienceRect = experienceEl ? experienceEl.getBoundingClientRect() : null;
       const projectsRect = projectsEl ? projectsEl.getBoundingClientRect() : null;
       const contactRect = contactEl ? contactEl.getBoundingClientRect() : null;
 
@@ -91,6 +93,9 @@ export default function SectionNavbar({
         setDetectedTheme("dark");
       } else if (projectsRect && projectsRect.top <= threshold) {
         setDetectedSection("projects");
+        setDetectedTheme("dark");
+      } else if (experienceRect && experienceRect.top <= threshold) {
+        setDetectedSection("experience");
         setDetectedTheme("dark");
       } else if (skillsRect && skillsRect.top <= threshold) {
         setDetectedSection("skills");
@@ -184,8 +189,9 @@ export default function SectionNavbar({
     { num: "02", label: "ABOUT", target: "about", desc: "3D Chrome Avatar" },
     { num: "03", label: "SKETCHBOOK", target: "showcase", desc: "Interactive 3D Pages" },
     { num: "04", label: "SKILLS", target: "skills", desc: "Harmonic 4-String Score" },
-    { num: "05", label: "PROJECTS", target: "projects", desc: "Selected Works Archive" },
-    { num: "06", label: "CONTACT", target: "contact", desc: "Let's Build Something" },
+    { num: "05", label: "EXPERIENCE", target: "experience", desc: "6G AI & UniMAP Fellowship" },
+    { num: "06", label: "PROJECTS", target: "projects", desc: "Selected Works Archive" },
+    { num: "07", label: "CONTACT", target: "contact", desc: "Let's Build Something" },
   ];
 
   const currentTheme = theme || detectedTheme;
@@ -194,6 +200,7 @@ export default function SectionNavbar({
   const sectionLabels: Record<string, string> = {
     showcase: "SKETCHBOOK",
     skills: "SKILLS",
+    experience: "EXPERIENCE",
     projects: "PROJECTS",
     contact: "CONTACT",
   };

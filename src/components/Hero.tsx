@@ -130,6 +130,16 @@ export default function Hero({ active, onOpenAbout, onScrollToSection }: HeroPro
               Skills
             </a>
             <a
+              href="#experience"
+              onClick={(e) => {
+                e.preventDefault();
+                onScrollToSection("experience");
+              }}
+              className="hover:text-[#de3421] transition-colors duration-300 pointer-events-auto"
+            >
+              Experience
+            </a>
+            <a
               href="#projects"
               onClick={(e) => {
                 e.preventDefault();

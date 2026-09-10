@@ -1,6 +1,64 @@
 # Session Log
 
-## [2026-09-07 22:35] Single Fixed Section-Adaptive Navbar with Dynamic Vertical Alignment
+## [2026-09-10 20:55] Refined Experience 3D Cube Motion & Perspective (Variant B Implemented)
+- **Accomplishments**:
+  - **Solved Forward Pitch Slant**:
+    - Replaced the hardcoded `rotateX(14deg)` pitch slant with an upright architectural orientation (`rotateX: 2.5deg`), eliminating the unnatural leaning-forward look.
+    - Added an elevated perspective camera (`perspective: 1300px`, `perspective-origin: 50% 38%`) so the brushed obsidian top lid remains naturally visible without distorting the vertical lines of the cube.
+  - **Eliminated Flat-Card Morphing at Section Start**:
+    - Replaced the flat initial state (`rotateY: 0deg`) with an isometric entrance tumbling from `-55deg` into `-32deg` as it zooms in from deep space (`scale: 0.35` &rarr; `1.0`, `opacity: 0` &rarr; `1.0`).
+    - Both the front face and side face are visible from the very first frame of entry, immediately establishing an authentic 3D solid volume.
+  - **Keyframed Exhibit Runway Motion**:
+    - Choreographed smooth sequential pauses across all 4 UniMAP exhibits (`01 LAB`, `02 LAMTT`, `03 EDGE ENGINE`, `04 WIRELESS SENSING`).
+    - Calibrated interactive HUD pill jump progress mapping (`[0.20, 0.45, 0.68, 0.92]`) to center each respective exhibit face on click.
+  - **Decoupled 60fps Mouse Hover Parallax**:
+    - Refined GPU-accelerated mouse tilt via `gsap.quickTo` on `cubeTiltRef` (`-ny * 14`, `nx * 16`), completely decoupled from React state to guarantee zero re-render instability.
+  - **Build & Live Verification**:
+    - `next build` compiled cleanly with exit code 0 (0 TypeScript, Turbopack, or ESLint errors).
+    - Verified live rendering at multiple scroll offsets in headless Playwright browser.
+    - Updated codebase knowledge graph via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Perspective origin, base transform, and GSAP timeline keyframe motion pipeline updated.
+
+
+- **Accomplishments**:
+  - **Decoded Visual Reference (`Screen Recording 2026-09-02 200003.mp4` 00:03–00:09)**:
+    - Extracted and analyzed frame sequences from user's screen recording showcasing a cinematic pinned dark stage with giant circular dot-matrix punch-card typography scrolling horizontally in the background, and a 3D rotating showcase cube in perspective space presenting multi-face engineering exhibits.
+  - **Authentic Malaysian Research Internship Content Extracted**:
+    - Extracted verified internship data from user's CVs (`New folder/YashRaj_CV_AI_Engineer (1).pdf`, `YashRaj_CV_Software_Developer (1).pdf`):
+      - **Role**: AI/ML Research Intern — Intelligent Computing
+      - **Institution**: Universiti Malaysia Perlis (UniMAP), Kangar, Perlis, Malaysia (Oct 2025 – Feb 2026)
+      - **Key Achievements**: Architected Latency-Aware Multi-Temporal Transformer (LAMTT) for real-time 6G edge networks; ~62ms inference latency; +40% accuracy gain; edge-native microservice reducing cloud overhead by 67%; RSSI Angle-of-Arrival (AoA) wireless sensing with ~96% accuracy and mathematical proof of boundary ambiguity.
+  - **Mathematical Dot-Matrix Typography System**:
+    - Created an SVG dot-matrix renderer based on a 5x7 circular dot grid for each alphanumeric character (`DOT_GLYPHS`).
+    - Rendered giant punch-card ribbons (`UNIMAP • 6G EDGE AI • ~62MS • SENSING • MALAYSIA`) interspersed with editorial mono notes.
+    - Linked horizontal ribbon scrub to GSAP `ScrollTrigger` across the 380vh section runway.
+  - **3D Rotating Showcase Cube (`Experience.tsx`)**:
+    - Engineered a hardware-accelerated 3D rectangular prism (`perspective: 1300px`, `transform-style: preserve-3d`) with 4 distinct lateral faces:
+      - **Face 01**: UniMAP Lab & 6G Edge Intelligence Appointment (concentric radar sweep schematic).
+      - **Face 02**: The LAMTT Model & Joint Delay Loss Optimization (~62ms latency, +40% gain, attention waves).
+      - **Face 03**: Edge-Native Microservice vs Cloud Overhead (67% overhead cut, Dockerized architecture diagram).
+      - **Face 04**: RSSI Angle-of-Arrival Wireless Sensing (~96% accuracy, polar radiation beam chart).
+    - Top plate features metallic obsidian finish with engraved coordinates (`6.4449° N, 100.1982° E`).
+    - Interactive HUD pill tabs (`[01 LAB]`, `[02 LAMTT]`, `[03 EDGE ENGINE]`, `[04 WIRELESS SENSING]`) with instant face snapping.
+    - Natural mouse-cursor perspective parallax tilt.
+  - **Portfolio Integration & Section Harmonization**:
+    - Mounted `<Experience />` between Section 03 (Skills) and Section 05 (Projects) in [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx).
+    - Updated Contact to `Section 06 / Get in Touch`.
+    - Updated [`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx) end card and skip buttons to target `#experience`.
+    - Updated [`src/components/SectionNavbar.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/SectionNavbar.tsx) with dynamic dark theme detection for `#experience` and added `EXPERIENCE` to the Variant C kinetic curtain menu.
+    - Updated [`src/components/Hero.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Hero.tsx) navigation links to include `Experience`.
+  - **Verified Build & Live State**:
+    - Production build (`npm run build`) succeeded with code 0 (0 TypeScript, Turbopack, or ESLint errors).
+    - Verified live at `http://localhost:3000` via Playwright with 3D perspective rotation, dot-matrix scrub, and HUD tabs.
+    - Updated knowledge graph via `graphify update .`.
+- **Key Files Modified/Created**:
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): [NEW] Component with 3D rotating showcase cube, dot-matrix marquee, and UniMAP internship exhibits.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Mounted Experience component and synchronized section numbering.
+  - [`src/components/Skills.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Skills.tsx): Updated end card narrative and skip button to target Experience.
+  - [`src/components/SectionNavbar.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/SectionNavbar.tsx): Added Experience section detection (dark theme) and curtain menu link.
+  - [`src/components/Hero.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Hero.tsx): Added Experience link in header navigation.
+
 - **Accomplishments**:
   - **Single Global Fixed Navbar**:
     - Consolidated all per-section navbar instances into a single global `<SectionNavbar>` mounted in [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx).

@@ -1,4 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Sacramento&family=Inter+Tight:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bitcount+Grid+Single:wght@100..900&family=Averia+Serif+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Sacramento&family=Inter+Tight:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@font-face {
+  font-family: 'Bitcount Grid Single';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/bitcountgridsingle/v3/cY8Gfi2OU1tLpjaqQveNvbC2qfsuQPDVASHjTcBszBsXfC5C9kAKu8QoqnfqMiS4gVij5yxO41San7UnNMBH-Y9u33JUGFdHpUYahAA3YiMW.woff2) format('woff2');
+}
+
 @import "tailwindcss";
 
 @theme {
