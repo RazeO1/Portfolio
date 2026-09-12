@@ -544,11 +544,14 @@ export default function About({ active, onClose }: AboutProps) {
             mouse={mouse}
             scrollProgressRef={scrollProgressRef}
             isGenerating={isGenerating}
+            hasGenerated={hasGenerated}
             onGenerationComplete={handleGenerationComplete}
           />
           <div
             onClick={handleTapHead}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160px] h-[160px] lg:w-[240px] lg:h-[240px] rounded-full cursor-pointer pointer-events-auto z-30"
+            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160px] h-[160px] lg:w-[240px] lg:h-[240px] rounded-full cursor-pointer z-30 ${
+              hasGenerated ? "pointer-events-auto" : "pointer-events-none"
+            }`}
             title="Tap Head"
           />
         </div>

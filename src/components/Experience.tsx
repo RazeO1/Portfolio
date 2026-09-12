@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -13,6 +13,34 @@ gsap.registerPlugin(ScrollTrigger);
 // Easing formula directly ported from nudot-studio (index.html line 2736)
 function easeInOutCubic(x: number): number {
   return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}
+
+// Sequential reveal and glide calculation for corner telemetry blocks
+function calculateTelemetryTransform(
+  progress: number,
+  start: number,
+  fadeInEnd: number,
+  fadeOutStart: number,
+  end: number
+) {
+  if (progress <= start) {
+    return { opacity: 0, y: 30 };
+  }
+  if (progress < fadeInEnd) {
+    const t = (progress - start) / (fadeInEnd - start);
+    const ease = easeInOutCubic(t);
+    return { opacity: ease, y: (1 - ease) * 30 };
+  }
+  if (progress <= fadeOutStart) {
+    const t = (progress - fadeInEnd) / (fadeOutStart - fadeInEnd);
+    return { opacity: 1, y: -t * 12 };
+  }
+  if (progress < end) {
+    const t = (progress - fadeOutStart) / (end - fadeOutStart);
+    const ease = easeInOutCubic(t);
+    return { opacity: 1 - ease, y: -12 - ease * 30 };
+  }
+  return { opacity: 0, y: -42 };
 }
 
 interface ExperienceProps {
@@ -30,21 +58,19 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
   const titleRevealWrapRef = useRef<HTMLDivElement>(null);
   const titleMarqueeRef = useRef<HTMLDivElement>(null);
   const marqueeInnerRef = useRef<HTMLDivElement>(null);
-  const stmLayerRef = useRef<HTMLDivElement>(null);
 
-  // Active face for HUD tabs (0 = Lab, 1 = LAMTT, 2 = Edge Engine, 3 = Wireless AoA)
-  const [activeFace, setActiveFace] = useState<number>(0);
+  // Sequential corner telemetry items (U, N, I, M)
+  const itemURef = useRef<HTMLDivElement>(null);
+  const itemNRef = useRef<HTMLDivElement>(null);
+  const itemIRef = useRef<HTMLDivElement>(null);
+  const itemMRef = useRef<HTMLDivElement>(null);
+
+  // Centered scroll prompt
+  const scrollIndicatorRef = useRef<HTMLDivElement>(null);
 
   // QuickSetter refs for decoupled mouse tilt
   const quickTiltX = useRef<((val: number) => void) | null>(null);
   const quickTiltY = useRef<((val: number) => void) | null>(null);
-
-  const faces = [
-    { id: "unimap-lab", tabLabel: "01 LAB", accent: "#de3421" },
-    { id: "lamtt-model", tabLabel: "02 LAMTT", accent: "#d5802a" },
-    { id: "edge-pipeline", tabLabel: "03 EDGE ENGINE", accent: "#60a5fa" },
-    { id: "wireless-aoa", tabLabel: "04 WIRELESS SENSING", accent: "#22c55e" },
-  ];
 
   // Base dimensions matching nudot-studio
   const baseSceneSize = 270;
@@ -86,7 +112,6 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
       const cube = cubeRef.current;
       const cubeTilt = cubeTiltRef.current;
       const titleMarquee = titleMarqueeRef.current;
-      const stmLayer = stmLayerRef.current;
 
       if (!section || !sceneWrapper || !scene || !cube || !cubeTilt || !titleMarquee) return;
 
@@ -131,15 +156,40 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
             gsap.set(titleMarquee, { y: "0%" });
           }
 
-          // Parallax float on background dot letters & lists
-          if (stmLayer) {
-            const stmParallax = (progress - 0.5) * -40;
-            const entranceFade = Math.min(progress * 4, 1);
-            gsap.set(stmLayer, { y: stmParallax, opacity: entranceFade });
+          // -------------------------------------------------------------
+          // 2. SEQUENTIAL CORNER TELEMETRY ITEMS (U, N, I, M)
+          // Each corner element appears one by one with scroll progress
+          // matching each exhibit phase:
+          // Item 1 (U): Exhibit 01 Entrance & Lab Scope (0.04 -> 0.38)
+          // Item 2 (N): Exhibit 02 LAMTT Model & Faculty (0.30 -> 0.56)
+          // Item 3 (I): Exhibit 03 Edge Engine & Telemetry (0.48 -> 0.74)
+          // Item 4 (M): Exhibit 04 Wireless Sensing & Stats (0.66 -> 0.94)
+          // -------------------------------------------------------------
+          if (itemURef.current) {
+            const tU = calculateTelemetryTransform(progress, 0.04, 0.16, 0.30, 0.38);
+            gsap.set(itemURef.current, { opacity: tU.opacity, y: tU.y });
+          }
+          if (itemNRef.current) {
+            const tN = calculateTelemetryTransform(progress, 0.30, 0.38, 0.48, 0.56);
+            gsap.set(itemNRef.current, { opacity: tN.opacity, y: tN.y });
+          }
+          if (itemIRef.current) {
+            const tI = calculateTelemetryTransform(progress, 0.48, 0.56, 0.66, 0.74);
+            gsap.set(itemIRef.current, { opacity: tI.opacity, y: tI.y });
+          }
+          if (itemMRef.current) {
+            const tM = calculateTelemetryTransform(progress, 0.66, 0.74, 0.86, 0.94);
+            gsap.set(itemMRef.current, { opacity: tM.opacity, y: tM.y });
+          }
+
+          // Centered DOWN indicator fade near section transition
+          if (scrollIndicatorRef.current) {
+            const downOpacity = progress > 0.90 ? Math.max(0, (1 - (progress - 0.90) / 0.08) * 0.75) : 0.75;
+            gsap.set(scrollIndicatorRef.current, { opacity: downOpacity });
           }
 
           // -------------------------------------------------------------
-          // 2. 3D CUBE MOTION PHASES
+          // 3. 3D CUBE MOTION PHASES
           // -------------------------------------------------------------
           if (progress <= p_Tumble) {
             // PHASE 1: TUMBLE ENTRANCE (Tumbles from deep space into scale 1.35)
@@ -149,7 +199,6 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
             currentScale = 1.35 * ease;
             currentX = -15 * (1 - ease) + 360 * ease;
             currentY = baseRotY * (1 - ease) + targetY_Phase1 * ease;
-            setActiveFace(0);
           } else if (progress <= p_Spin) {
             // PHASE 2: EXHIBIT SPIN TOUR THROUGH THE 4 FACES
             // Scale stays locked at 1.35, X stays at 360 (upright in perspective)
@@ -159,22 +208,12 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
             currentScale = 1.35;
             currentX = 360;
             currentY = targetY_Phase1 + 360 * pr;
-
-            // Symmetrical quadrant indexing for HUD tabs
-            let faceIdx = 0;
-            if (pr < 0.125) faceIdx = 0;
-            else if (pr < 0.375) faceIdx = 1;
-            else if (pr < 0.625) faceIdx = 2;
-            else if (pr < 0.875) faceIdx = 3;
-            else faceIdx = 0;
-            setActiveFace(faceIdx);
           } else {
             // REST AT SECTION END: Cube maintains its exact 3D solid volume,
             // identical face style, and scale (1.35) without expanding or flattening.
             currentScale = 1.35;
             currentX = 360;
             currentY = targetY_Phase1 + 360;
-            setActiveFace(0);
           }
 
           // Apply dynamic CSS variables and transforms matching nudot
@@ -217,26 +256,19 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
     if (quickTiltY.current) quickTiltY.current(0);
   }, []);
 
-  // Jump directly to face via HUD pills
-  const handleJumpToFace = (faceIndex: number) => {
+  // Smooth scroll down prompt handler
+  const handleScrollDown = useCallback(() => {
     const section = sectionRef.current;
     if (!section) return;
 
-    // Target scroll progress calibrated to center each exhibit face in 3D orbit
-    const progressMap = [0.30, 0.43, 0.58, 0.73];
-    const targetP = progressMap[faceIndex] ?? 0;
-
-    const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-    const scrollableDistance = section.offsetHeight - window.innerHeight;
-    const targetScrollY = sectionTop + targetP * scrollableDistance;
-
+    const scrollStep = window.innerHeight * 0.85;
     const lenis = (window as any).lenis;
     if (lenis) {
-      lenis.scrollTo(targetScrollY, { duration: 1.2 });
+      lenis.scrollTo(window.scrollY + scrollStep, { duration: 1.0 });
     } else {
-      window.scrollTo({ top: targetScrollY, behavior: "smooth" });
+      window.scrollBy({ top: scrollStep, behavior: "smooth" });
     }
-  };
+  }, []);
 
   return (
     <section
@@ -248,46 +280,23 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
       onMouseLeave={handleMouseLeave}
     >
       {/* Pinned Viewport Stage */}
-      <div className="sticky top-0 left-0 w-full h-screen overflow-hidden flex flex-col justify-between items-center bg-[#050505] z-20">
+      <div className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-[#050505] z-20">
         
         {/* Subtle radial spotlight & micro grid */}
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,rgba(222,52,33,0.07)_0%,rgba(15,15,15,0.7)_50%,rgba(5,5,5,1)_85%)] z-0" />
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px] z-0" />
 
         {/* =================================================================
-            TOP HEADER BAR (UniMAP Malaysian Research)
+            BACKGROUND LAYER: SEQUENTIAL CORNER TELEMETRY (U, N, I, M)
+            Each corner block appears one by one with scroll progress
             ================================================================= */}
-        <header className="relative w-full px-6 md:px-12 pr-20 md:pr-32 pt-6 flex items-center justify-between z-30 font-mono text-[10px] md:text-xs uppercase tracking-wider text-neutral-400">
-          <div className="flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-[#de3421] animate-pulse" />
-            <span className="font-bold text-white tracking-widest">
-              Section 04 // Research Experience
-            </span>
-            <span className="hidden sm:inline text-neutral-600">•</span>
-            <span className="hidden sm:inline text-neutral-400">
-              Universiti Malaysia Perlis (UniMAP)
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3 text-[10px]">
-            <span className="hidden md:inline text-neutral-500 font-mono">
-              6.4449° N, 100.1982° E
-            </span>
-            <span className="px-2.5 py-1 rounded border border-white/10 bg-white/5 text-[#de3421] font-bold">
-              AI-NATIVE 6G LAB
-            </span>
-          </div>
-        </header>
-
-        {/* =================================================================
-            BACKGROUND LAYER: FLOATING DOT-MATRIX PARALLAX (nudot stm-content)
-            ================================================================= */}
-        <div
-          ref={stmLayerRef}
-          className="absolute inset-0 pointer-events-none z-10 overflow-hidden will-change-transform"
-        >
+        <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
           {/* Top-Left: Large 'U' & Research Scope list */}
-          <div className="absolute top-28 md:top-32 left-8 md:left-16 flex items-start gap-4">
+          <div
+            ref={itemURef}
+            className="absolute top-16 md:top-24 left-6 md:left-14 flex items-start gap-4 will-change-transform"
+            style={{ opacity: 0 }}
+          >
             <span
               className="text-white opacity-85 leading-none select-none"
               style={{
@@ -308,7 +317,11 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
           </div>
 
           {/* Top-Right: Dot 'N' & Status */}
-          <div className="absolute top-28 md:top-32 right-8 md:right-16 flex flex-col items-end text-right">
+          <div
+            ref={itemNRef}
+            className="absolute top-16 md:top-24 right-6 md:right-14 flex flex-col items-end text-right will-change-transform"
+            style={{ opacity: 0 }}
+          >
             <span
               className="text-white opacity-85 leading-none select-none"
               style={{
@@ -326,7 +339,11 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
           </div>
 
           {/* Bottom-Left: Dot 'I' & Live Telemetry Cursor */}
-          <div className="absolute bottom-20 left-8 md:left-16 flex items-end gap-4">
+          <div
+            ref={itemIRef}
+            className="absolute bottom-16 md:bottom-20 left-6 md:left-14 flex items-end gap-4 will-change-transform"
+            style={{ opacity: 0 }}
+          >
             <span
               className="text-white opacity-85 leading-none select-none"
               style={{
@@ -347,7 +364,11 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
           </div>
 
           {/* Bottom-Right: Dot 'M' & Benchmarks */}
-          <div className="absolute bottom-20 right-8 md:right-16 flex items-end gap-4 text-right">
+          <div
+            ref={itemMRef}
+            className="absolute bottom-16 md:bottom-20 right-6 md:right-14 flex items-end gap-4 text-right will-change-transform"
+            style={{ opacity: 0 }}
+          >
             <div className="pb-3 font-mono text-[9px] md:text-[10px] text-neutral-400 uppercase tracking-widest">
               <div className="text-[#d5802a] font-bold">VALIDATION STATS:</div>
               <div>~62ms Infer Latency</div>
@@ -825,39 +846,40 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
         </div>
 
         {/* =================================================================
-            BOTTOM CONTROLS (HUD Navigation Pills & Down prompt)
+            DOWN SCROLL PROMPT (Authentic nudot pixel chevron)
+            Centered horizontally directly below the 3D cube
             ================================================================= */}
-        <footer className="relative w-full px-6 md:px-12 pb-6 flex flex-col sm:flex-row items-center justify-between gap-4 z-30 font-mono text-[11px] select-none">
-          {/* Interactive Face Pills */}
-          <div className="flex items-center gap-1.5 p-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-            {faces.map((f, idx) => (
-              <button
-                key={f.id}
-                onClick={() => handleJumpToFace(idx)}
-                className={`px-3 py-1.5 rounded-full transition-all duration-300 cursor-pointer text-[9.5px] tracking-wider uppercase font-bold flex items-center gap-1.5 ${
-                  activeFace === idx
-                    ? "bg-white text-black shadow-md scale-105"
-                    : "text-neutral-400 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {activeFace === idx && (
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ backgroundColor: f.accent }}
-                  />
-                )}
-                <span>{f.tabLabel}</span>
-              </button>
-            ))}
+        <div
+          ref={scrollIndicatorRef}
+          onClick={handleScrollDown}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleScrollDown();
+            }
+          }}
+          aria-label="Scroll down"
+          className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1.5 opacity-75 hover:opacity-100 transition-opacity cursor-pointer pointer-events-auto select-none group"
+        >
+          <div className="w-5 h-auto transition-transform duration-300 group-hover:translate-y-0.5">
+            <svg
+              viewBox="0 0 258 155"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-full h-auto"
+            >
+              <path
+                d="M257.8 51.5996L257.8 1.12688e-05L206.2 9.0133e-06L206.2 51.5996L257.8 51.5996ZM103.1 103.2L103.1 154.7L154.7 154.7L154.7 103.2L206.3 103.2L206.3 51.6006L154.7 51.6006L154.7 103.101L103.2 103.101L103.2 51.6006L51.5996 51.6006L51.5996 103.2L103.1 103.2ZM-2.25549e-06 51.5996L51.5996 51.5996L51.5996 2.25549e-06L0 0L-2.25549e-06 51.5996Z"
+                fill="white"
+              />
+            </svg>
           </div>
-
-          {/* Down Indicator */}
-          <div className="flex items-center gap-2 text-neutral-400 text-[9.5px] uppercase tracking-wider">
-            <span className="font-mono text-xs">⟪</span>
-            <span className="font-bold text-white tracking-widest">DOWN</span>
-            <span className="font-mono text-xs">⟫</span>
-          </div>
-        </footer>
+          <span className="font-mono text-[9.5px] tracking-[0.25em] text-white/90 uppercase font-medium">
+            DOWN
+          </span>
+        </div>
 
       </div>
     </section>

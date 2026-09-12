@@ -65,6 +65,7 @@ interface AvatarModelProps {
   mouse: { x: number; y: number };
   scrollProgressRef: React.MutableRefObject<number>;
   isGenerating?: boolean;
+  hasGenerated?: boolean;
   onGenerationProgress?: (progress: number) => void;
   onGenerationComplete?: () => void;
 }
@@ -75,6 +76,7 @@ function AvatarModel({
   mouse,
   scrollProgressRef,
   isGenerating = false,
+  hasGenerated = false,
   onGenerationProgress,
   onGenerationComplete,
 }: AvatarModelProps) {
@@ -86,17 +88,19 @@ function AvatarModel({
   const [laserY, setLaserY] = useState<number>(-10);
   const [isLaserActive, setIsLaserActive] = useState<boolean>(false);
 
-  // Dedicated liquid emergence uniforms referenced in GLSL shader
+  // Dedicated liquid emergence uniforms referenced in GLSL shader.
+  // Before the avatar has generated, uScanY defaults to -999.0 and uLiquidActive to 1.0,
+  // guaranteeing that zero fragments of the mesh can render or flicker prior to emergence.
   const liquidUniforms = useMemo(
     () => ({
-      uScanY: { value: -10.0 },
-      uLiquidActive: { value: 0.0 },
+      uScanY: { value: hasGenerated ? 999.0 : -999.0 },
+      uLiquidActive: { value: hasGenerated ? 0.0 : 1.0 },
       uTime: { value: 0.0 },
       uRimColor: { value: new THREE.Color("#1438f2") }, // Deep cobalt / royal blue
       uCrestColor: { value: new THREE.Color("#60a5fa") }, // Electric sapphire highlight
       uRimWidth: { value: 0.085 },
     }),
-    []
+    [hasGenerated]
   );
 
   // Expose activeSection to ref to prevent R3F stale closures
@@ -216,13 +220,13 @@ function AvatarModel({
     // Pitch: 0.4 rad (tilts face down to look straight at screen), Yaw: -0.85 rad (aligns face forward)
     scene.rotation.set(0.4, -0.85, 0);
 
-    // Play shape key blink action loop only when not in initial generation
+    // Play shape key blink action loop only when already generated and not in generation
     const blinkAction = actions["white_mesh (1)Action.004"];
-    if (blinkAction && !isGenerating) {
+    if (blinkAction && hasGenerated && !isGenerating) {
       blinkAction.reset().fadeIn(0.5).play();
       blinkAction.setLoop(THREE.LoopRepeat, Infinity);
     }
-  }, [actions, scene, liquidUniforms, isGenerating]);
+  }, [actions, scene, liquidUniforms, isGenerating, hasGenerated]);
 
   // 2. Cinematic Liquid Emergence Sequence
   useEffect(() => {
@@ -530,7 +534,13 @@ function AvatarModel({
 
   return (
     <>
-      <group ref={groupRef} dispose={null} scale={[0.576, 0.576, 0.576]} position={[0, 0, 0]}>
+      <group
+        ref={groupRef}
+        dispose={null}
+        scale={[0.576, 0.576, 0.576]}
+        position={[0, 0, 0]}
+        visible={hasGenerated || isGenerating}
+      >
         {/* Front key light to illuminate the chrome face during tunnel travel */}
         <directionalLight position={[1, 1, 3]} intensity={1.5} color="#ffffff" />
         <directionalLight position={[-1, 1.5, 2.5]} intensity={0.5} color="#ffffff" />
@@ -1023,6 +1033,7 @@ interface About3DProps {
   mouse: { x: number; y: number };
   scrollProgressRef: React.MutableRefObject<number>;
   isGenerating?: boolean;
+  hasGenerated?: boolean;
   onGenerationProgress?: (progress: number) => void;
   onGenerationComplete?: () => void;
 }
@@ -1035,6 +1046,7 @@ export default function About3D({
   mouse,
   scrollProgressRef,
   isGenerating,
+  hasGenerated,
   onGenerationProgress,
   onGenerationComplete,
 }: About3DProps) {
@@ -1072,6 +1084,7 @@ export default function About3D({
             mouse={mouse}
             scrollProgressRef={scrollProgressRef}
             isGenerating={isGenerating}
+            hasGenerated={hasGenerated}
             onGenerationProgress={onGenerationProgress}
             onGenerationComplete={onGenerationComplete}
           />

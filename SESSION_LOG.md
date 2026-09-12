@@ -1,5 +1,55 @@
 # Session Log
 
+## [2026-09-12 22:30] Eliminated 3D Head Flicker on About Drawer Open
+- **Accomplishments**:
+  - **Identified Single-Frame Head Flash Root Cause**:
+    - Extracted dense frames at 30 fps from user reference video (`Screen Recording 2026-09-12 213844.mp4`, 00:00:00 to 00:00:02) using OpenCV.
+    - Pinpointed the flash to Frame 025 (0.833s), where the full unclipped chrome avatar rendered over the About headline for 1 frame before disappearing at Frame 026 (0.867s) and starting liquid emergence at 1.500s.
+    - Traced root cause to two factors:
+      1. Default shader uniforms in [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx) initialized `uLiquidActive: 0.0` and `uScanY: 0.0`. Before `useEffect` could arm the liquid uniforms upon `isGenerating` becoming true, the GPU fragment shader allowed all geometry fragments to pass without discard.
+      2. The `<group>` containing the avatar mesh had no conditional visibility gate, rendering during the drawer's initial slide-in delay.
+  - **Zero-Flicker Emergence Architecture**:
+    - Added `hasGenerated?: boolean` prop through [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx) and [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx).
+    - Initialized `liquidUniforms` dynamically: `uScanY: hasGenerated ? 999.0 : -999.0` and `uLiquidActive: hasGenerated ? 0.0 : 1.0`. For ungenerated state, all fragments are strictly discarded at shader compile/mount time (`effY > -999.0` evaluates true).
+    - Gated `<group visible={hasGenerated || isGenerating}>` so Three.js ignores the mesh during drawer entrance prior to emergence.
+    - Guarded blinking animation loop so it only plays when `hasGenerated && !isGenerating`.
+    - Protected tap interaction overlay (`hasGenerated ? "pointer-events-auto" : "pointer-events-none"`).
+  - **Playwright Verification & Production Build**:
+    - Verified live behavior across drawer opening, liquid emergence rise, eye-opening completion, and drawer close/re-open.
+    - Confirmed zero visual flicker or premature mesh flash.
+    - `next build` passed with exit code 0.
+    - Updated AST knowledge graph via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/About3D.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About3D.tsx): Added `hasGenerated` prop, configured default clipping uniforms, gated group visibility and blink loop.
+  - [`src/components/About.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/About.tsx): Passed `hasGenerated` to `<About3D />`, gated tap hitbox.
+
+
+
+## [2026-09-12 21:35] Experience Section Refinements: Removed Header & HUD Pills, Centered DOWN Prompt, Staggered Corner Telemetry
+- **Accomplishments**:
+  - **Removed Red-Circled Elements**:
+    - Removed the top header bar (`Section 04 // Research Experience` and `6.4449° N, 100.1982° E AI-NATIVE 6G LAB`) from [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx).
+    - Removed the bottom HUD navigation pills (`[01 LAB]`, `[02 LAMTT]`, `[03 EDGE ENGINE]`, `[04 WIRELESS SENSING]`) and retired unused React state (`activeFace`) for zero unnecessary scroll re-renders.
+  - **Moved Yellow-Circled Element (DOWN Prompt)**:
+    - Moved the `DOWN` indicator from the bottom-right corner to horizontally centered directly below the 3D cube (`absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2`).
+    - Integrated authentic nudot 5-square pixel chevron SVG (`258x155` viewBox) and uppercase monospace `DOWN` typography.
+    - Added click-to-scroll functionality supporting Lenis smooth scroll and native fallback, and added graceful fade-out as section ends.
+  - **Sequential Staggered Scroll for Green-Circled Corner Elements**:
+    - Assigned dedicated refs (`itemURef`, `itemNRef`, `itemIRef`, `itemMRef`) to each corner telemetry block.
+    - Implemented `calculateTelemetryTransform` mapping each corner block to its respective exhibit phase:
+      - `U` (Research Scope): Active during Exhibit 01 tumble entrance (`0.04 -> 0.38`).
+      - `N` (Faculty of Intelligent Computing): Enters during Exhibit 02 LAMTT orbit (`0.30 -> 0.56`).
+      - `I` (System Telemetry: Edge Nodes Online): Enters during Exhibit 03 Edge Engine orbit (`0.48 -> 0.74`).
+      - `M` (Validation Stats: ~62ms Infer Latency): Enters during Exhibit 04 Wireless Sensing orbit (`0.66 -> 0.94`).
+    - Each block smoothly glides upward from `+30px` to `0px` during entrance, floats subtly (`-12px`) during its active showcase, and floats away to `-42px` as it fades out.
+  - **Build & Verification**:
+    - `next build` compiled cleanly with 0 errors.
+    - Verified live rendering across all 4 phases using Playwright browser screenshots.
+    - Updated AST knowledge graph via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Removed header and HUD pills, centered DOWN button, implemented sequential corner telemetry choreography.
+
+
 ## [2026-09-12 19:50] Eliminated Cube Face Expansion & Preserved Consistent 3D Styling at End of Experience
 - **Accomplishments**:
   - **Decoded End-of-Section Visual Regression**:
