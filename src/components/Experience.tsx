@@ -91,13 +91,12 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
       if (!section || !sceneWrapper || !scene || !cube || !cubeTilt || !titleMarquee) return;
 
       // Mouse tilt decoupled from scroll timeline
-      quickTiltX.current = gsap.quickTo(cubeTilt, "rotateX", { duration: 0.6, ease: "power2.out" });
-      quickTiltY.current = gsap.quickTo(cubeTilt, "rotateY", { duration: 0.6, ease: "power2.out" });
+      quickTiltX.current = gsap.quickTo(cubeTilt, "rotationX", { duration: 0.6, ease: "power2.out" });
+      quickTiltY.current = gsap.quickTo(cubeTilt, "rotationY", { duration: 0.6, ease: "power2.out" });
 
       // Thresholds calibrated for Yash's portfolio Experience section
       const p_Tumble = 0.28; // Tumble entrance complete
-      const p_Spin = 0.84;   // Spin through 4 faces complete
-      const p_Zoom = 1.00;   // Hero zoom phase
+      const p_Spin = 0.88;   // Spin through 4 faces complete (returns to Face 01 at 0.88 and rests)
 
       const baseRotY = -45;
       const targetY_Phase1 = 360;
@@ -111,15 +110,12 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
         onUpdate: (self) => {
           const progress = self.progress;
           const winW = window.innerWidth;
-          const winH = window.innerHeight;
           const isMobile = winW <= 768;
 
           let currentScale = 0.001;
           let currentX = -15;
           let currentY = baseRotY;
-          let currentSceneSize = isMobile ? 180 : baseSceneSize;
-
-          const zoomedSceneSize = Math.min(winW * 0.75, winH * 0.75);
+          const currentSceneSize = isMobile ? 180 : baseSceneSize;
 
           // -------------------------------------------------------------
           // 1. BACKGROUND TEXT MASKED REVEAL & VERTICAL PARALLAX
@@ -130,29 +126,23 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
             const marqueeEase = easeInOutCubic(revealPr);
             const yOffset = (1 - marqueeEase) * 130;
             gsap.set(titleMarquee, { y: `${yOffset}%` });
-          } else if (progress <= p_Spin) {
-            // Spin phase: marquee stays fully visible at 0%
-            gsap.set(titleMarquee, { y: "0%" });
           } else {
-            // Zoom phase: marquee exits upward (-130%)
-            const exitPr = Math.max(0, Math.min((progress - p_Spin) / (p_Zoom - p_Spin), 1));
-            const exitEase = easeInOutCubic(exitPr);
-            gsap.set(titleMarquee, { y: `-${exitEase * 130}%` });
+            // Exhibit tour & section rest: marquee stays fully visible at 0%
+            gsap.set(titleMarquee, { y: "0%" });
           }
 
-          // Parallax float on background dot letters & lists (fades out cleanly during hero zoom)
+          // Parallax float on background dot letters & lists
           if (stmLayer) {
             const stmParallax = (progress - 0.5) * -40;
-            const zoomFade = progress > p_Spin ? Math.max(0, 1 - (progress - p_Spin) / 0.05) : 1;
             const entranceFade = Math.min(progress * 4, 1);
-            gsap.set(stmLayer, { y: stmParallax, opacity: entranceFade * zoomFade });
+            gsap.set(stmLayer, { y: stmParallax, opacity: entranceFade });
           }
 
           // -------------------------------------------------------------
           // 2. 3D CUBE MOTION PHASES
           // -------------------------------------------------------------
           if (progress <= p_Tumble) {
-            // PHASE 1: TUMBLE ENTRANCE (Exact nudot math: -15deg -> 360deg along X, baseRotY -> 360deg along Y)
+            // PHASE 1: TUMBLE ENTRANCE (Tumbles from deep space into scale 1.35)
             const pr = progress / p_Tumble;
             const ease = easeInOutCubic(pr);
 
@@ -163,28 +153,25 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
           } else if (progress <= p_Spin) {
             // PHASE 2: EXHIBIT SPIN TOUR THROUGH THE 4 FACES
             // Scale stays locked at 1.35, X stays at 360 (upright in perspective)
-            // Y smoothly spins 360deg across the 4 faces: Front -> Left -> Back -> Right
+            // Y smoothly spins 360deg across the 4 faces: Front -> Left -> Back -> Right -> Front
             const pr = (progress - p_Tumble) / (p_Spin - p_Tumble);
 
             currentScale = 1.35;
             currentX = 360;
             currentY = targetY_Phase1 + 360 * pr;
 
-            // Quadrant indexing for HUD tabs
+            // Symmetrical quadrant indexing for HUD tabs
             let faceIdx = 0;
-            if (pr < 0.25) faceIdx = 0;
-            else if (pr < 0.50) faceIdx = 1;
-            else if (pr < 0.75) faceIdx = 2;
-            else faceIdx = 3;
+            if (pr < 0.125) faceIdx = 0;
+            else if (pr < 0.375) faceIdx = 1;
+            else if (pr < 0.625) faceIdx = 2;
+            else if (pr < 0.875) faceIdx = 3;
+            else faceIdx = 0;
             setActiveFace(faceIdx);
           } else {
-            // PHASE 3: HERO ZOOM (Expands scene size into full viewport focus)
-            const pr = (progress - p_Spin) / (p_Zoom - p_Spin);
-            const ease = easeInOutCubic(pr);
-
-            const spinDisplaySize = (isMobile ? 180 : baseSceneSize) * 1.35;
-            currentSceneSize = spinDisplaySize + (zoomedSceneSize - spinDisplaySize) * ease;
-            currentScale = 1.0;
+            // REST AT SECTION END: Cube maintains its exact 3D solid volume,
+            // identical face style, and scale (1.35) without expanding or flattening.
+            currentScale = 1.35;
             currentX = 360;
             currentY = targetY_Phase1 + 360;
             setActiveFace(0);
@@ -236,7 +223,7 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
     if (!section) return;
 
     // Target scroll progress calibrated to center each exhibit face in 3D orbit
-    const progressMap = [0.32, 0.48, 0.65, 0.82];
+    const progressMap = [0.30, 0.43, 0.58, 0.73];
     const targetP = progressMap[faceIndex] ?? 0;
 
     const sectionTop = section.getBoundingClientRect().top + window.scrollY;

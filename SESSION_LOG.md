@@ -1,5 +1,36 @@
 # Session Log
 
+## [2026-09-12 19:50] Eliminated Cube Face Expansion & Preserved Consistent 3D Styling at End of Experience
+- **Accomplishments**:
+  - **Decoded End-of-Section Visual Regression**:
+    - Analyzed user screen recording (`Screen Recording 2026-09-10 224309.mp4` 00:00:00–00:00:09) and reference frames.
+    - Diagnosed that Phase 3 ("Hero Zoom") was expanding `--scene-size` up to `min(winW * 0.75, winH * 0.75)` (~750px+), forcing the Face 01 layout to stretch awkwardly into a giant flat window while dropping `currentScale` and fading out background typography.
+  - **Preserved Constant 3D Solid Cube Geometry**:
+    - Removed `zoomedSceneSize` expansion completely.
+    - Locked `currentSceneSize` to `baseSceneSize` (or `180px` on mobile) and `currentScale = 1.35` continuously throughout the exhibit tour and the resting state at the end of the section.
+    - Kept the continuous dot-matrix marquee (`titleMarquee`) and the background telemetry letters (`stmLayer`) fully visible without fading or exiting.
+    - Calibrated HUD face jump mapping (`progressMap = [0.30, 0.43, 0.58, 0.73]`) with symmetrical quadrant indexing.
+  - **Build & Live Browser Verification**:
+    - `next build` compiled cleanly with exit code 0.
+    - Verified in browser at 92% scroll offset: Face 01 remains in its compact, physical instrument card styling with 3D perspective and background telemetry intact.
+    - Updated AST knowledge graph via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Removed Phase 3 zoom expansion, kept constant 3D volume, stabilized background marquee and HUD tracking.
+
+## [2026-09-12 19:33] Resolved GSAP quickTo Reset Warnings in Experience Component
+- **Accomplishments**:
+  - **Identified Warning Root Cause**:
+    - Traced `rotateX not eligible for reset. Try splitting into individual properties` to `gsap.quickTo` in [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx).
+    - Identified that `Hero3D.tsx:23:18` appeared as the source because it globally wraps `console.warn` to filter Three.js deprecations.
+    - Diagnosed that GSAP's `quickTo` requires canonical transform names (`rotationX`, `rotationY`) rather than property aliases (`rotateX`, `rotateY`), as alias lookup fails internal PropTween comparison.
+  - **Applied Canonical GSAP Properties**:
+    - Updated `quickTiltX` and `quickTiltY` in [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx) to target `rotationX` and `rotationY`.
+  - **Build Verification**:
+    - `next build` compiled cleanly with exit code 0.
+    - Updated AST knowledge graph via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Replaced `rotateX`/`rotateY` with `rotationX`/`rotationY` in `quickTo`.
+
 ## [2026-09-10 20:55] Refined Experience 3D Cube Motion & Perspective (Variant B Implemented)
 - **Accomplishments**:
   - **Solved Forward Pitch Slant**:
@@ -20,7 +51,7 @@
 - **Key Files Modified**:
   - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Perspective origin, base transform, and GSAP timeline keyframe motion pipeline updated.
 
-
+## [2026-09-10 19:30] Integrated Research Experience Section & 3D Rotating Showcase Cube
 - **Accomplishments**:
   - **Decoded Visual Reference (`Screen Recording 2026-09-02 200003.mp4` 00:03–00:09)**:
     - Extracted and analyzed frame sequences from user's screen recording showcasing a cinematic pinned dark stage with giant circular dot-matrix punch-card typography scrolling horizontally in the background, and a 3D rotating showcase cube in perspective space presenting multi-face engineering exhibits.
