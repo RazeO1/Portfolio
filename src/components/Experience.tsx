@@ -126,12 +126,25 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
       const baseRotY = -45;
       const targetY_Phase1 = 360;
 
+      // Ensure marquee and cube start completely hidden before scroll entrance
+      gsap.set(titleMarquee, { y: "130%" });
+
       ScrollTrigger.create({
         trigger: section,
         start: "top top",
         end: "bottom bottom",
         scrub: 0.5,
         invalidateOnRefresh: true,
+        onLeaveBack: () => {
+          gsap.set(titleMarquee, { y: "130%" });
+          if (itemURef.current) gsap.set(itemURef.current, { opacity: 0, y: 30 });
+          if (itemNRef.current) gsap.set(itemNRef.current, { opacity: 0, y: 30 });
+          if (itemIRef.current) gsap.set(itemIRef.current, { opacity: 0, y: 30 });
+          if (itemMRef.current) gsap.set(itemMRef.current, { opacity: 0, y: 30 });
+          if (scene) {
+            gsap.set(scene, { scale: 0.001, rotationX: -15, rotationY: baseRotY });
+          }
+        },
         onUpdate: (self) => {
           const progress = self.progress;
           const winW = window.innerWidth;
@@ -274,17 +287,16 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
     <section
       ref={sectionRef}
       id="experience"
-      className="relative w-full bg-[#050505] text-white select-none z-20"
+      className="relative w-full bg-transparent text-white select-none z-20"
       style={{ height: "420vh" }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
       {/* Pinned Viewport Stage */}
-      <div className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-[#050505] z-20">
+      <div className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-transparent z-20">
         
         {/* Subtle radial spotlight & micro grid */}
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,rgba(222,52,33,0.07)_0%,rgba(15,15,15,0.7)_50%,rgba(5,5,5,1)_85%)] z-0" />
-        <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px] z-0" />
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,rgba(222,52,33,0.08)_0%,rgba(15,15,15,0.25)_50%,transparent_85%)] z-0" />
 
         {/* =================================================================
             BACKGROUND LAYER: SEQUENTIAL CORNER TELEMETRY (U, N, I, M)
@@ -400,6 +412,7 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
           <div
             ref={titleMarqueeRef}
             className="w-full will-change-transform flex items-center"
+            style={{ transform: "translateY(130%)" }}
           >
             <div
               ref={marqueeInnerRef}

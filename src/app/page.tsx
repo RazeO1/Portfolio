@@ -10,6 +10,7 @@ import Showcase from "@/components/Showcase";
 import Skills from "@/components/Skills";
 import Experience from "@/components/Experience";
 import Projects from "@/components/Projects";
+import Contact from "@/components/Contact";
 import SectionNavbar from "@/components/SectionNavbar";
 import Lenis from "lenis";
 import gsap from "gsap";
@@ -281,48 +282,23 @@ export default function Home() {
         {/* Skills Section (Paul Kalkbrenner Architectural Grid) */}
         <Skills onOpenAbout={() => handleOpenAbout("right")} />
 
-        {/* Experience Section (Universiti Malaysia Perlis 6G AI & Rotating Showcase Cube) */}
-        <Experience onOpenAbout={() => handleOpenAbout("right")} />
+        {/* Unified Continuous Dark Canvas: Experience + Projects + Contact */}
+        <div id="unified-canvas-container" className="relative w-full bg-[#050505]">
+          {/* Continuous Micro Dot Grid across Experience, Projects & Contact */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px] z-0" />
 
-        {/* Projects Section (Runway Timeline Slideshow) */}
-        <Projects onOpenAbout={() => handleOpenAbout("right")} />
+          {/* Section Foregrounds */}
+          <div className="relative z-10 w-full">
+            {/* Experience Section (Universiti Malaysia Perlis 6G AI & Rotating Showcase Cube) */}
+            <Experience onOpenAbout={() => handleOpenAbout("right")} />
 
-        {/* Contact Section */}
-        <section
-          id="contact"
-          className="relative w-full min-h-screen bg-[#0A0A0A] text-white flex flex-col justify-center px-6 md:px-12 lg:px-24 py-20 select-none border-t border-white/5"
-        >
-          <div className="max-w-4xl space-y-8">
-            <span className="font-mono text-xs md:text-sm uppercase tracking-widest text-[#d5802a] font-bold">
-              Section 06 / Get in Touch
-            </span>
-            <h2 className="font-display font-medium text-4xl md:text-6xl text-white tracking-tight">
-              Let&apos;s build something.
-            </h2>
-            <p className="font-sans text-neutral-400 text-sm md:text-base leading-relaxed max-w-xl">
-              I&apos;m always interested in hearing about new projects, creative collaborations, or opportunities to design and engineer premium digital experiences.
-            </p>
-            
-            <div className="flex flex-col gap-4 font-mono text-xs md:text-sm uppercase tracking-wider pt-4">
-              <div>
-                <span className="text-neutral-500 mr-4">Write to me:</span>
-                <a href="mailto:hiiam@yashraj.dev" className="text-white hover:line-through transition-all">hiiam@yashraj.dev</a>
-              </div>
-              <div className="flex gap-6 mt-4">
-                <a href="https://github.com/yraze" target="_blank" rel="noreferrer" className="text-neutral-400 hover:text-white hover:line-through transition-all">GitHub</a>
-                <a href="https://www.linkedin.com/in/yraze" target="_blank" rel="noreferrer" className="text-neutral-400 hover:text-white hover:line-through transition-all">LinkedIn</a>
-                <a href="https://www.instagram.com/i_leo07" target="_blank" rel="noreferrer" className="text-neutral-400 hover:text-white hover:line-through transition-all">Instagram</a>
-              </div>
-            </div>
+            {/* Projects Section (Runway Timeline Slideshow) */}
+            <Projects onOpenAbout={() => handleOpenAbout("right")} />
+
+            {/* Contact Section (Monumental brutalist design matching reference) */}
+            <Contact onOpenAbout={() => handleOpenAbout("right")} />
           </div>
-        </section>
-
-        {/* Footer */}
-        <footer className="w-full py-8 text-center bg-[#0A0A0A] border-t border-white/5">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-neutral-600 font-bold">
-            YASH RAJ © 2026 • PORTFOLIO
-          </p>
-        </footer>
+        </div>
       </div>
 
       {/* Single Fixed Section-Adaptive Navbar (active from Sketchbook downwards, dynamic palette) */}

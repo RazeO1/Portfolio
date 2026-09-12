@@ -155,10 +155,8 @@ export default function Loader({ onComplete }: LoaderProps) {
 
   // 3. GSAP Animations & Ticker
   useGSAP(
-    (context, contextSafe) => {
-      if (!contextSafe) return;
-
-      const triggerExit = contextSafe(() => {
+    () => {
+      const triggerExit = () => {
         if (isExiting.current) return;
         isExiting.current = true;
 
@@ -203,6 +201,7 @@ export default function Loader({ onComplete }: LoaderProps) {
           {
             backgroundColor: "rgba(243, 240, 237, 0)", // transition to transparent
             backdropFilter: "blur(0px)",
+            opacity: 0,
             duration: 0.6,
             ease: "power2.inOut",
           },
@@ -219,7 +218,7 @@ export default function Loader({ onComplete }: LoaderProps) {
           },
           "-=0.7"
         );
-      });
+      };
 
       triggerExitRef.current = triggerExit;
 

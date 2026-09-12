@@ -412,7 +412,7 @@ export default function Projects({
     <section
       ref={sectionRef}
       id="projects"
-      className="relative w-full h-[450vh] bg-[#0A0A0A] text-white selection:bg-[#de3421] selection:text-white"
+      className="relative w-full h-[450vh] bg-transparent text-white selection:bg-[#de3421] selection:text-white"
     >
       {/* =========================================================================
           PINNED STAGE VIEWPORT (Exact match to Nudot Studio 00:00:16 - 00:00:25)
@@ -422,9 +422,6 @@ export default function Projects({
         ref={pinnedStageRef}
         className="sticky top-0 left-0 w-full h-screen overflow-hidden flex items-center justify-center select-none"
       >
-        {/* Atmospheric vignette & soft left-side spotlight */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
-        <div className="absolute -left-32 top-1/2 -translate-y-1/2 w-[720px] h-[720px] bg-white/[0.045] rounded-full blur-[150px] pointer-events-none" />
 
         {/* Top Pinned Metadata Bar */}
         <header className="absolute top-6 md:top-8 left-6 md:left-12 right-6 md:right-12 flex items-center justify-center font-mono text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-neutral-500 z-0 pointer-events-none">

@@ -1,5 +1,107 @@
 # Session Log
 
+## [2026-09-13 00:15] Removed Y' Header Monogram & Unified Background Across Projects and Contact
+- **Accomplishments**:
+  - **Removed Red-Circled Y' Monogram from Contact Header**:
+    - Removed `Y' // CONTACT • 2026` from the top-left of [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx) as requested in user feedback screenshot (`Screenshot 2026-09-12 235831.png`).
+    - Adjusted the header to `justify-end` so the studio telemetry (`AVAILABLE FOR WORK`) and live clock remain pinned cleanly on the right.
+  - **Unified Canvas Background Between Projects and Contact (Eliminated Seam)**:
+    - Diagnosed the cause of the distinct background in the orange-circled area between Projects and Contact:
+      - `Projects.tsx` had a local `720px` white glow (`bg-white/[0.045]`) that abruptly cut off when its pinned viewport stage ended, elevating RGB from `#050505` (5, 5, 5) to (13, 13, 13).
+      - Both `Projects.tsx`, `Contact.tsx`, and `Experience.tsx` had duplicate local dot-grids stacking at different opacities on top of the parent container.
+    - Removed all local spotlight circles and duplicate dot-grids from `Projects.tsx`, `Contact.tsx`, and `Experience.tsx`.
+    - Let the master `#unified-canvas-container` in `page.tsx` provide the single continuous `#050505` background and micro dot-grid.
+    - Python pixel sampling verified 100% uniform RGB `(5, 5, 5)` across the entire Projects-to-Contact transition.
+  - **Build & Verification**:
+    - Production build (`npm run build`) passed with zero errors.
+    - Verified live transition in browser via Playwright screenshot.
+    - Updated AST knowledge graph with `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx): Removed `Y'` monogram, adjusted header alignment, and removed local glow and dot-grid.
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Removed local spotlight and duplicate dot-grid.
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Removed duplicate dot-grid.
+
+## [2026-09-12 23:58] Enhanced Contact Name Scale, Boldness & Added Brutalist Diagonal Arrow
+- **Accomplishments**:
+  - **Monumental Scale & Enhanced Boldness for Name**:
+    - Increased `YASH RAJ` typography to `text-[17.2vw] sm:text-[17.8vw] lg:text-[18vw]` with tight `tracking-[-0.045em]`.
+    - Added `WebkitTextStroke: "0.018em currentColor"` alongside `font-black` (weight 900) to significantly boost the stroke density, solid visual weight, and punchy brutalist presence matching `NOTHIN'` in the reference poster screenshot.
+  - **Integrated Brutalist Diagonal Arrow**:
+    - Modeled after the reference screenshot mark at the end of `NOTHIN'`: placed immediately to the right of `RAJ` and aligned with the cap-height of the letters.
+    - Designed custom vector SVG diagonal arrow (`↗`) with `strokeWidth="3.8"`, `strokeLinecap="square"`, and `strokeLinejoin="miter"`, echoing the geometric flat-cut terminals of the font.
+    - Sized in relative font units (`0.38em`), guaranteeing responsive proportional scaling across mobile (390px) up to 4K displays.
+  - **Build & Live Browser Verification**:
+    - Next.js production build (`npm run build`) passed with zero errors.
+    - Verified live rendering across viewports (1440x900 desktop and 390x844 mobile) via Playwright.
+    - Updated AST knowledge graph with `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx): Scaled up h1 typography, added text stroke, and embedded responsive diagonal arrow SVG.
+
+## [2026-09-12 23:50] Removed GhostCursor Completely & Fixed Premature Experience Marquee Ribbon Visibility
+- **Accomplishments**:
+  - **Removed GhostCursor Entirely from Contact and Portfolio**:
+    - Removed `GhostCursor` import and component invocation from [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx).
+    - Permanently deleted `src/components/GhostCursor.tsx` and `src/components/GhostCursor.css`.
+    - Maintained pure, pristine `#050505` obsidian dark canvas with micro dot-grid across Experience, Projects, and Contact without any canvas or shader overhead.
+  - **Fixed Premature Marquee Ribbon Visibility in Experience Section**:
+    - Diagnosed visual bug from screen recording where the continuous dot-matrix marquee text ribbon (`RESEARCH INTERN (UniMAP) ...`) was prematurely visible when first scrolling down to Experience.
+    - Set initial transform `translateY(130%)` directly in JSX styles and GSAP initialization to ensure the marquee remains 100% hidden behind its mask before section activation.
+    - Added `onLeaveBack` in GSAP `ScrollTrigger` to cleanly reset the marquee, 3D cube scale (`0.001`), and corner telemetry blocks when scrolling back up into Skills.
+  - **Build & Verification**:
+    - Next.js production build (`cmd /c "npm run build"`) compiled cleanly with zero errors.
+    - Updated AST knowledge graph with `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx): Removed GhostCursor component and imports.
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Added initial `translateY(130%)` inline style, GSAP initial state, and `onLeaveBack` reset handler.
+  - Deleted `src/components/GhostCursor.tsx` and `src/components/GhostCursor.css`.
+
+## [2026-09-12 23:30] Unified Canvas Background across Experience, Projects, and Contact with Red GhostCursor in Contact
+- **Accomplishments**:
+  - **Unified Canvas Architecture Across Experience, Projects & Contact**:
+    - Removed the full-page sticky GhostCursor wrapper from across all three sections.
+    - Wrapped Experience, Projects, and Contact inside a single master container (`#unified-canvas-container`) sharing the identical deep obsidian black palette (`#050505`) and an aligned continuous 24px micro dot-grid (`opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)]`).
+    - Standardized backgrounds in `Experience.tsx`, `Projects.tsx`, and `Contact.tsx` to `bg-transparent`, eliminating dividing borders (`border-t border-white/10`) and background mismatch lines so the three sections look like one seamless, continuous dark canvas.
+  - **Red GhostCursor Effect in Contact Section**:
+    - Integrated `GhostCursor` exclusively into `Contact.tsx` positioned in the background (`zIndex: 0`).
+    - Configured the cursor trail with the portfolio's primary signature vermilion red (`#de3421`), high-fashion bloom, organic smoke turbulence, and smooth fade-out.
+    - Updated `GhostCursor.tsx` shader to discard sub-threshold bloom coverage (`coverage < 0.025`), eliminating any background haze and keeping the obsidian black background 100% pure and deep.
+  - **Build & Live Browser Verification**:
+    - Next.js production build (`next build`) compiled cleanly with exit code 0.
+    - Verified in live browser across Experience, Projects, and Contact using Playwright.
+    - Confirmed zero visual seams, crisp typography, and interactive red smoke trail in Contact.
+    - Updated AST knowledge graph via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Created unified `#unified-canvas-container` with continuous dot-grid for Experience, Projects, and Contact; removed global GhostCursor wrapper.
+  - [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx): Integrated red GhostCursor effect (`#de3421`), set `bg-transparent`, removed top border line.
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Updated section background to `bg-transparent` to inherit the unified `#050505` canvas.
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Set section and pinned stage to `bg-transparent` and softened radial spotlight.
+  - [`src/components/GhostCursor.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/GhostCursor.tsx): Added window-level hit testing, sub-threshold alpha discard, and default `normal` blend mode for pure black background transparency.
+
+## [2026-09-12 22:50] Created Monumental Brutalist Contact Section
+- **Accomplishments**:
+  - **Recreated Reference Screenshot Layout & Aesthetics**:
+    - Modeled after user reference image (`Screenshot 2026-09-07 201303.png`), replacing the placeholder contact section with a dedicated, monumental poster component ([`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx)).
+    - **Header Bar**: Features `Y'` monogram (inspired by the reference `N'`), studio telemetry (`// CONTACT • 2026`), live IST/Bengaluru clock, and active work availability status (`AVAILABLE FOR WORK`).
+    - **Headline**: High-impact, 2-line grotesque headline using `Inter Tight`: *"Let's start / something bold"* with tight `leading-[0.93]` and `tracking-[-0.035em]`.
+    - **Interactive Action Pills**: 4 pill buttons with crisp SVG icons, clean hover inversions, and micro-interactions:
+      1. **Drop an Email (`@`)**: Opens mailto and copies `hiiam@yashraj.dev` to clipboard with real-time feedback toast.
+      2. **Resume (`↓`)**: Dedicated download button prepared for `/resume.pdf` (`Yash_Raj_Resume.pdf`).
+      3. **GitHub (`↗`)**: Links directly to `https://github.com/yraze` with official GitHub Octocat SVG.
+      4. **LinkedIn (`↗`)**: Links directly to `https://www.linkedin.com/in/yraze` with official LinkedIn SVG.
+    - **Right Column Direct Channels**: Vertical channel list mirroring `Linkedin / Instagram / Behance` from reference, pairing each service with its official symbol and arrow indicator.
+    - **Full-Bleed Monumental Name**: Anchored edge-to-edge across the bottom with `text-[17vw]` bold uppercase `YASH RAJ`, subtly cropped at the bottom baseline for authentic editorial poster framing.
+  - **Cross-Platform Verification & Responsive Polish**:
+    - Tested across desktop (1440x900) and mobile (390x844) viewports via Playwright.
+    - Verified single-screen viewport fit (`h-screen min-h-[620px] max-h-[1080px]`).
+    - Fixed loader exit tween opacity to guarantee crisp entrance transitions.
+    - Production build (`next build`) and `graphify update .` completed with zero errors.
+- **Key Files Modified**:
+  - [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx): Brand-new dedicated Contact section component.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Replaced inline placeholder contact and footer with `<Contact />`.
+  - [`src/components/Loader.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Loader.tsx): Added `opacity: 0` to exit timeline tween for flawless background fade-out.
+
+
+
 ## [2026-09-12 22:30] Eliminated 3D Head Flicker on About Drawer Open
 - **Accomplishments**:
   - **Identified Single-Frame Head Flash Root Cause**:
