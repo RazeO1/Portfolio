@@ -261,7 +261,7 @@ export default function Home() {
       )}
 
       {/* Hero section */}
-      <div className="relative w-full z-10">
+      <div id="hero" className="relative w-full z-10">
         <Hero active={isLoaded} onOpenAbout={handleOpenAbout} onScrollToSection={handleScrollToSection} />
       </div>
 

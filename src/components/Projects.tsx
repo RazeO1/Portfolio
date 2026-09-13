@@ -423,13 +423,6 @@ export default function Projects({
         className="sticky top-0 left-0 w-full h-screen overflow-hidden flex items-center justify-center select-none"
       >
 
-        {/* Top Pinned Metadata Bar */}
-        <header className="absolute top-6 md:top-8 left-6 md:left-12 right-6 md:right-12 flex items-center justify-center font-mono text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-neutral-500 z-0 pointer-events-none">
-          <div className="text-neutral-400 font-semibold">
-            ENGINEERED SYSTEMS &bull; YASH RAJ
-          </div>
-        </header>
-
         {/* =========================================================================
             PINNED MONUMENTAL HEADLINE
             "ARCHIVE OF / THE SELECTED WORKS / BY YASH RAJ"

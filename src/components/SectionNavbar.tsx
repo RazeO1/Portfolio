@@ -52,13 +52,17 @@ export default function SectionNavbar({
       const projectsRect = projectsEl ? projectsEl.getBoundingClientRect() : null;
       const contactRect = contactEl ? contactEl.getBoundingClientRect() : null;
 
-      // Navbar begins at Sketchbook (Showcase)
-      // Reveals as soon as the user scrolls down into the Sketchbook section
+      // Navbar begins at Sketchbook (Showcase) and ends before Contact
+      // Strictly hidden on Hero section AND Contact section
       const inSketchbookOrBelow = showcaseRect.top <= 140;
+      const inContact = contactRect ? contactRect.top <= window.innerHeight * 0.5 : false;
 
-      if (!inSketchbookOrBelow) {
-        // Still in Hero section -> strictly hidden
+      if (!inSketchbookOrBelow || inContact) {
+        // Hidden on Hero and Contact sections
         setIsVisible(false);
+        if (inContact && isOpen) {
+          setIsOpen(false);
+        }
         return;
       }
 

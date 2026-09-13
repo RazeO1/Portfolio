@@ -1,5 +1,94 @@
 # Session Log
 
+## [2026-09-13 22:48] Removed Floating Navbar from Contact Section & Linked Bottom Name to Hero Section
+- **Accomplishments**:
+  - **Removed Floating Navbar from Contact Section**:
+    - Updated [`src/components/SectionNavbar.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/SectionNavbar.tsx) scroll handler to detect when the user reaches the Contact section (`contactRect.top <= window.innerHeight * 0.5`).
+    - Configured `setIsVisible(false)` and `setIsOpen(false)` when entering Contact so the floating navigation button completely disappears (`opacity-0 pointer-events-none`).
+    - The navbar seamlessly reappears when scrolling back up towards Projects or earlier sections.
+    - Symmetrized the Contact header padding (`px-6 md:px-12 lg:px-16`) and removed the mobile About button from [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx) to ensure zero navbar clutter.
+  - **Linked Monumental Name to Hero Section**:
+    - Added `id="hero"` to the Hero section container in [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx).
+    - Wrapped the monumental `YASH RAJ ↗` typography at the bottom of [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx) in an accessible interactive button.
+    - Attached smooth Lenis scroll (`lenis.scrollTo(0, { duration: 1.5 })` with `window.scrollTo` fallback) back up to the Hero section upon click.
+    - Added hover micro-interactions: cursor pointer, arrow translate `↗` + vermilion accent shift (`#de3421`), and text soft lightening.
+  - **Verification & Testing**:
+    - Ran Next.js production build (`cmd /c "npm run build"`) which completed with exit code 0.
+    - Verified via Playwright automation:
+      1. Confirmed `SectionNavbar` computed opacity is `"0"` and `pointerEvents: "none"` in Contact.
+      2. Clicked `YASH RAJ ↗` and verified smooth programmatic scroll from `scrollY = 13386.4` back to `scrollY = 0` (Hero section).
+    - Ran `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/SectionNavbar.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/SectionNavbar.tsx): Hidden on Contact section.
+  - [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx): Removed header navbar elements, made `YASH RAJ ↗` clickable to scroll to Hero.
+  - [`src/app/page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx): Added `id="hero"` to hero wrapper.
+  - [`SESSION_LOG.md`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/SESSION_LOG.md): Documented changes.
+
+
+- **Accomplishments**:
+  - **Redesigned Contact Section (`src/components/Contact.tsx`)**:
+    - Replaced the generic layout with the requested "Mission Control / Architectural Telemetry Blueprint" (Variant 1).
+    - Preserved essential personal elements:
+      - Monumental quote: *"Let's start something bold."* with vermilion period (`#de3421`).
+      - Studio telemetry: Live Bengaluru IST clock (`Asia/Kolkata`, UTC+5:30) and pulsing green beacon (`AVAILABLE FOR WORK`).
+      - Monumental cropped `YASH RAJ ↗` typography anchored edge-to-edge across the bottom baseline.
+    - Excluded the intent selector chips (`6G & ... Architecture`) as explicitly instructed.
+    - Added 2x2 architectural action matrix with subtle corner crosshair ticks (`+`), hairline borders, and hover micro-interactions:
+      1. `01 // DIRECT TRANSMISSION`: `hiiam@yashraj.dev` with 1-click clipboard copy feedback (`COPIED TO CLIPBOARD!` + animated ping indicator) and mailto fallback.
+      2. `02 // RESEARCH DOSSIER`: `Yash_Raj_Resume.pdf` with direct PDF download trigger.
+      3. `03 // CODE ARTIFACTS`: `github.com/yraze` with GitHub SVG icon and external link.
+      4. `04 // NETWORK WIRE`: `linkedin.com/in/yraze` with LinkedIn SVG icon and external link.
+    - Added studio geolocation coordinates: `// 12.9716° N, 77.5946° E • BENGALURU NODE`.
+    - Adjusted header right padding (`pr-20 md:pr-28 lg:pr-32`) to guarantee comfortable clearance from the fixed floating sound/navigation trigger button.
+    - Kept `bg-transparent` so the master continuous `#050505` obsidian canvas and dot grid from `#unified-canvas-container` remain seamless.
+  - **Verification & Build**:
+    - Ran Next.js production build (`cmd /c "npm run build"`) with 0 errors and clean static page generation.
+    - Live visual verification via Playwright in browser: confirmed layout, typography hierarchy, tick alignment, and live IST time.
+    - Updated AST knowledge graph using `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Contact.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Contact.tsx): Complete redesign to Blueprint Matrix Variant 1 without intent chips.
+  - [`SESSION_LOG.md`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/SESSION_LOG.md): Updated session history.
+
+
+- **Accomplishments**:
+  - **Removed Orange-Circled Header**:
+    - Removed `<header>` containing `ENGINEERED SYSTEMS • YASH RAJ` from [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx) as requested in user feedback screenshot (`Screenshot 2026-09-13 205554.png`).
+  - **Eliminated Yellow-Circled Canvas Background Seam Between Experience & Projects**:
+    - Extracted and enhanced contrast of the yellow-circled region using OpenCV (`amplified.png`).
+    - Discovered that [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx) still contained a local radial spotlight (`bg-[radial-gradient(circle_at_50%_50%,rgba(222,52,33,0.08)_0%,rgba(15,15,15,0.25)_50%,transparent_85%)]`).
+    - When Experience unpinned and scrolled up, this spotlight abruptly cut off along its pinned viewport boundary, jumping from warm glow RGB `(14, 8, 8)` / `(8, 8, 8)` to pure dark canvas RGB `(5, 5, 5)`.
+    - Removed this local radial gradient from `Experience.tsx`, leaving Experience, Projects, and Contact 100% `bg-transparent`.
+    - Both sections now directly expose the continuous `#050505` obsidian canvas and aligned 24px micro dot-grid from `#unified-canvas-container` in [`page.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/app/page.tsx).
+    - Verified 100% pixel uniformity across the scroll boundary (`BGR=(5, 5, 5)` across all test coordinates).
+  - **Build & Verification**:
+    - Verified live transition in browser via Playwright screenshot.
+    - Production build (`cmd /c "npm run build"`) passed with zero errors.
+    - Updated AST knowledge graph with `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Removed `ENGINEERED SYSTEMS • YASH RAJ` header bar.
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Removed local radial spotlight.
+
+## [2026-09-13 20:53] Fixed Experience Cube Disappearing on Subsequent Scroll Re-entrances
+- **Accomplishments**:
+  - **Diagnosed Frame-by-Frame Regression from User Video**:
+    - Analyzed user screen recording (`Screen Recording 2026-09-13 202113.mp4`, 00:00:05 to 00:00:12) by extracting dense frames at 30 fps using OpenCV.
+    - Pinpointed that on initial scroll into Experience, the 3D cube rendered and tumbled properly. However, when scrolling back up into Skills and scrolling down into Experience again, the cube was completely absent while background telemetry and marquee continued to render.
+    - Traced root cause to `onLeaveBack` in [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx):
+      - `onLeaveBack` executed `gsap.set(scene, { scale: 0.001, rotationX: -15, rotationY: baseRotY })`.
+      - `scene` is the 3D perspective viewport (`sceneRef.current`), NOT the scaled container (`sceneWrapperRef.current`) or the rotating cube (`cubeRef.current`).
+      - In `onUpdate`, GSAP updates `scale` on `sceneWrapper` and rotations on `cube`, but never touches `scale` or transforms on `scene`.
+      - Consequently, `scale: 0.001` remained permanently stuck on `scene` after the first upward scroll, shrinking the 3D cube down to 0.27px (invisible).
+  - **Applied Watertight Hierarchy Reset**:
+    - Targeted `sceneWrapper` for `scale: 0.001` in `onLeaveBack` and component initialization.
+    - Targeted `cube` for `rotationX: -15, rotationY: baseRotY, rotationZ: 0`.
+    - Added `gsap.set(scene, { clearProps: "transform,scale,rotationX,rotationY" })` to ensure `scene` remains completely free of any residual transform styles.
+  - **Live Browser Verification & Production Build**:
+    - Verified live behavior in browser via Playwright: scrolled into Experience (cube rendered), scrolled all the way back up into Skills (`onLeaveBack` fired), and scrolled back down into Experience (cube rendered with full size and all exhibits intact).
+    - Production build (`cmd /c "npm run build"`) compiled cleanly with exit code 0.
+    - Updated AST knowledge graph with `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Fixed `onLeaveBack` and initialization targets to manipulate `sceneWrapper` and `cube` instead of `scene`, and cleared transforms on `scene`.
+
 ## [2026-09-13 00:15] Removed Y' Header Monogram & Unified Background Across Projects and Contact
 - **Accomplishments**:
   - **Removed Red-Circled Y' Monogram from Contact Header**:

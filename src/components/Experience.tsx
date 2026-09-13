@@ -128,6 +128,21 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
 
       // Ensure marquee and cube start completely hidden before scroll entrance
       gsap.set(titleMarquee, { y: "130%" });
+      if (scene) {
+        gsap.set(scene, { clearProps: "transform,scale,rotationX,rotationY" });
+      }
+      gsap.set(sceneWrapper, {
+        xPercent: -50,
+        yPercent: -50,
+        scale: 0.001,
+        top: "50%",
+        left: "50%",
+      });
+      gsap.set(cube, {
+        rotationX: -15,
+        rotationY: baseRotY,
+        rotationZ: 0,
+      });
 
       ScrollTrigger.create({
         trigger: section,
@@ -141,8 +156,24 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
           if (itemNRef.current) gsap.set(itemNRef.current, { opacity: 0, y: 30 });
           if (itemIRef.current) gsap.set(itemIRef.current, { opacity: 0, y: 30 });
           if (itemMRef.current) gsap.set(itemMRef.current, { opacity: 0, y: 30 });
+          if (sceneWrapper) {
+            gsap.set(sceneWrapper, {
+              xPercent: -50,
+              yPercent: -50,
+              scale: 0.001,
+              top: "50%",
+              left: "50%",
+            });
+          }
+          if (cube) {
+            gsap.set(cube, {
+              rotationX: -15,
+              rotationY: baseRotY,
+              rotationZ: 0,
+            });
+          }
           if (scene) {
-            gsap.set(scene, { scale: 0.001, rotationX: -15, rotationY: baseRotY });
+            gsap.set(scene, { clearProps: "transform,scale,rotationX,rotationY" });
           }
         },
         onUpdate: (self) => {
@@ -294,9 +325,6 @@ export default function Experience({ onOpenAbout: _onOpenAbout }: ExperienceProp
     >
       {/* Pinned Viewport Stage */}
       <div className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-transparent z-20">
-        
-        {/* Subtle radial spotlight & micro grid */}
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,rgba(222,52,33,0.08)_0%,rgba(15,15,15,0.25)_50%,transparent_85%)] z-0" />
 
         {/* =================================================================
             BACKGROUND LAYER: SEQUENTIAL CORNER TELEMETRY (U, N, I, M)
