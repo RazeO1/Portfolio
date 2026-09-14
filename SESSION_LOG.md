@@ -1,5 +1,32 @@
 # Session Log
 
+## [2026-09-14 20:05] Upgraded Projects Section: Pure Picture Tiles (Nudot Studio Style), Integrated Dress Up, Removed FarmWing
+- **Accomplishments**:
+  - **Implemented Pure Picture Tiles (Zero Text, Matching Nudot Studio)**:
+    - Replaced all text/word content on the project tiles with pure edge-to-edge authentic app screenshots in [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx):
+      - **Tile 01**: `PlantVision AI` (`public/Projects/PlantVision AI.png`)
+      - **Tile 02**: `Smart Car Parking` (`public/Projects/Smart Car Parking.png`)
+      - **Tile 03**: `Dress Up` / TAG (`public/Projects/TAG.png`)
+    - Completely stripped all text labels, titles, descriptions, metrics, badges, and buttons off the tiles.
+    - Designed sleek `aspect-[16/10]` rounded panels with hairline inner border rings, deep shadows (`shadow-[0_30px_70px_-15px_rgba(0,0,0,0.95)]`), and hover zoom transitions (`group-hover:scale-[1.04]`).
+  - **Integrated Dress Up & Removed FarmWing**:
+    - Removed `FarmWing Precision UAV` from the project lineup.
+    - Integrated `Dress Up` (TAG / Wardrobe OS) with repository link `https://github.com/RazeO1/Dress-up`.
+    - Added comprehensive metadata: Real-time Cost-Per-Wear (CPW) telemetry, AI background segmentation, and 6 canonical wardrobe taxonomies.
+  - **Re-calibrated GSAP Scroll Scrub Choreography**:
+    - Synchronized the 3 flagship projects along the pinned `ARCHIVE OF THE SELECTED WORKS` stage (`h-[320vh]`):
+      - **Card 1 (Left Flank)**: Enters 0.05 -> exits 0.48 (PlantVision AI)
+      - **Card 2 (Right Flank)**: Enters 0.32 -> exits 0.75 (Smart Car Parking)
+      - **Card 3 (Centerpiece)**: Enters 0.58 -> exits 0.98 (Dress Up)
+    - Preserved interactive floating `VIEW` cursor disc and direct 1-click external navigation.
+  - **Verification & Build**:
+    - Successfully passed Next.js production build (`cmd /c "npm run build"`) with 0 errors.
+    - Verified layout, card proportions, image rendering, and scroll choreography in browser via Playwright.
+    - Updated AST knowledge graph using `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Replaced word tiles with authentic screenshot cards, integrated Dress Up, removed FarmWing, and recalibrated 3-card GSAP timeline.
+  - [`SESSION_LOG.md`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/SESSION_LOG.md): Documented the update.
+
 ## [2026-09-14 12:40] Added Authentic Photos to 3D Experience Cube & Synchronized Background Dossiers
 - **Accomplishments**:
   - **Applied Authentic Photos to 3D Cube Faces**:
