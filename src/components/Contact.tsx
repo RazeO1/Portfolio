@@ -68,13 +68,8 @@ export default function Contact({ onOpenAbout }: ContactProps) {
           1. TOP BAR: Architectural Telemetry Header
           ========================================================================= */}
       <header className="relative z-10 w-full px-6 md:px-12 lg:px-16 flex items-center justify-between font-mono text-[10px] md:text-xs uppercase tracking-wider text-neutral-400">
-        {/* Left: Studio coordinate telemetry */}
-        <div className="flex items-center gap-2.5 sm:gap-3 text-neutral-400 font-mono">
-          <span className="text-[#de3421] font-bold">//</span>
-          <span className="tracking-widest">12.9716° N, 77.5946° E</span>
-          <span className="hidden sm:inline text-neutral-600">•</span>
-          <span className="hidden sm:inline text-neutral-400 tracking-wider">BENGALURU NODE</span>
-        </div>
+        {/* Left: Empty spacer to preserve right alignment of status */}
+        <div />
 
         {/* Right: Availability status & live clock */}
         <div className="flex items-center gap-4 sm:gap-6 text-[10px] md:text-xs">
@@ -100,15 +95,11 @@ export default function Contact({ onOpenAbout }: ContactProps) {
         
         {/* Left Column: Monumental Headline & Mission Brief */}
         <div className="lg:col-span-6 flex flex-col items-start max-w-xl">
-          <div className="inline-flex items-center gap-2 font-mono text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-[#de3421] mb-3 md:mb-4">
-            <span>[ TRANSMISSION PROTOCOL ]</span>
-          </div>
-
           <h2
             className="font-black text-4xl sm:text-6xl md:text-7xl lg:text-[5.4rem] leading-[0.92] tracking-[-0.04em] text-white select-text"
             style={{ fontFamily: "'Inter Tight', var(--font-sans), sans-serif" }}
           >
-            Let&apos;s start<br />
+            Let<span className="text-[#de3421]">&apos;</span>s start<br />
             something<br />
             bold<span className="text-[#de3421]">.</span>
           </h2>
