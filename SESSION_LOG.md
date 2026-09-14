@@ -1,5 +1,18 @@
 # Session Log
 
+## [2026-09-14 21:48] Updated Project Links to Live Deployments
+- **Accomplishments**:
+  - **Updated Project Destination URLs in [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx)**:
+    - **PlantVision AI**: Updated destination link from GitHub repo to live deployment `https://plant-vision-ai-psi.vercel.app`.
+    - **Smart Car Parking**: Updated destination link from GitHub profile to live deployment `https://smartcarparking.netlify.app`.
+    - **Dress Up**: Retained GitHub repository link `https://github.com/RazeO1/Dress-up`.
+  - **Verification & Build**:
+    - Ran Next.js production build (`cmd /c "npm run build"`) with 0 errors and static prerendering.
+    - Updated AST knowledge graph via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Projects.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Projects.tsx): Updated `link` properties for PlantVision AI and Smart Car Parking.
+  - [`SESSION_LOG.md`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/SESSION_LOG.md): Documented the update.
+
 ## [2026-09-14 21:02] Refined Contact Section: Removed Coordinates & Transmission Badge, Colored Apostrophe Red
 - **Accomplishments**:
   - **Removed Red-Circled Elements**:

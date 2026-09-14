@@ -20,7 +20,7 @@ interface ProjectData {
   id: string;
   title: string;
   image: string;
-  github: string;
+  link: string;
   positionClass: string; // Left, Right, Center placement
 }
 
@@ -60,7 +60,7 @@ export default function Projects({
       id: "plantvision-ai",
       title: "PlantVision AI",
       image: "/Projects/PlantVision%20AI.png",
-      github: "https://github.com/RazeO1/PlantVision-AI",
+      link: "https://plant-vision-ai-psi.vercel.app",
       positionClass:
         "left-[5%] sm:left-[7%] md:left-[9%] lg:left-[11%] w-[88vw] sm:w-[50vw] md:w-[44vw] lg:w-[38vw] max-w-[560px]",
     },
@@ -68,7 +68,7 @@ export default function Projects({
       id: "smart-car-parking",
       title: "Smart Car Parking",
       image: "/Projects/Smart%20Car%20Parking.png",
-      github: "https://github.com/RazeO1",
+      link: "https://smartcarparking.netlify.app",
       positionClass:
         "right-[5%] sm:right-[7%] md:right-[9%] lg:right-[11%] w-[88vw] sm:w-[50vw] md:w-[44vw] lg:w-[38vw] max-w-[560px]",
     },
@@ -76,7 +76,7 @@ export default function Projects({
       id: "dress-up",
       title: "Dress Up",
       image: "/Projects/TAG.png",
-      github: "https://github.com/RazeO1/Dress-up",
+      link: "https://github.com/RazeO1/Dress-up",
       positionClass:
         "left-1/2 -translate-x-1/2 w-[90vw] sm:w-[56vw] md:w-[48vw] lg:w-[42vw] max-w-[620px]",
     },
@@ -256,8 +256,8 @@ function ProjectPictureTile({ project }: { project: ProjectData }) {
   return (
     <article
       onClick={() => {
-        if (project.github) {
-          window.open(project.github, "_blank", "noopener,noreferrer");
+        if (project.link) {
+          window.open(project.link, "_blank", "noopener,noreferrer");
         }
       }}
       className="group relative w-full aspect-[16/10] rounded-2xl md:rounded-3xl border border-white/20 bg-[#121215] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.95)] hover:border-white/50 transition-all duration-500 overflow-hidden cursor-pointer"
