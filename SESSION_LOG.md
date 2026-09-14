@@ -1,5 +1,48 @@
 # Session Log
 
+## [2026-09-14 12:40] Added Authentic Photos to 3D Experience Cube & Synchronized Background Dossiers
+- **Accomplishments**:
+  - **Applied Authentic Photos to 3D Cube Faces**:
+    - Integrated real photos from `public/Experience pics/` onto all 6 watertight faces of the 3D rotating cube in [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx):
+      - **Face 1 (Front)**: `01_hero.jpg` (Hero in Malaysia / Research Intern)
+      - **Face 2 (Left)**: `02_team.jpg` (Lab cohort & team)
+      - **Face 3 (Back)**: `03.png` (Canselori UniMAP)
+      - **Face 4 (Right)**: `05_presentation.jpg` (Research defense)
+      - **Top Face**: `04_top of the cube.jpg` (FKTE faculty)
+      - **Bottom Face**: `06 bottom of the cube.png` (Perlis/Penang coastline)
+    - Added subtle dark gradient vignettes, fine 1px borders (`border-white/20`), and sleek museum-grade pill index badges (`01 // RESEARCH INTERN`, `02 // COHORT & LAB`, etc.) to each face.
+  - **Transferred Technical Details into Dynamic Background Text Dossiers**:
+    - Extracted all technical research content, benchmarks, mathematical formulas, and telemetry out of the cube and into 4 dynamic editorial background exhibits:
+      - **Exhibit 01**: UniMAP Research Appointment & Faculty of Intelligent Computing specs.
+      - **Exhibit 02**: Latency-Aware Multi-Temporal Transformer (`LAMTT`), joint loss formula, and ~62ms inference stats.
+      - **Exhibit 03**: Edge vs Cloud Pipeline architecture, Dockerized microservice pipeline, and latency comparison bar chart.
+      - **Exhibit 04**: Wireless Sensing AI, Angle-of-Arrival (AoA) estimation theorem, and polar radar vector graphic.
+    - Implemented stepwise cube rotation (`getCubeRotation`) that aligns each exhibit with its corresponding photo face as the user scrolls, with smooth cubic-bezier ease transitions.
+    - Tuned left flank containers to `w-full md:w-[280px] lg:w-[320px] xl:w-[360px]` and softened the background dot-matrix marquee ribbon to `opacity-[0.06]` to ensure zero visual collision with the central 3D cube.
+  - **Image Sizing & Quality Specifications Determined**:
+    - Analyzed the cube's CSS rendering box (`~365px × 365px` on desktop, `~243px × 243px` on mobile) against 2x and 3x device pixel ratios.
+    - Formulated the exact optimal specifications: **800 × 800 px** (or **1000 × 1000 px** for 4K/3x), **WebP** at **80–85% quality**, **72 DPI**.
+  - **Verification & Build**:
+    - Executed Next.js production build (`cmd /c "npm run build"`) which compiled successfully with exit code 0.
+    - Updated AST knowledge graph via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Experience.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Experience.tsx): Integrated cube photos, created synchronized background exhibit dossiers, and tuned layout clearance.
+  - [`SESSION_LOG.md`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/SESSION_LOG.md): Documented the update.
+
+## [2026-09-14 11:58] Removed 'SECTION 02 / SHOWCASE' Header Label from Showcase Section
+- **Accomplishments**:
+  - **Removed Red-Circled Section Label**:
+    - Analyzed user screenshot (`Screenshot 2026-09-14 115222.png`) and located the red-circled decorative badge `SECTION 02 / SHOWCASE`.
+    - Removed the decorative label element (`<div className="mb-3"><span className="font-mono text-xs uppercase tracking-widest text-[#de3421] font-bold">Section 02 / Showcase</span></div>`) from [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx).
+    - Preserved clean editorial focus directly on the `Interactive Sketchbook` display heading (`Averia Serif Libre`).
+    - Verified dynamic alignment with [`src/components/SectionNavbar.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/SectionNavbar.tsx) which dynamically queries the `<h2>` element.
+  - **Verification & Build**:
+    - Ran Next.js production build (`cmd /c "npm run build"`) with 0 TypeScript/ESLint errors and successful static page generation.
+    - Updated AST knowledge graph via `graphify update .`.
+- **Key Files Modified**:
+  - [`src/components/Showcase.tsx`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/src/components/Showcase.tsx): Removed `Section 02 / Showcase` decorative label above the main title.
+  - [`SESSION_LOG.md`](file:///C:/Users/hiiam/OneDrive/Desktop/Python/Portfolio/SESSION_LOG.md): Documented the update.
+
 ## [2026-09-13 22:48] Removed Floating Navbar from Contact Section & Linked Bottom Name to Hero Section
 - **Accomplishments**:
   - **Removed Floating Navbar from Contact Section**:

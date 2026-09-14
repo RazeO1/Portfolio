@@ -658,12 +658,6 @@ export default function Showcase({ onOpenAbout }: { onOpenAbout?: () => void } =
 
   return (
     <section id="showcase" className="relative w-full pt-16 md:pt-20 pb-24 select-none bg-[#fcf7f3] flex flex-col items-center">
-      {/* Decorative label */}
-      <div className="mb-3">
-        <span className="font-mono text-xs uppercase tracking-widest text-[#de3421] font-bold">
-          Section 02 / Showcase
-        </span>
-      </div>
 
       <h2 className="font-display font-medium text-4xl md:text-5xl text-black text-center mb-10 tracking-tight">
         Interactive Sketchbook
